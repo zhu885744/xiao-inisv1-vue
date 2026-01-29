@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,viewport-fit=cover">
+    <title>%VITE_TITLE%</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+    <script type="module">
+        function loadConfigJS() {
+            const configScript = document.createElement('script');
+            configScript.src = '/config.js';
+            configScript.async = true;
+            configScript.onload = () => {
+                configScript.remove();
+            };
+            document.head.appendChild(configScript);
+        }
+
+        const isProd = import.meta.env.MODE === 'production';
+        const viteLibs = import.meta.env.VITE_LIBS || '';
+
+        if (isProd) {
+            if (viteLibs) {
+                const script = document.createElement('script');
+                script.innerHTML = viteLibs;
+                document.head.appendChild(script);
+            }
+            try {
+                globalThis.inis = JSON.parse('{{.INIS}}');
+            } catch(e) {
+                console.warn('INIS解析失败，使用config.js配置');
+            }
+            loadConfigJS();
+        } else {
+            loadConfigJS();
+        }
+    </script>
+</head>
+<body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
