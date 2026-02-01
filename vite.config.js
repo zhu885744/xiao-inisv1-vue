@@ -42,6 +42,17 @@ export default defineConfig(({ mode }) => {
       }
     },
     // 服务环境静态资源路径适配
-    base: './'
+    base: './',
+    // 开发服务器配置
+    server: {
+      // API代理配置
+      proxy: {
+        '/api': {
+          target: 'https://cs.zhuxu.asia', // 假设后端服务运行在8000端口
+          changeOrigin: true,
+          rewrite: (path) => path
+        }
+      }
+    }
   }
 })

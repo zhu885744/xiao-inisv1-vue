@@ -1,11 +1,17 @@
-// src/main.js
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router' 
 import { createPinia } from 'pinia'
 
+// Bootstrap 5 CSS 全部样式
+import 'bootstrap/dist/css/bootstrap.min.css'
+// Bootstrap 5 JS bundle（包含Popper.js，所有JS插件都在这，无需单独导入其他JS）
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+// Bootstrap 图标库（不变）
+import 'bootstrap-icons/font/bootstrap-icons.css'
+
 // 导入自定义样式文件
-import './assets/css/buyu.mode.css'
+// import './assets/css/buyu.mode.css'
 import './assets/css/buyu.style.css'
 
 // 导入 socket

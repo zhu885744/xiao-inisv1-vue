@@ -10,7 +10,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--color-neutral-400);
+  background-color: #ffff;
   background-image: -webkit-linear-gradient(45deg,rgba(255,255,255,.4) 100%,transparent 100%,transparent 50%,rgba(255,255,255,.4) 50%,rgba(255,255,255,.4) 75%,transparent 75%,transparent);
   border-radius: 2em;
+}
+
+body {
+  background-color: rgb(225 225 225);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
 }

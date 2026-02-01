@@ -230,6 +230,7 @@
   --border-width-lg: 3px;   /* 粗边框（突出重要元素） */
 
   /* 边框圆角 */
+  --border-radius: var(--border-radius-sm); /* 基础圆角，默认小圆角 */
   --border-radius-xs: 2px;   /* 微圆角（紧凑组件：按钮/输入框） */
   --border-radius-sm: 4px;   /* 小圆角（默认通用） */
   --border-radius-md: 6px;   /* 中等圆角（卡片/面板） */
@@ -404,7 +405,44 @@
   --grid-columns: 12;
   --grid-gutter: 16px;
   --grid-gutter-sm: 8px;
+  --grid-gutter-md: 16px;
   --grid-gutter-lg: 24px;
+  --grid-gutter-xl: 32px;
+  --grid-row-gap: var(--grid-gutter);
+  --grid-col-gap: var(--grid-gutter);
+
+  /* 边框系统增强 */
+  /* 边框宽度扩展 */
+  --border-width-2xs: 0.25px;  /* 极细边框 */
+  --border-width-4xl: 4px;     /* 超粗边框 */
+  --border-width-5xl: 5px;     /* 特粗边框 */
+  
+  /* 边框圆角扩展 */
+  --border-radius-2xs: 1px;    /* 极小圆角 */
+  --border-radius-3xl: 16px;   /* 特大圆角 */
+  --border-radius-4xl: 20px;   /* 超大圆角 */
+  
+  /* 边框颜色扩展（语义化） */
+  --color-border-info: var(--color-blue-500);
+  --color-border-purple: var(--color-purple-500);
+  --color-border-cyan: var(--color-cyan-500);
+  --color-border-yellow: var(--color-yellow-500);
+  --color-border-neutral: var(--color-neutral-200);
+  --color-border-hover: var(--color-primary-light);
+
+  /* 分割线系统 */
+  --divider-height: var(--border-width-sm);
+  --divider-color: var(--color-border-light);
+  --divider-spacing: var(--spacing-md); /* 分割线上下间距 */
+  
+  /* 间距系统增强（子元素间距） */
+  --gap-xs: var(--spacing-xs);
+  --gap-sm: var(--spacing-sm);
+  --gap-md: var(--spacing-md);
+  --gap-lg: var(--spacing-lg);
+  --gap-xl: var(--spacing-xl);
+  --gap-2xl: var(--spacing-2xl);
+  --gap-3xl: var(--spacing-3xl);
   
   /* 断点系统 */
   --breakpoint-xs: 0;
@@ -647,6 +685,10 @@
   --bs-box-shadow-sm: var(--shadow-xs);
   --bs-box-shadow-lg: var(--shadow-lg);
   --bs-box-shadow-inset: var(--shadow-inner);
+
+  --color-border-neutral: var(--color-neutral-700);
+  --divider-color: var(--color-border-dark);
+  --border-width-2xs: 0.25px;
 }
 
 /* ==========================================
@@ -2479,13 +2521,13 @@ progress {
 
 /* 网格调试工具（默认关闭，需添加 .debug-grid 类启用） */
 .debug-grid .row {
-  background: rgbaa(255, 0, 0, 0.05);
-  outline: 1px dashed rgbaa(255, 0, 0, 0.2);
+  background: rgba(255, 0, 0, 0.05);
+  outline: 1px dashed rgba(255, 0, 0, 0.2);
 }
 
 .debug-grid [class*="col-"] {
-  background: rgbaa(0, 255, 0, 0.05);
-  outline: 1px dashed rgbaa(0, 255, 0, 0.2);
+  background: rgba(0, 255, 0, 0.05);
+  outline: 1px dashed rgba(0, 255, 0, 0.2);
   min-height: 30px;
 }
 
@@ -2494,6 +2536,520 @@ progress {
   content: "";
   display: table;
   clear: both;
+}
+
+/* ==========================================
+ * 1. 网格布局增强（Grid）
+ * ========================================== */
+/* 基础网格容器 */
+.grid {
+  display: grid;
+  gap: var(--grid-gutter);
+}
+
+/* 列数扩展（1-12列） */
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.grid-cols-8 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.grid-cols-9 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+.grid-cols-10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.grid-cols-11 { grid-template-columns: repeat(11, minmax(0, 1fr)); }
+.grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+/* 列宽自适应 */
+.grid-cols-auto { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+.grid-cols-auto-min { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+/* 行高控制 */
+.grid-rows-1 { grid-template-rows: repeat(1, minmax(0, 1fr)); }
+.grid-rows-2 { grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.grid-rows-3 { grid-template-rows: repeat(3, minmax(0, 1fr)); }
+.grid-rows-4 { grid-template-rows: repeat(4, minmax(0, 1fr)); }
+
+/* 网格间距控制 */
+.gap-0 { gap: var(--spacing-0); }
+.gap-xxs { gap: var(--spacing-xxs); }
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+.gap-2xl { gap: var(--spacing-2xl); }
+
+/* 行列间距单独控制 */
+.gap-x-0 { column-gap: var(--spacing-0); }
+.gap-x-xs { column-gap: var(--spacing-xs); }
+.gap-x-sm { column-gap: var(--spacing-sm); }
+.gap-x-md { column-gap: var(--spacing-md); }
+.gap-x-lg { column-gap: var(--spacing-lg); }
+
+.gap-y-0 { row-gap: var(--spacing-0); }
+.gap-y-xs { row-gap: var(--spacing-xs); }
+.gap-y-sm { row-gap: var(--spacing-sm); }
+.gap-y-md { row-gap: var(--spacing-md); }
+.gap-y-lg { row-gap: var(--spacing-lg); }
+
+/* 网格项目偏移 */
+.col-span-1 { grid-column: span 1 / span 1; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.col-span-3 { grid-column: span 3 / span 3; }
+.col-span-4 { grid-column: span 4 / span 4; }
+.col-span-6 { grid-column: span 6 / span 6; }
+.col-span-12 { grid-column: span 12 / span 12; }
+
+/* ==========================================
+ * 2. 边框系统完善（Border）
+ * ========================================== */
+/* 2.1 边框宽度 */
+.border-w-2xs { border-width: var(--border-width-2xs); }
+.border-w-xs { border-width: var(--border-width-xs); }
+.border-w-sm { border-width: var(--border-width-sm); }
+.border-w-md { border-width: var(--border-width-md); }
+.border-w-lg { border-width: var(--border-width-lg); }
+.border-w-4xl { border-width: var(--border-width-4xl); }
+.border-w-5xl { border-width: var(--border-width-5xl); }
+
+/* 2.2 边框圆角 */
+.rounded-2xs { border-radius: var(--border-radius-2xs); }
+.rounded-xs { border-radius: var(--border-radius-xs); }
+.rounded-sm { border-radius: var(--border-radius-sm); }
+.rounded-md { border-radius: var(--border-radius-md); }
+.rounded-lg { border-radius: var(--border-radius-lg); }
+.rounded-xl { border-radius: var(--border-radius-xl); }
+.rounded-3xl { border-radius: var(--border-radius-3xl); }
+.rounded-4xl { border-radius: var(--border-radius-4xl); }
+.rounded-full { border-radius: var(--border-radius-full); }
+
+/* 单边圆角 */
+.rounded-t { border-top-left-radius: var(--border-radius-sm); border-top-right-radius: var(--border-radius-sm); }
+.rounded-b { border-bottom-left-radius: var(--border-radius-sm); border-bottom-right-radius: var(--border-radius-sm); }
+.rounded-l { border-top-left-radius: var(--border-radius-sm); border-bottom-left-radius: var(--border-radius-sm); }
+.rounded-r { border-top-right-radius: var(--border-radius-sm); border-bottom-right-radius: var(--border-radius-sm); }
+
+/* 2.3 边框颜色 */
+.border-primary { border-color: var(--color-border-primary); }
+.border-secondary { border-color: var(--color-secondary); }
+.border-success { border-color: var(--color-border-success); }
+.border-warning { border-color: var(--color-border-warning); }
+.border-danger { border-color: var(--color-border-danger); }
+.border-info { border-color: var(--color-border-info); }
+.border-purple { border-color: var(--color-border-purple); }
+.border-cyan { border-color: var(--color-border-cyan); }
+.border-yellow { border-color: var(--color-border-yellow); }
+.border-neutral { border-color: var(--color-border-neutral); }
+.border-hover:hover { border-color: var(--color-border-hover); }
+
+/* 2.4 单边边框快捷样式 */
+.border-t { border-top: var(--border); }
+.border-r { border-right: var(--border); }
+.border-b { border-bottom: var(--border); }
+.border-l { border-left: var(--border); }
+
+/* 无边框 */
+.border-0 { border-width: 0 !important; }
+.border-t-0 { border-top-width: 0 !important; }
+.border-r-0 { border-right-width: 0 !important; }
+.border-b-0 { border-bottom-width: 0 !important; }
+.border-l-0 { border-left-width: 0 !important; }
+
+/* ==========================================
+ * 3. 分割线系统（Divider）
+ * ========================================== */
+.divider {
+  display: block;
+  height: var(--divider-height);
+  width: 100%;
+  background-color: var(--divider-color);
+  margin: var(--divider-spacing) 0;
+  border: 0;
+}
+
+/* 分割线变体 */
+.divider-sm {
+  height: var(--border-width-xs);
+  margin: calc(var(--divider-spacing) / 2) 0;
+}
+
+.divider-lg {
+  height: var(--border-width-md);
+  margin: calc(var(--divider-spacing) * 2) 0;
+}
+
+.divider-dashed {
+  background: none;
+  border-bottom: var(--border-dashed);
+  height: 0;
+}
+
+.divider-primary {
+  background-color: var(--color-border-primary);
+}
+
+/* 带文字的分割线 */
+.divider-with-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  margin: var(--spacing-lg) 0;
+  gap: var(--spacing-sm);
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+  content: "";
+  flex: 1;
+  height: var(--divider-height);
+  background-color: var(--divider-color);
+}
+
+.divider-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-lighter);
+  padding: 0 var(--spacing-sm);
+}
+
+/* ==========================================
+ * 4. 容器增强（Container）
+ * ========================================== */
+/* 响应式容器断点增强 */
+@media (min-width: var(--breakpoint-sm)) {
+  .container { max-width: 540px; }
+  .container-sm { max-width: 540px; }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .container { max-width: 720px; }
+  .container-sm { max-width: 540px; }
+  .container-md { max-width: 720px; }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .container { max-width: 960px; }
+  .container-sm { max-width: 540px; }
+  .container-md { max-width: 720px; }
+  .container-lg { max-width: 960px; }
+}
+
+@media (min-width: var(--breakpoint-xl)) {
+  .container { max-width: 1140px; }
+  .container-sm { max-width: 540px; }
+  .container-md { max-width: 720px; }
+  .container-lg { max-width: 960px; }
+  .container-xl { max-width: 1140px; }
+}
+
+@media (min-width: var(--breakpoint-xxl)) {
+  .container { max-width: 1320px; }
+  .container-sm { max-width: 540px; }
+  .container-md { max-width: 720px; }
+  .container-lg { max-width: 960px; }
+  .container-xl { max-width: 1140px; }
+  .container-xxl { max-width: 1320px; }
+}
+
+/* 容器内边距变体 */
+.container-padding-xs {
+  padding-right: var(--spacing-xs);
+  padding-left: var(--spacing-xs);
+}
+
+.container-padding-xl {
+  padding-right: var(--spacing-xl);
+  padding-left: var(--spacing-xl);
+}
+
+/* 流式容器（无最大宽度） */
+.container-fluid {
+  width: 100%;
+  padding-right: var(--grid-gutter-md);
+  padding-left: var(--grid-gutter-md);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* 窄容器 */
+.container-narrow {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 var(--grid-gutter);
+}
+
+/* ==========================================
+ * 5. 浮动系统（Float）
+ * ========================================== */
+.float-left { float: left !important; }
+.float-right { float: right !important; }
+.float-none { float: none !important; }
+
+/* 清除浮动 */
+.clearfix::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* 响应式浮动 */
+@media (min-width: var(--breakpoint-sm)) {
+  .float-sm-left { float: left !important; }
+  .float-sm-right { float: right !important; }
+  .float-sm-none { float: none !important; }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .float-md-left { float: left !important; }
+  .float-md-right { float: right !important; }
+  .float-md-none { float: none !important; }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .float-lg-left { float: left !important; }
+  .float-lg-right { float: right !important; }
+  .float-lg-none { float: none !important; }
+}
+
+/* ==========================================
+ * 6. Flex 布局增强
+ * ========================================== */
+/* 基础Flex容器 */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+
+/* 响应式Flex */
+@media (min-width: var(--breakpoint-sm)) {
+  .flex-sm { display: flex; }
+  .inline-flex-sm { display: inline-flex; }
+  .flex-sm-row { flex-direction: row; }
+  .flex-sm-col { flex-direction: column; }
+}
+
+@media (min-width: var(--breakpoint-md)) {
+  .flex-md { display: flex; }
+  .inline-flex-md { display: inline-flex; }
+  .flex-md-row { flex-direction: row; }
+  .flex-md-col { flex-direction: column; }
+}
+
+/* Flex 换行控制 */
+.flex-wrap { flex-wrap: wrap; }
+.flex-wrap-reverse { flex-wrap: wrap-reverse; }
+.flex-nowrap { flex-wrap: nowrap; }
+
+/* 响应式换行 */
+.flex-sm-wrap { flex-wrap: wrap !important; }
+.flex-md-nowrap { flex-wrap: nowrap !important; }
+
+/* Flex 溢出处理 */
+.flex-nowrap-overflow {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.flex-nowrap-overflow::-webkit-scrollbar {
+  display: none;
+}
+
+/* Flex 项目排序 */
+.order-0 { order: 0; }
+.order-1 { order: 1; }
+.order-2 { order: 2; }
+.order-3 { order: 3; }
+.order-last { order: 9999; }
+.order-first { order: -9999; }
+
+/* Flex 伸缩比例 */
+.flex-grow-0 { flex-grow: 0 !important; }
+.flex-grow-1 { flex-grow: 1 !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+.flex-shrink-1 { flex-shrink: 1 !important; }
+
+/* ==========================================
+ * 7. 间距系统完善（外边距/内边距/子元素间距）
+ * ========================================== */
+/* 7.1 外边距（Margin）- 全方向 */
+.m-0 { margin: var(--spacing-0); }
+.m-xxs { margin: var(--spacing-xxs); }
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+.m-2xl { margin: var(--spacing-2xl); }
+.m-3xl { margin: var(--spacing-3xl); }
+.m-auto { margin: auto !important; }
+
+/* 7.2 外边距 - 方向控制 */
+/* 垂直方向 */
+.my-0 { margin-top: var(--spacing-0); margin-bottom: var(--spacing-0); }
+.my-xxs { margin-top: var(--spacing-xxs); margin-bottom: var(--spacing-xxs); }
+.my-xs { margin-top: var(--spacing-xs); margin-bottom: var(--spacing-xs); }
+.my-sm { margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
+.my-md { margin-top: var(--spacing-md); margin-bottom: var(--spacing-md); }
+.my-lg { margin-top: var(--spacing-lg); margin-bottom: var(--spacing-lg); }
+.my-xl { margin-top: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+.my-auto { margin-top: auto !important; margin-bottom: auto !important; }
+
+/* 水平方向 */
+.mx-0 { margin-left: var(--spacing-0); margin-right: var(--spacing-0); }
+.mx-xxs { margin-left: var(--spacing-xxs); margin-right: var(--spacing-xxs); }
+.mx-xs { margin-left: var(--spacing-xs); margin-right: var(--spacing-xs); }
+.mx-sm { margin-left: var(--spacing-sm); margin-right: var(--spacing-sm); }
+.mx-md { margin-left: var(--spacing-md); margin-right: var(--spacing-md); }
+.mx-lg { margin-left: var(--spacing-lg); margin-right: var(--spacing-lg); }
+.mx-xl { margin-left: var(--spacing-xl); margin-right: var(--spacing-xl); }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+/* 单方向 */
+.mt-0 { margin-top: var(--spacing-0); }
+.mt-xxs { margin-top: var(--spacing-xxs); }
+.mt-xs { margin-top: var(--spacing-xs); }
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+.mt-auto { margin-top: auto !important; }
+
+.mb-0 { margin-bottom: var(--spacing-0); }
+.mb-xxs { margin-bottom: var(--spacing-xxs); }
+.mb-xs { margin-bottom: var(--spacing-xs); }
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+.mb-auto { margin-bottom: auto !important; }
+
+.ml-0 { margin-left: var(--spacing-0); }
+.ml-xxs { margin-left: var(--spacing-xxs); }
+.ml-xs { margin-left: var(--spacing-xs); }
+.ml-sm { margin-left: var(--spacing-sm); }
+.ml-md { margin-left: var(--spacing-md); }
+.ml-lg { margin-left: var(--spacing-lg); }
+.ml-xl { margin-left: var(--spacing-xl); }
+.ml-auto { margin-left: auto !important; }
+
+.mr-0 { margin-right: var(--spacing-0); }
+.mr-xxs { margin-right: var(--spacing-xxs); }
+.mr-xs { margin-right: var(--spacing-xs); }
+.mr-sm { margin-right: var(--spacing-sm); }
+.mr-md { margin-right: var(--spacing-md); }
+.mr-lg { margin-right: var(--spacing-lg); }
+.mr-xl { margin-right: var(--spacing-xl); }
+.mr-auto { margin-right: auto !important; }
+
+/* 7.3 内边距（Padding）- 全方向 */
+.p-0 { padding: var(--spacing-0); }
+.p-xxs { padding: var(--spacing-xxs); }
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+.p-2xl { padding: var(--spacing-2xl); }
+
+/* 7.4 内边距 - 方向控制 */
+/* 垂直方向 */
+.py-0 { padding-top: var(--spacing-0); padding-bottom: var(--spacing-0); }
+.py-xxs { padding-top: var(--spacing-xxs); padding-bottom: var(--spacing-xxs); }
+.py-xs { padding-top: var(--spacing-xs); padding-bottom: var(--spacing-xs); }
+.py-sm { padding-top: var(--spacing-sm); padding-bottom: var(--spacing-sm); }
+.py-md { padding-top: var(--spacing-md); padding-bottom: var(--spacing-md); }
+.py-lg { padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg); }
+.py-xl { padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl); }
+
+/* 水平方向 */
+.px-0 { padding-left: var(--spacing-0); padding-right: var(--spacing-0); }
+.px-xxs { padding-left: var(--spacing-xxs); padding-right: var(--spacing-xxs); }
+.px-xs { padding-left: var(--spacing-xs); padding-right: var(--spacing-xs); }
+.px-sm { padding-left: var(--spacing-sm); padding-right: var(--spacing-sm); }
+.px-md { padding-left: var(--spacing-md); padding-right: var(--spacing-md); }
+.px-lg { padding-left: var(--spacing-lg); padding-right: var(--spacing-lg); }
+.px-xl { padding-left: var(--spacing-xl); padding-right: var(--spacing-xl); }
+
+/* 单方向 */
+.pt-0 { padding-top: var(--spacing-0); }
+.pt-xxs { padding-top: var(--spacing-xxs); }
+.pt-xs { padding-top: var(--spacing-xs); }
+.pt-sm { padding-top: var(--spacing-sm); }
+.pt-md { padding-top: var(--spacing-md); }
+.pt-lg { padding-top: var(--spacing-lg); }
+.pt-xl { padding-top: var(--spacing-xl); }
+
+.pb-0 { padding-bottom: var(--spacing-0); }
+.pb-xxs { padding-bottom: var(--spacing-xxs); }
+.pb-xs { padding-bottom: var(--spacing-xs); }
+.pb-sm { padding-bottom: var(--spacing-sm); }
+.pb-md { padding-bottom: var(--spacing-md); }
+.pb-lg { padding-bottom: var(--spacing-lg); }
+.pb-xl { padding-bottom: var(--spacing-xl); }
+
+.pl-0 { padding-left: var(--spacing-0); }
+.pl-xxs { padding-left: var(--spacing-xxs); }
+.pl-xs { padding-left: var(--spacing-xs); }
+.pl-sm { padding-left: var(--spacing-sm); }
+.pl-md { padding-left: var(--spacing-md); }
+.pl-lg { padding-left: var(--spacing-lg); }
+.pl-xl { padding-left: var(--spacing-xl); }
+
+.pr-0 { padding-right: var(--spacing-0); }
+.pr-xxs { padding-right: var(--spacing-xxs); }
+.pr-xs { padding-right: var(--spacing-xs); }
+.pr-sm { padding-right: var(--spacing-sm); }
+.pr-md { padding-right: var(--spacing-md); }
+.pr-lg { padding-right: var(--spacing-lg); }
+.pr-xl { padding-right: var(--spacing-xl); }
+
+/* 7.5 子元素间距（通用） */
+/* Flex/Grid 子元素间距 */
+.gap-child-xs > * + * { margin-left: var(--gap-xs); }
+.gap-child-sm > * + * { margin-left: var(--gap-sm); }
+.gap-child-md > * + * { margin-left: var(--gap-md); }
+.gap-child-lg > * + * { margin-left: var(--gap-lg); }
+
+/* 垂直方向子元素间距 */
+.gap-child-y-xs > * + * { margin-top: var(--gap-xs); }
+.gap-child-y-sm > * + * { margin-top: var(--gap-sm); }
+.gap-child-y-md > * + * { margin-top: var(--gap-md); }
+.gap-child-y-lg > * + * { margin-top: var(--gap-lg); }
+
+/* 响应式子元素间距 */
+@media (min-width: var(--breakpoint-sm)) {
+  .gap-child-sm-xs > * + * { margin-left: var(--gap-xs); }
+  .gap-child-sm-y-xs > * + * { margin-top: var(--gap-xs); }
+}
+
+/* 文本溢出省略 */
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 多行文本溢出省略（适配2行，可修改line-clamp） */
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 居中定位（子元素绝对定位，父元素需relative） */
+.center-abs {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 满屏容器 */
+.min-h-screen {
+  min-height: 100vh;
 }
 
 /* ==========================================

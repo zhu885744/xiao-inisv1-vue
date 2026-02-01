@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import cache from '@/utils/cache'
 import utils from '@/utils/utils'
 import axios from '@/utils/request'
 import { push } from '@/utils/route'
@@ -14,7 +15,7 @@ const checkToken = (state = {}) => {
 
         if (code === 412) return
         if (code === 401) return logout(state)
-        if (code !== 200) return
+        if (code !== 200) return notyf.error(msg)
 
         state.login.user   = data.user
         state.login.finish = true

@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia'
 import utils from '@/utils/utils'
+import cache from '@/utils/cache'
 import axios from '@/utils/request'
 
 // 获取指定配置
