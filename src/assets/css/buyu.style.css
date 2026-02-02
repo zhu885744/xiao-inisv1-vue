@@ -17,9 +17,8 @@
 
 body {
   background-color: rgb(225 225 225);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family-main);
+  color: rgb(0 0 0);
+  font-size: 1rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

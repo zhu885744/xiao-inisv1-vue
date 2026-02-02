@@ -4,6 +4,14 @@
     <div class="card-body d-flex align-items-center">
       <span class="badge text-bg-danger me-2"><i class="bi bi-megaphone"></i></span>
       <span class="fw-medium">新系统启用公告<a href="https://blog.zhuxu.asia/archives/182/" class="text-decoration-none">[点击查看]</a></span>
+      <span class="ms-auto text-muted small">2026-2-2</span>
+    </div>
+  </div>
+  <div class="card article-announce-card mt-2 shadow-sm">
+    <div class="card-body d-flex align-items-center">
+      <span class="badge text-bg-danger me-2"><i class="bi bi-megaphone"></i></span>
+      <span class="fw-medium">本站正在快马加鞭赶制中，预计在3月初正式上线！</span>
+      <span class="ms-auto text-muted small">2026-2-2</span>
     </div>
   </div>
 
@@ -48,7 +56,7 @@
           </p>
 
           <!-- 文章元信息 - 小卡片适配，字号缩小+间距精简 -->
-          <div class="article-meta d-flex flex-wrap gap-1 align-items-center text-muted my-2">
+          <div class="card-text d-flex flex-wrap gap-2 align-items-center my-2">
             <span class="meta-item">{{ article.result?.author?.nickname || '匿名' }}</span>
             <span class="meta-item">{{ article.result?.group[0]?.name || '未分类' }}</span>
             <span class="meta-item">{{ formatTime(article.create_time) }}</span>

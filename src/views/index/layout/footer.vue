@@ -1,5 +1,5 @@
 <template>
-  <footer id="footer" class="fs-6 py-3 mt-2 bg-body-tertiary">
+  <footer id="footer" class="fs-6 py-3 mt-2 bg-body-tertiary text-body-secondary">
     <div class="container">
       <div class="text-center">
         <!-- 版权年份 -->
@@ -12,7 +12,7 @@
             :href="state.site.struct?.copy?.link || 'http://beian.miit.gov.cn/'" 
             target="_blank" 
             rel="noopener noreferrer"
-            class="text-decoration-none hover-text-primary transition-opacity"
+            class="text-decoration-none text-reset hover-text-primary transition-opacity"
             aria-label="ICP备案查询"
           >
             {{ state.site.struct?.copy?.code || '请在后台填写备案号' }}
@@ -24,7 +24,7 @@
             :href="state.site.struct?.police?.link || 'https://beian.mps.gov.cn/#/query/webSearch'" 
             target="_blank" 
             rel="noopener noreferrer"
-            class="text-decoration-none hover-text-primary transition-opacity"
+            class="text-decoration-none text-reset hover-text-primary transition-opacity"
             aria-label="公安网安备查询"
           >
             {{ state.site.struct?.police?.code || '请在后台填写公安备案号' }}
@@ -37,7 +37,7 @@
             href="https://github.com/zhu885744/inisv1" 
             target="_blank" 
             rel="noopener noreferrer"
-            class="text-primary text-decoration-none hover-underline"
+            class="text-decoration-none text-reset hover-text-primary transition-opacity"
             title="inisv1 开源地址"
           >
             inis v{{ state.version.system }}
@@ -48,7 +48,7 @@
             href="https://github.com/zhu885744/xiao-inis" 
             target="_blank" 
             rel="noopener noreferrer"
-            class="text-primary text-decoration-none hover-underline"
+            class="text-decoration-none text-reset hover-text-primary transition-opacity"
             title="xiao 开源地址"
           >
             xiao v{{ state.version.theme }}
@@ -95,7 +95,7 @@ const method = {
   // 替换footer.vue中的method.site方法
   site: async () => {
   const cacheName = 'site-info'
-  // 如需开启缓存，取消下面的注释即可（当前注释了缓存，强制每次请求接口）
+    // 如需开启缓存，取消下面的注释即可（当前注释了缓存，强制每次请求接口）
     if (cache.has(cacheName)) {
       state.site.struct = cache.get(cacheName)
       console.log('【页脚】从前端缓存加载站点信息')

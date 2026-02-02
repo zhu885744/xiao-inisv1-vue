@@ -1,0 +1,271 @@
+/* 基础变量示例（根据项目实际值调整），可添加到qmsg.css顶部 */
+:root {
+  /* 间距变量 */
+  --spacing-xxs: 2px;
+  --spacing-xs: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 16px;
+  /* 字体/行高 */
+  --font-size-sm: 12px;
+  --font-size-lg: 16px;
+  --line-height-md: 1.4;
+  /* 动画/过渡 */
+  --animation-duration-sm: 0.3s;
+  --transition-normal: 0.2s ease;
+  /* 边框/阴影 */
+  --border-radius-sm: 4px;
+  --border-radius-full: 50%;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.1);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+  /* 主题颜色 */
+  --color-primary: #409eff;
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-danger: #f56c6c;
+  --color-info: #909399;
+  --color-text: #333333;
+  --color-text-disabled: #999999;
+  --color-background: #ffffff;
+  --color-background-card: #ffffff;
+}
+/* ==========================================
+ * 全局消息提示组件 Qmsg 核心样式
+ * ========================================== */
+.qmsg-wrapper {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: fixed;
+  top: var(--spacing-lg);
+  left: 0;
+  z-index: 1010;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* 消息项容器 */
+.qmsg-item {
+  padding: var(--spacing-xs);
+  text-align: center;
+  animation-duration: var(--animation-duration-sm);
+  position: relative;
+}
+
+/* 消息项首项间距调整 */
+.qmsg-item:first-child {
+  margin-top: calc(-1 * var(--spacing-xs));
+}
+
+/* 消息内容主体 - 核心容器 */
+.qmsg-content {
+  position: relative;
+  display: inline-block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-background-card);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+  max-width: 80%;
+  min-width: 80px;
+  text-align: left;
+  transition: transform var(--transition-normal), opacity var(--transition-normal);
+  color: var(--color-text);
+}
+
+/* 内容区域通用样式 - 文字溢出/对齐/行高 */
+.qmsg-content [class^="qmsg-content-"] {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: var(--line-height-md);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 带关闭按钮的内容区域 - 右侧留空 */
+.qmsg-content-with-close {
+  padding-right: calc(var(--spacing-lg) + 8px);
+}
+
+/* 图标通用样式 - 基础布局/大小 */
+.qmsg-icon {
+  display: inline-block;
+  margin-right: var(--spacing-xs);
+  font-size: var(--font-size-lg);
+  line-height: 0;
+  user-select: none;
+  vertical-align: middle;
+  position: relative;
+  top: 0;
+}
+.qmsg-icon svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+
+/* 不同消息类型的图标颜色 - 关联主题色 */
+.qmsg-content-info .qmsg-icon {
+  color: var(--color-info);
+}
+.qmsg-content-warning .qmsg-icon {
+  color: var(--color-warning);
+}
+.qmsg-content-success .qmsg-icon {
+  color: var(--color-success);
+}
+.qmsg-content-error .qmsg-icon {
+  color: var(--color-danger);
+}
+.qmsg-content-loading .qmsg-icon {
+  color: var(--color-primary);
+}
+
+/* 关闭按钮 - 定位/样式/hover效果 */
+.qmsg-icon-close {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-xs);
+  transform: translateY(-50%);
+  padding: calc(var(--spacing-xxs) * 2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-disabled);
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: color var(--transition-normal);
+}
+.qmsg-icon-close:hover {
+  color: var(--color-text);
+}
+
+/* 消息重复计数标记 - 角标样式/动画基础 */
+.qmsg-count {
+  position: absolute;
+  left: calc(-1 * var(--spacing-xs));
+  top: calc(-1 * var(--spacing-xs));
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background-color: var(--color-danger);
+  color: var(--color-background);
+  font-size: var(--font-size-sm);
+  line-height: 16px;
+  text-align: center;
+  border-radius: var(--border-radius-full);
+  animation-duration: var(--animation-duration-sm);
+  box-shadow: var(--shadow-xs);
+}
+
+/* 加载图标旋转动画 - 核心动效 */
+.animate-turn {
+  animation: MessageTurn var(--animation-duration-sm) linear infinite;
+  -webkit-animation: MessageTurn var(--animation-duration-sm) linear infinite;
+}
+
+/* ==========================================
+ * Qmsg 专属动画定义 - 进入/退出/计数/旋转
+ * ========================================== */
+/* 加载图标旋转动画 */
+@keyframes MessageTurn {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@-webkit-keyframes MessageTurn {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+/* 消息退出动画 - 收缩/透明/缩放 */
+@keyframes MessageMoveOut {
+  0% {
+    max-height: 150px;
+    padding: var(--spacing-xs);
+    margin: 0;
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+@-webkit-keyframes MessageMoveOut {
+  0% {
+    max-height: 150px;
+    padding: var(--spacing-xs);
+    margin: 0;
+    opacity: 1;
+    -webkit-transform: scale(1);
+  }
+  to {
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    -webkit-transform: scale(0.9);
+  }
+}
+
+/* 消息进入动画 - 下滑/缩放/渐显（带弹性效果） */
+@keyframes MessageMoveIn {
+  0% {
+    transform: translateY(calc(-1 * var(--spacing-lg))) scale(0.9);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(4px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@-webkit-keyframes MessageMoveIn {
+  0% {
+    -webkit-transform: translateY(calc(-1 * var(--spacing-lg))) scale(0.9);
+    opacity: 0;
+  }
+  70% {
+    -webkit-transform: translateY(4px) scale(1.02);
+  }
+  100% {
+    -webkit-transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 重复消息计数抖动动画 - 提醒用户重复操作 */
+@keyframes MessageShake {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  25%, 75% {
+    transform: translateX(-3px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(3px);
+    opacity: 0.9;
+  }
+}
+@-webkit-keyframes MessageShake {
+  0%, 100% {
+    -webkit-transform: translateX(0);
+    opacity: 1;
+  }
+  25%, 75% {
+    -webkit-transform: translateX(-3px);
+    opacity: 0.8;
+  }
+  50% {
+    -webkit-transform: translateX(3px);
+    opacity: 0.9;
+  }
+}

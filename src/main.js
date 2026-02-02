@@ -3,38 +3,50 @@ import App from './App.vue'
 import router from './router' 
 import { createPinia } from 'pinia'
 
-// Bootstrap 5 CSS 全部样式
+// Bootstrap 5 全套引入
 import 'bootstrap/dist/css/bootstrap.min.css'
-// Bootstrap 5 JS bundle（包含Popper.js，所有JS插件都在这，无需单独导入其他JS）
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-// Bootstrap 图标库（不变）
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
-// 导入自定义样式文件
-// import './assets/css/buyu.mode.css'
+// 自定义样式
 import './assets/css/buyu.style.css'
 
-// 导入 socket
-import socket from './utils/socket'
+// 👉 1. 引入Qmsg样式和封装实例
+import './assets/css/buyu.qmsg.css'
+import Qmsg from './utils/qmsg'
 
-// API 导入路径
+// 全局依赖：socket + API
+import socket from './utils/socket'
 import API from './api'
 
-// 创建 Vue 应用实例
+// 创建Vue实例
 const app = createApp(App)
 
-// 定义socket全局属性
-app.provide('socket', socket)
+// 👉 2. 全局挂载Qmsg，支持组件内this.$Qmsg调用
+app.config.globalProperties.$Qmsg = Qmsg;
+// 可选：提供给组合式API，支持inject('$Qmsg')
+app.provide('$Qmsg', Qmsg);
 
-// 创建 Pinia 实例并挂载
+// 👉 3. 可选：全局配置Qmsg（按需修改，比如默认显示关闭按钮、修改超时时间）
+Qmsg.config({
+  showClose: true, // 默认显示关闭按钮
+  timeout: 3000,   // 默认3秒关闭
+  maxNums: 6       // 最多同时显示6条
+});
+
+// 全局提供+挂载socket
+app.provide('socket', socket)
+app.config.globalProperties.$socket = socket
+
+// Pinia注册
 const pinia = createPinia()
 app.use(pinia)
 
-// 挂载全局属性
+// 全局挂载API
 app.config.globalProperties.$api = API
 
-// 挂载路由
+// 路由注册
 app.use(router)
 
-// 挂载应用到 DOM
+// 挂载应用
 app.mount('#app')
