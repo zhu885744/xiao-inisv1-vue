@@ -26,8 +26,8 @@
           </li>
 
           <!-- 分类下拉列表 -->
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="javascript:;" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <li class="nav-item dropdown" ref="pcDropdownRef">
+            <a class="nav-link dropdown-toggle" role="button" aria-expanded="false" data-bs-toggle="dropdown">
               分类
             </a>
             <ul class="dropdown-menu">
@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue'; // ✅ 新增nextTick
 import axios from '@/utils/request'
 
 // 导航项数据
@@ -176,6 +176,8 @@ const isDarkMode = ref(false);
 const sidebarOpen = ref(false);
 // 分类下拉菜单状态（移动端）
 const categoryDropdownOpen = ref(false);
+// PC端下拉ref，用于手动初始化Bootstrap实例
+const pcDropdownRef = ref(null);
 
 // 计算图标类名
 const darkModeIcon = computed(() => {
@@ -266,6 +268,17 @@ const toggleCategoryDropdown = () => {
   categoryDropdownOpen.value = !categoryDropdownOpen.value;
 };
 
+// 初始化PC端Bootstrap下拉组件（核心：用nextTick保证DOM加载完成）
+const initPcDropdown = async () => {
+  await nextTick(); // 等待Vue DOM更新完成
+  if (pcDropdownRef.value && window.bootstrap) {
+    const trigger = pcDropdownRef.value.querySelector('.dropdown-toggle');
+    // 手动创建下拉实例，强制激活触发逻辑
+    new window.bootstrap.Dropdown(trigger);
+    console.log('✅ PC端下拉组件手动初始化成功');
+  }
+};
+
 // 从API获取导航数据
 const fetchNavData = async () => {
   try {
@@ -319,6 +332,7 @@ onMounted(() => {
   fetchCategories();
   initTheme();
   setupSystemThemeListener();
+  initPcDropdown(); // 新增：调用PC端下拉初始化方法 ✅
   
   // 监听窗口大小变化，自动关闭侧边栏
   window.addEventListener('resize', () => {
@@ -414,5 +428,10 @@ onMounted(() => {
   :deep(.sidebar-backdrop) {
     display: none !important;
   }
+  /* ✅ 核心新增：PC端下拉强制展开修复（hover+点击双生效，最高层级防遮挡） */
+  :deep(.nav-item.dropdown) { position: relative; }
+  :deep(.nav-item.dropdown .dropdown-menu) { z-index: 9999 !important; }
+  :deep(.nav-item.dropdown:hover .dropdown-menu) { display: block !important; }
+  :deep(.nav-item.dropdown .dropdown-toggle)[data-bs-toggle="dropdown"] { pointer-events: auto !important; }
 }
 </style>

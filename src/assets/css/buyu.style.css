@@ -444,12 +444,10 @@
 body {
   font-size: 1.125rem; /* 基础字号从1rem放大到1.125rem(18px)，核心放大基准 */
   min-height: 100vh;
-  line-height: 1.6;
   background-color: #ccc;
   color: #666;
   font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Heiti SC", sans-serif;
 }
-
 /* ==========================================
  * 文章内容渲染样式
  * ========================================== */

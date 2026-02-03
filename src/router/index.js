@@ -58,21 +58,6 @@ const routes = [
       excludeKeys.includes(to.params.key) ? next('/404') : next()
     }
   },
-  // 标签页面 /tag/{key}
-  {
-    path: '/tag/:key',
-    name: '标签',
-    component: () => import('@/views/index/pages/tag.vue'),
-    meta: { title: '标签', requiresAuth: false },
-    props: true
-  },
-  // chat聊天室[测试用]
-  {
-    path: '/chat',
-    name: '聊天室',
-    component: () => import('@/views/index/pages/chat.vue'),
-    meta: { title: '聊天室', requiresAuth: false }
-  },
   // 作者页面 /author/{id}
   {
     path: '/author/:id',

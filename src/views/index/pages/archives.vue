@@ -309,40 +309,4 @@ onMounted(() => {
 .article-comment {
   width: 100%;
 }
-
-/* 移动端响应式适配（768px以下） */
-@media (max-width: 768px) {
-  .article-page-wrapper {
-    padding: 1.5rem 0.8rem;
-  }
-  .article-content-wrap {
-    padding: 2rem 1.2rem !important;
-  }
-  .article-meta {
-    gap: 2rem !important;
-    font-size: 0.85rem;
-  }
-  .article-content {
-    font-size: 1rem;
-    line-height: 1.7;
-  }
-}
-
-/* 超小屏适配（576px以下） */
-@media (max-width: 576px) {
-  .article-page-wrapper {
-    padding: 1rem 0.5rem;
-  }
-  .article-content-wrap {
-    padding: 1.5rem 0.8rem !important;
-  }
-  .article-meta {
-    gap: 1.5rem !important;
-    justify-content: flex-start !important;
-  }
-  .article-title {
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    text-align: left;
-  }
-}
 </style>
