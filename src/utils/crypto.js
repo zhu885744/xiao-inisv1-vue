@@ -1,142 +1,620 @@
 import CryptoJS from 'crypto-js'
 
-// 读取VITE环境变量：从.env获取加密密钥/向量，避免硬编码（核心优化）
-const VITE_ENV = import.meta.env
-// AES默认密钥/向量：从环境变量读取，兜底默认值（生产需在.env配置安全的随机串）
-const DEFAULT_AES_KEY = VITE_ENV.VITE_AES_KEY || 'default_aes_key_16bit' // 建议16/24/32位
-const DEFAULT_AES_IV = VITE_ENV.VITE_IV || 'default_iv_16bit'         // CBC模式必须16位
-// 最小/最大token长度限制：避免非法长度导致的异常
-const MIN_TOKEN_LENGTH = 8
-const MAX_TOKEN_LENGTH = 64
+/**
+ * 加密工具类
+ * 包含：AES加密、MD5签名、Token生成、随机字符串等功能
+ * 支持：环境变量配置、多种加密算法、错误处理
+ */
+
+// 环境变量配置
+const ENV = import.meta.env || {}
+
+// 默认配置
+const DEFAULT_CONFIG = {
+  // AES配置
+  AES_KEY: ENV.VITE_AES_KEY || 'default_32byte_aes_key_here1234567890',
+  AES_IV: ENV.VITE_AES_IV || 'default_16byte_iv', // 长度16位
+  
+  // Token配置
+  TOKEN_MIN_LENGTH: 8,
+  TOKEN_MAX_LENGTH: 64,
+  DEFAULT_TOKEN_LENGTH: 32,
+  
+  // 盐值配置（用于增加哈希安全性）
+  SALT: ENV.VITE_ENCRYPT_SALT || 'default_salt_value'
+}
 
 /**
- * AES-CBC对称加密类（基于CryptoJS）
- * 特性：边界校验、异常捕获、环境变量默认密钥、CBC模式+Pkcs7填充（通用标准）
- * 要求：key建议16/24/32位（对应AES-128/192/256），iv必须16位（CBC模式强制）
+ * AES-CBC对称加密类
  */
-class AES {
+class AESCrypto {
   /**
-   * 构造函数：初始化密钥/向量（自动UTF8解析）
-   * @param {string} key - 加密密钥，默认使用环境变量VITE_AES_KEY
-   * @param {string} iv - 加密向量，默认使用环境变量VITE_IV（CBC模式必须16位）
+   * 构造函数
+   * @param {string} key - 加密密钥（16/24/32位）
+   * @param {string} iv - 加密向量（16位）
    */
-  constructor(key = DEFAULT_AES_KEY, iv = DEFAULT_AES_IV) {
-    // 校验CryptoJS是否加载成功
-    if (!CryptoJS || !CryptoJS.enc || !CryptoJS.AES) {
-      throw new Error('CryptoJS加载失败，无法初始化AES加密')
+  constructor(key = DEFAULT_CONFIG.AES_KEY, iv = DEFAULT_CONFIG.AES_IV) {
+    this.validateCryptoJS()
+    
+    // 处理密钥和向量（强制IV为16位）
+    this.originalKey = this.normalizeKey(key, DEFAULT_CONFIG.AES_KEY);
+    this.originalIv = this.normalizeIv(iv, DEFAULT_CONFIG.AES_IV);
+    
+    // 解析为CryptoJS格式
+    this.key = CryptoJS.enc.Utf8.parse(this.originalKey)
+    this.iv = CryptoJS.enc.Utf8.parse(this.originalIv)
+    
+    // 验证向量长度（已强制处理，仅调试提示）
+    this.validateIvLength()
+  }
+
+  // 规范化IV为16位
+  normalizeIv(iv, defaultValue) {
+    let normalized = this.normalizeKey(iv, defaultValue);
+    // 截断到16位或补全到16位
+    if (normalized.length > 16) {
+      normalized = normalized.substring(0, 16);
+    } else if (normalized.length < 16) {
+      normalized = normalized.padEnd(16, '0'); // 不足补0
     }
-    // 密钥/向量非空校验，兜底默认值
-    this._keyStr = typeof key === 'string' && key.trim() !== '' ? key.trim() : DEFAULT_AES_KEY
-    this._ivStr = typeof iv === 'string' && iv.trim() !== '' ? iv.trim() : DEFAULT_AES_IV
-    // 解析为CryptoJS可识别的Utf8格式（核心步骤，避免加密乱码）
-    this.iv = CryptoJS.enc.Utf8.parse(this._ivStr)
-    this.key = CryptoJS.enc.Utf8.parse(this._keyStr)
-    // 校验iv长度（CBC模式强制16位，否则加密会异常）
-    this._checkIvLength()
+    return normalized;
   }
 
   /**
-   * 私有方法：校验IV长度（CBC模式必须16位），内部使用
+   * 验证CryptoJS是否可用
    */
-  _checkIvLength() {
-    const ivLength = this._ivStr.length
-    if (ivLength !== 16) {
-      console.warn(`[AES警告] CBC模式要求IV必须16位，当前为${ivLength}位，可能导致加密/解密异常`)
+  validateCryptoJS() {
+    if (!CryptoJS || !CryptoJS.AES || !CryptoJS.enc) {
+      throw new Error('CryptoJS加载失败，请检查依赖')
     }
   }
 
   /**
-   * 加密方法：明文转AES-CBC加密串（Base64格式）
-   * @param {string} text - 要加密的明文（非字符串自动转为字符串）
-   * @returns {string} 加密后的Base64字符串，异常则返回空串
+   * 规范化密钥
    */
-  encrypt(text) {
+  normalizeKey(key, defaultValue) {
+    if (typeof key !== 'string' || key.trim() === '') {
+      return defaultValue
+    }
+    return key.trim()
+  }
+
+  /**
+   * 验证向量长度（调试提示）
+   */
+  validateIvLength() {
+    if (this.originalIv.length !== 16 && import.meta.env.DEV) {
+      console.debug(`AES IV已自动调整为16位，原始长度：${this.originalIv.length}`);
+    }
+  }
+
+  /**
+   * 加密
+   * @param {any} data - 要加密的数据
+   * @returns {string} Base64加密字符串
+   */
+  encrypt(data) {
     try {
-      // 明文非空+类型处理：非字符串转为JSON字符串，避免原始类型加密乱码
-      const plainText = typeof text === 'string' ? text : JSON.stringify(text)
-      if (plainText === '') return ''
-      // 执行AES-CBC加密（CBC模式+Pkcs7填充，通用标准）
-      const cipher = CryptoJS.AES.encrypt(plainText, this.key, {
+      // 转换为字符串
+      const text = this.dataToString(data)
+      if (!text) return ''
+      
+      // 执行加密
+      const encrypted = CryptoJS.AES.encrypt(text, this.key, {
         iv: this.iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
       })
-      // 返回Base64格式的加密串（CryptoJS默认输出）
-      return cipher.toString()
-    } catch (err) {
-      console.error('[AES加密失败]', err.message)
+      
+      return encrypted.toString()
+    } catch (error) {
+      console.error('AES加密失败:', error.message)
       return ''
     }
   }
 
   /**
-   * 解密方法：AES-CBC加密串转明文
-   * @param {string} text - 要解密的Base64加密串
-   * @returns {string} 解密后的明文，异常/空值则返回空串
+   * 解密
+   * @param {string} encryptedText - 加密的Base64字符串
+   * @returns {any} 解密后的数据
    */
-  decrypt(text) {
+  decrypt(encryptedText) {
     try {
-      // 加密串非空+类型校验
-      if (typeof text !== 'string' || text.trim() === '') return ''
-      // 执行AES-CBC解密
-      const decipher = CryptoJS.AES.decrypt(text, this.key, {
+      if (!encryptedText || typeof encryptedText !== 'string') {
+        return ''
+      }
+      
+      // 执行解密
+      const decrypted = CryptoJS.AES.decrypt(encryptedText, this.key, {
         iv: this.iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
       })
-      // 解析为Utf8明文，去除首尾空白符
-      const plainText = decipher.toString(CryptoJS.enc.Utf8).trim()
-      return plainText
-    } catch (err) {
-      console.error('[AES解密失败] 密钥/向量错误或加密串无效', err.message)
+      
+      // 转换为字符串
+      const text = decrypted.toString(CryptoJS.enc.Utf8)
+      
+      // 尝试解析为JSON
+      return this.parseDecryptedText(text)
+    } catch (error) {
+      console.error('AES解密失败:', error.message)
       return ''
+    }
+  }
+
+  /**
+   * 数据转字符串
+   */
+  dataToString(data) {
+    if (data === null || data === undefined) return ''
+    if (typeof data === 'string') return data
+    if (typeof data === 'number' || typeof data === 'boolean') return String(data)
+    
+    try {
+      return JSON.stringify(data)
+    } catch {
+      return String(data)
+    }
+  }
+
+  /**
+   * 解析解密后的文本
+   */
+  parseDecryptedText(text) {
+    if (!text) return ''
+    
+    try {
+      // 尝试解析JSON
+      return JSON.parse(text)
+    } catch {
+      // 返回原始字符串
+      return text
+    }
+  }
+
+  /**
+   * 获取配置信息
+   */
+  getConfig() {
+    return {
+      keyLength: this.originalKey.length,
+      ivLength: this.originalIv.length,
+      algorithm: 'AES-CBC-PKCS7'
     }
   }
 }
 
 /**
- * 生成指定长度的加密token（基于MD5哈希，不可逆）
- * @param {string|any} value - 原始值（非字符串自动序列化），默认空串
- * @param {number} length - token目标长度，默认32位（限制8-64位）
- * @param {string} prefix - 前缀（拼接在原始值前，增加唯一性），默认空串
- * @returns {string} 固定长度的MD5衍生token，异常则返回空串
+ * 哈希工具类
  */
-const token = (value = '', length = 32, prefix = '') => {
-  try {
-    // 校验CryptoJS MD5是否可用
-    if (!CryptoJS || !CryptoJS.MD5) {
-      throw new Error('CryptoJS MD5模块加载失败')
+class Hash {
+  /**
+   * 生成MD5哈希
+   */
+  static md5(data, salt = '') {
+    try {
+      const text = Hash.dataToString(data) + salt
+      return CryptoJS.MD5(text).toString()
+    } catch (error) {
+      console.error('MD5生成失败:', error.message)
+      return ''
     }
-    // 处理前缀：非字符串转为空串
-    const validPrefix = typeof prefix === 'string' ? prefix.trim() : ''
-    // 处理原始值：非字符串转为JSON字符串，避免原始类型哈希不一致
-    const validValue = typeof value === 'string' ? value : JSON.stringify(value)
-    // 拼接原始文本（前缀+原始值）
-    const rawText = validPrefix + validValue
-    // 计算MD5哈希（32位16进制字符串，不可逆）
-    const md5Hash = CryptoJS.MD5(rawText).toString()
-    // 处理token长度：限制在8-64位，超出则强制兜底
-    let validLength = Number(length)
-    validLength = isNaN(validLength) ? 32 : Math.max(MIN_TOKEN_LENGTH, Math.min(MAX_TOKEN_LENGTH, validLength))
-    // 生成固定长度token：不足则递归拼接自身，超出则截取
-    let result = md5Hash.substring(0, validLength)
-    while (result.length < validLength) {
-      result += token(result, validLength - result.length) // 递归补全长度
+  }
+
+  /**
+   * 生成SHA256哈希（修复：方法名小写，符合JS规范）
+   */
+  static sha256(data, salt = '') {
+    try {
+      const text = Hash.dataToString(data) + salt
+      return CryptoJS.SHA256(text).toString()
+    } catch (error) {
+      console.error('SHA256生成失败:', error.message)
+      return ''
     }
-    // 最终截取到目标长度（防止递归补全超出）
-    return result.substring(0, validLength)
-  } catch (err) {
-    console.error('[Token生成失败]', err.message)
-    return ''
+  }
+
+  /**
+   * 生成SHA1哈希
+   */
+  static sha1(data, salt = '') {
+    try {
+      const text = Hash.dataToString(data) + salt
+      return CryptoJS.SHA1(text).toString()
+    } catch (error) {
+      console.error('SHA1生成失败:', error.message)
+      return ''
+    }
+  }
+
+  /**
+   * 生成HMAC-SHA256签名
+   */
+  static hmac(data, secret) {
+    try {
+      const text = Hash.dataToString(data)
+      return CryptoJS.HmacSHA256(text, secret).toString()
+    } catch (error) {
+      console.error('HMAC生成失败:', error.message)
+      return ''
+    }
+  }
+
+  /**
+   * 数据转字符串
+   */
+  static dataToString(data) {
+    if (data === null || data === undefined) return ''
+    if (typeof data === 'string') return data
+    if (typeof data === 'number' || typeof data === 'boolean') return String(data)
+    
+    try {
+      return JSON.stringify(data)
+    } catch {
+      return String(data)
+    }
   }
 }
 
-// 导出工具：保留原有调用方式，新增默认AES实例（基于环境变量配置）
-export default {
-  // 生成token方法（调用方式不变）
-  token,
-  // 创建AES实例（可自定义密钥/向量，调用方式不变）
-  AES: (key, iv) => new AES(key, iv),
-  // 【新增】默认AES实例（基于.env配置的密钥/向量，直接使用无需传参）
-  defaultAes: new AES()
+/**
+ * Token生成器
+ */
+class TokenGenerator {
+  /**
+   * 生成指定长度的Token
+   */
+  static generate(value = '', length = DEFAULT_CONFIG.DEFAULT_TOKEN_LENGTH, options = {}) {
+    try {
+      // 验证参数
+      const config = this.validateOptions(length, options)
+      
+      // 生成基础哈希
+      let token = this.generateBaseToken(value, config)
+      
+      // 处理长度
+      token = this.adjustTokenLength(token, config.length)
+      
+      // 格式化输出
+      return this.formatToken(token, config)
+    } catch (error) {
+      console.error('Token生成失败:', error.message)
+      return ''
+    }
+  }
+
+  /**
+   * 验证和规范化选项
+   */
+  static validateOptions(length, options) {
+    const {
+      prefix = '',
+      salt = DEFAULT_CONFIG.SALT,
+      algorithm = 'md5',
+      includeTimestamp = false,
+      includeRandom = false,
+      uppercase = false,
+      specialChars = false
+    } = options
+
+    // 验证长度
+    const validLength = Math.max(
+      DEFAULT_CONFIG.TOKEN_MIN_LENGTH,
+      Math.min(DEFAULT_CONFIG.TOKEN_MAX_LENGTH, Number(length) || DEFAULT_CONFIG.DEFAULT_TOKEN_LENGTH)
+    )
+
+    return {
+      length: validLength,
+      prefix: String(prefix),
+      salt: String(salt),
+      algorithm,
+      includeTimestamp,
+      includeRandom,
+      uppercase,
+      specialChars
+    }
+  }
+
+  /**
+   * 生成基础Token
+   */
+  static generateBaseToken(value, config) {
+    // 准备数据
+    let data = this.prepareData(value, config)
+    
+    // 根据算法生成哈希
+    switch (config.algorithm.toLowerCase()) {
+      case 'sha256':
+        return Hash.sha256(data, config.salt)
+      case 'sha1':
+        return Hash.sha1(data, config.salt)
+      case 'md5':
+      default:
+        return Hash.md5(data, config.salt)
+    }
+  }
+
+  /**
+   * 准备数据
+   */
+  static prepareData(value, config) {
+    let data = ''
+    
+    // 添加前缀
+    if (config.prefix) {
+      data += config.prefix
+    }
+    
+    // 添加原始值
+    data += Hash.dataToString(value)
+    
+    // 添加时间戳
+    if (config.includeTimestamp) {
+      data += Date.now().toString()
+    }
+    
+    // 添加随机数
+    if (config.includeRandom) {
+      data += Math.random().toString(36).substr(2, 9)
+    }
+    
+    return data
+  }
+
+  /**
+   * 调整Token长度
+   */
+  static adjustTokenLength(token, targetLength) {
+    if (token.length >= targetLength) {
+      return token.substring(0, targetLength)
+    }
+    
+    // 长度不足，进行扩展
+    let result = token
+    while (result.length < targetLength) {
+      const remaining = targetLength - result.length
+      const extension = Hash.md5(result + Date.now()).substring(0, remaining)
+      result += extension
+    }
+    
+    return result.substring(0, targetLength)
+  }
+
+  /**
+   * 格式化Token
+   */
+  static formatToken(token, config) {
+    let formatted = token
+    
+    // 大写转换
+    if (config.uppercase) {
+      formatted = formatted.toUpperCase()
+    }
+    
+    // 特殊字符（如果需要）
+    if (config.specialChars) {
+      formatted = this.addSpecialChars(formatted)
+    }
+    
+    return formatted
+  }
+
+  /**
+   * 添加特殊字符
+   */
+  static addSpecialChars(token) {
+    const specialChars = '!@#$%^&*'
+    let result = ''
+    let charIndex = 0
+    
+    for (let i = 0; i < token.length; i++) {
+      result += token[i]
+      if (i > 0 && i % 4 === 0 && charIndex < specialChars.length) {
+        result += specialChars[charIndex++]
+      }
+    }
+    
+    return result
+  }
+
+  /**
+   * 生成随机Token
+   */
+  static random(length = 32) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let result = ''
+    
+    const validLength = Math.max(8, Math.min(64, Number(length) || 32))
+    
+    for (let i = 0; i < validLength; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    
+    return result
+  }
+
+  /**
+   * 生成UUID
+   */
+  static uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0
+      const v = c === 'x' ? r : (r & 0x3 | 0x8)
+      return v.toString(16)
+    })
+  }
+
+  /**
+   * 验证Token格式
+   */
+  static validate(token, minLength = 8, maxLength = 64) {
+    if (!token || typeof token !== 'string') return false
+    
+    const length = token.length
+    if (length < minLength || length > maxLength) return false
+    
+    // 可以添加更多验证规则
+    return /^[a-zA-Z0-9!@#$%^&*\-_+=]*$/.test(token)
+  }
+}
+
+/**
+ * 随机字符串生成器
+ */
+class Random {
+  /**
+   * 生成随机字符串
+   */
+  static string(length = 16, options = {}) {
+    const {
+      uppercase = true,
+      lowercase = true,
+      numbers = true,
+      special = false
+    } = options
+
+    let chars = ''
+    if (uppercase) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if (lowercase) chars += 'abcdefghijklmnopqrstuvwxyz'
+    if (numbers) chars += '0123456789'
+    if (special) chars += '!@#$%^&*'
+
+    if (!chars) chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    let result = ''
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+
+    return result
+  }
+
+  /**
+   * 生成随机数字
+   */
+  static number(min = 0, max = 100) {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
+  /**
+   * 生成随机字节（浏览器环境）
+   */
+  static bytes(length = 16) {
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const array = new Uint8Array(length)
+      crypto.getRandomValues(array)
+      return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('')
+    } else {
+      // 降级方案
+      let result = ''
+      for (let i = 0; i < length * 2; i++) {
+        result += Math.floor(Math.random() * 16).toString(16)
+      }
+      return result
+    }
+  }
+}
+
+/**
+ * 主加密工具类（重命名避免冲突）
+ */
+class CryptoUtil {
+  constructor() {
+    this.defaultAES = new AESCrypto()
+  }
+
+  /**
+   * 创建AES实例
+   */
+  createAES(key, iv) {
+    return new AESCrypto(key, iv)
+  }
+
+  /**
+   * Token生成（兼容旧API）
+   */
+  token(value = '', length = 32, prefix = '') {
+    return TokenGenerator.generate(value, length, { prefix })
+  }
+
+  /**
+   * 快捷方法
+   */
+  get aes() {
+    return this.defaultAES
+  }
+
+  get hash() {
+    return Hash
+  }
+
+  get tokenGen() {
+    return TokenGenerator
+  }
+
+  get random() {
+    return Random
+  }
+
+  /**
+   * 静态方法
+   */
+  static get AES() {
+    return AESCrypto
+  }
+
+  static get Hash() {
+    return Hash
+  }
+
+  static get Token() {
+    return TokenGenerator
+  }
+
+  static get Random() {
+    return Random
+  }
+
+  /**
+   * 快速生成随机Token
+   */
+  static randomToken(length = 32) {
+    return TokenGenerator.random(length)
+  }
+
+  /**
+   * 快速生成UUID
+   */
+  static uuid() {
+    return TokenGenerator.uuid()
+  }
+
+  /**
+   * 快速加密
+   */
+  static encrypt(data, key, iv) {
+    const aes = new AESCrypto(key, iv)
+    return aes.encrypt(data)
+  }
+
+  /**
+   * 快速解密
+   */
+  static decrypt(encrypted, key, iv) {
+    const aes = new AESCrypto(key, iv)
+    return aes.decrypt(encrypted)
+  }
+}
+
+// 创建默认实例（重命名为 cryptoUtil，避免与原生 crypto 冲突）
+const cryptoUtil = new CryptoUtil()
+
+export default cryptoUtil
+
+// 导出所有工具类
+export {
+  AESCrypto,
+  Hash,
+  TokenGenerator,
+  Random,
+  CryptoUtil
 }

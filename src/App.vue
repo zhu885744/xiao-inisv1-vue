@@ -1,26 +1,39 @@
 <template>
-  <v-app>
-    <!-- 全局导航栏 -->
-    <i-nav></i-nav>
-    <!-- 主内容区 -->
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <router-view></router-view>
-        </div>
-        <!-- 核心：加 d-none d-md-block，<768px隐藏，≥768px显示，保留col-3栅格 -->
-        <div class="col-3 d-none d-lg-block">
-          <ISidebar></ISidebar>
-        </div>
+  <!-- 全局导航栏 -->
+  <i-nav ref="navRef"></i-nav>
+  <!-- 主内容区 -->
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <router-view></router-view>
+      </div>
+      <!-- 全局侧边栏 -->
+      <div class="col-3 d-none d-lg-block">
+        <ISidebar @showLogin="handleShowLogin" @showRegister="handleShowRegister"></ISidebar>
       </div>
     </div>
-    <!-- 全局页脚 -->
-    <i-footer></i-footer>
-  </v-app>
+  </div>
+  <!-- 全局页脚 -->
+  <i-footer></i-footer>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
+
+const navRef = ref(null)
+
+const handleShowLogin = () => {
+  if (navRef.value && navRef.value.method && navRef.value.method.showLogin) {
+    navRef.value.method.showLogin()
+  }
+}
+
+const handleShowRegister = () => {
+  if (navRef.value && navRef.value.method && navRef.value.method.showRegister) {
+    navRef.value.method.showRegister()
+  }
+}
 </script>

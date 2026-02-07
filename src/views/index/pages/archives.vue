@@ -8,9 +8,8 @@
       </div>
     </div>
 
-    <!-- 错误状态：重写样式，与整体风格统一 -->
-    <div v-else-if="error" class="page-error alert alert-danger d-flex align-items-center justify-content-center gap-3 p-4 rounded-4 shadow-sm">
-      <i class="bi bi-exclamation-circle-fill fs-2 text-danger"></i>
+    <!-- 错误状态 -->
+    <div v-else-if="error" class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
@@ -56,6 +55,7 @@
           :article-id="props.id"
           :comment-count="articleInfo.result?.comment?.count || 0"
           :comment-list="staticCommentList"
+          :is-login="store.comm.login.finish"
           @publish-comment="handlePublishComment"
           @reply-comment="handleReplyComment"
         />
@@ -70,6 +70,12 @@ import { useRouter } from 'vue-router'
 import request from '@/utils/request'
 import iMarkdown from '@/comps/custom/i-markdown.vue'
 import CommentList from '@/comps/custom/i-comment.vue'
+import { useCommStore } from '@/store/comm'
+
+// 存储
+const store = {
+  comm: useCommStore()
+};
 
 // 环境变量网站标题，兜底处理
 const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'

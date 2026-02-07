@@ -11,7 +11,6 @@
 
   <!-- 空数据状态 -->
   <div v-else-if="articleList.length === 0 && !loading" class="alert alert-light text-center py-4 mt-2">
-    <i class="bi bi-file-earmark-text fs-4 mb-2"></i>
     <p class="mb-0 text-muted fs-7">暂无文章数据</p>
   </div>
 
@@ -34,10 +33,13 @@
         <!-- 文章封面 -->
         <div class="article-cover flex-shrink-0">
           <img 
-            :src="getCoverImg(article)" 
+            :src="loadingGif" 
+            :data-src="getCoverImg(article)" 
             :alt="article.title" 
-            class="article-cover-img w-100 h-100 object-cover"
+            class="article-cover-img w-100 h-100 object-cover lazy-img"
             loading="lazy"
+            @load="onImageLoad"
+            @error="handleImageError"
           >
         </div>
         <!-- 内容区 -->
@@ -80,10 +82,13 @@
         <!-- 文章封面 -->
         <div class="article-cover flex-shrink-0">
           <img 
-            :src="getCoverImg(article)" 
+            :src="loadingGif" 
+            :data-src="getCoverImg(article)" 
             :alt="article.title" 
-            class="article-cover-img w-100 h-100 object-cover"
+            class="article-cover-img w-100 h-100 object-cover lazy-img"
             loading="lazy"
+            @load="onImageLoad"
+            @error="handleImageError"
           >
         </div>
         <!-- 内容区 -->
@@ -138,11 +143,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/utils/request' 
 // 导入公告组件
 import INotice from '@/comps/custom/i-notice.vue'
+
+// 导入本地图片
+import defaultCover from '@/assets/img/fm.avif'
+import loadingGif from '@/assets/img/ljz.gif'
+
 const router = useRouter()
 
 const articleList = ref([])
@@ -150,7 +160,7 @@ const loading = ref(false)
 const currentPage = ref(1)
 const limit = ref(9)
 const total = ref(0)
-const order = ref('top desc, create_time desc') // 修改：先按置顶排序，再按时间排序
+const order = ref('top desc, create_time desc')
 
 const hasMore = computed(() => {
   return articleList.value.length < total.value
@@ -158,14 +168,10 @@ const hasMore = computed(() => {
 
 // 计算排序后的文章列表：置顶文章在前
 const sortedArticleList = computed(() => {
-  // 注意：因为API已经按top desc排序了，这里可以直接返回articleList
-  // 但为了确保逻辑清晰，我们还是显式处理一下
   return [...articleList.value].sort((a, b) => {
-    // 首先按置顶状态排序：1 > 0
     if (a.top !== b.top) {
       return b.top - a.top // 置顶的在前
     }
-    // 如果置顶状态相同，按创建时间排序（最新的在前）
     return new Date(b.create_time * 1000) - new Date(a.create_time * 1000)
   })
 })
@@ -176,33 +182,126 @@ const formatTime = (timestamp) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+// 获取封面图片
 const getCoverImg = (article) => {
-  // 优先使用文章自身封面
+  // 1. 优先使用文章自身封面
   if (article.covers && article.covers.trim() !== '') {
     return article.covers
   }
-  const randomNum = Math.floor(Math.random() * 1000000)
-  const apiParams = new URLSearchParams({
-    id: `${article.id}-${randomNum}`, // 避免重复的随机ID
-    size: '300x200',
-    mode: 'fit',
-    redirect: false,
-    name: 'fm' // 指定目录：枚举值（imgs.txt/外链图片/avatar）
+  
+  // 2. 使用导入的本地默认封面图片
+  return defaultCover
+}
+
+// 图片加载成功处理
+const onImageLoad = (event) => {
+  const img = event.target
+  // 移除loading样式
+  img.classList.remove('lazy-loading')
+  img.classList.add('lazy-loaded')
+}
+
+// 图片加载失败处理
+const handleImageError = (event) => {
+  const img = event.target
+  // 移除loading样式
+  img.classList.remove('lazy-loading')
+  
+  // 尝试加载默认图片
+  const articleId = img.dataset.id
+  
+  // 如果当前src不是默认图片，则尝试加载默认图片
+  if (img.src !== defaultCover) {
+    img.src = defaultCover
+  } else {
+    // 如果默认图片也加载失败，显示错误状态
+    img.classList.add('lazy-error')
+  }
+  
+  // 防止无限错误循环
+  img.onerror = null
+}
+
+// Intersection Observer 用于懒加载
+let observer = null
+
+// 初始化观察者
+const initIntersectionObserver = () => {
+  if (!('IntersectionObserver' in window)) {
+    // 浏览器不支持 IntersectionObserver，回退到立即加载
+    loadAllImages()
+    return
+  }
+
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target
+        const dataSrc = img.dataset.src
+        
+        if (dataSrc) {
+          // 开始加载实际图片
+          img.src = dataSrc
+          img.classList.add('lazy-loading')
+          observer.unobserve(img)
+        }
+      }
+    })
+  }, {
+    rootMargin: '50px 0px', // 提前50px开始加载
+    threshold: 0.1
   })
-  return `/api/file/rand?${apiParams.toString()}`
+}
+
+// 观察所有懒加载图片
+const observeLazyImages = () => {
+  nextTick(() => {
+    const lazyImages = document.querySelectorAll('.lazy-img')
+    lazyImages.forEach(img => {
+      if (observer) {
+        observer.observe(img)
+      }
+    })
+  })
+}
+
+// 加载所有图片（回退方案）
+const loadAllImages = () => {
+  const lazyImages = document.querySelectorAll('.lazy-img')
+  lazyImages.forEach(img => {
+    const dataSrc = img.dataset.src
+    if (dataSrc) {
+      img.src = dataSrc
+    }
+  })
+}
+
+// 手动触发加载（用于特殊情况下）
+const loadVisibleImages = () => {
+  if (observer) {
+    // 重新观察所有图片
+    observeLazyImages()
+  }
 }
 
 const getArticleList = async (page = 1, isLoadMore = false) => {
   loading.value = true
   try {
-    const params = { page, limit: limit.value, order: order.value } // order已改为'创建时间 desc'
+    const params = { page, limit: limit.value, order: order.value }
     const res = await request.get('/api/article/all', params)
+    
     if (res.code === 200) {
       const newData = res.data.data || []
       const totalCount = res.data.count || 0
+      
       articleList.value = isLoadMore ? [...articleList.value, ...newData] : newData
       total.value = totalCount
       currentPage.value = page
+      
+      // 数据更新后，观察新图片
+      if (!isLoadMore || page === 2) { // 只在第一次加载或第二页时重新观察
+        observeLazyImages()
+      }
     } else {
       console.error('获取文章列表失败：', res.msg)
       !isLoadMore && (articleList.value = [])
@@ -225,7 +324,25 @@ const loadMore = () => {
 }
 
 onMounted(() => {
+  // 初始化Intersection Observer
+  initIntersectionObserver()
+  
+  // 获取文章列表
   getArticleList(1, false)
+  
+  // 监听窗口滚动重新检查图片（可选）
+  window.addEventListener('scroll', loadVisibleImages)
+})
+
+onUnmounted(() => {
+  // 清理观察者
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+  
+  // 移除事件监听
+  window.removeEventListener('scroll', loadVisibleImages)
 })
 </script>
 
@@ -241,7 +358,7 @@ onMounted(() => {
 
 /* 置顶文章特殊样式 */
 .sticky-article {
-  border-top: 3px solid #ffc107; /* 顶部金色边框 */
+  border-top: 3px solid #ffc107;
 }
 
 /* 置顶徽章 */
@@ -272,18 +389,54 @@ onMounted(() => {
   align-items: center;
 }
 
-/* 封面 */
+/* 封面容器 */
 .article-cover {
   width: 100%;
   padding-top: 66.67%;
   position: relative;
+  overflow: hidden;
+  background-color: #f8f9fa; /* 加载时的背景色 */
 }
+
+/* 懒加载图片样式 */
 .article-cover-img {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+/* 加载中的图片样式 */
+.article-cover-img.lazy-loading {
+  filter: blur(5px);
+  opacity: 0.7;
+  transform: scale(1.02);
+}
+
+/* 加载完成的图片样式 */
+.article-cover-img.lazy-loaded {
+  filter: blur(0);
+  opacity: 1;
+  animation: fadeIn 0.5s ease;
+}
+
+/* 加载失败的图片样式 */
+.article-cover-img.lazy-error {
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.article-cover-img.lazy-error::after {
+  content: '图片加载失败';
+  font-size: 0.7rem;
+  color: #868e96;
 }
 
 /* 内容区 */
@@ -293,15 +446,14 @@ onMounted(() => {
 
 /* 图片样式 */
 img {
-  transition: var(--transition-all); 
+  transition: all 0.3s ease;
   max-width: 100%;
   height: auto;
-  border-radius: var(--border-radius-md);
 }
 
-img:hover {
-  filter: blur(0) brightness(0.95);
-  -webkit-filter: blur(0) brightness(0.95);
+.article-cover-img:hover {
+  transform: scale(1.03);
+  filter: brightness(0.95);
 }
 
 /* 标题 */
@@ -320,6 +472,7 @@ img:hover {
   line-height: 1.5;
   margin: 0;
 }
+
 .text-truncate-1 {
   white-space: nowrap;
   overflow: hidden;
@@ -332,11 +485,13 @@ img:hover {
   color: #868e96;
   line-height: 1.2;
 }
+
 .meta-left, .meta-right {
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
+
 .meta-item {
   position: relative;
   display: flex;
@@ -344,6 +499,7 @@ img:hover {
   white-space: nowrap;
   padding-left: 0 !important;
 }
+
 .meta-item .bi {
   font-size: 0.9em;
   margin-right: 0.2rem;
@@ -371,14 +527,49 @@ img:hover {
 }
 
 @media (max-width: 576px) {
-  .hover-shadow:hover {
-    transform: translateY(-1px);
+  .grid-article-list {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
   }
+  
+  .article-item-card:hover {
+    transform: translateY(-2px);
+  }
+  
   .article-title {
     font-size: 1rem;
   }
+  
   .article-meta {
     font-size: 0.75rem;
   }
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0.7;
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 如果gif路径不对，可以使用纯CSS加载动画 */
+.article-cover-img:not([src]) {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
 }
 </style>

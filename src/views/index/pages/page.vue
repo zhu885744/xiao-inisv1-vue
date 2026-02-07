@@ -7,9 +7,8 @@
       </div>
     </div>
 
-    <!-- 错误状态：复用文章页样式 -->
-    <div v-else-if="error" class="page-error alert alert-danger d-flex align-items-center justify-content-center gap-3 mt-2 shadow-sm">
-      <i class="bi bi-exclamation-circle-fill fs-2 text-danger"></i>
+    <!-- 错误状态 -->
+    <div v-else-if="error" class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 

@@ -7,10 +7,9 @@
       </div>
     </div>
 
-    <!-- 基础数据错误提示 -->
-    <div v-else-if="error" class="alert alert-danger d-flex align-items-center mt-2" role="alert">
-      <i class="bi bi-exclamation-circle-fill fs-3 me-2"></i>
-      <p class="mb-0 flex-grow-1">{{ errorMsg }}</p>
+    <!-- 错误状态 -->
+    <div v-else-if="error" class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+      <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
     <!-- 友链页面主体 -->

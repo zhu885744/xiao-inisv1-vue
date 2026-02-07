@@ -1,195 +1,551 @@
 <template>
-  <div class="auth-container">
-    <div class="auth-card">
-      <h2 class="auth-title">找回密码</h2>
-      <form class="auth-form" @submit.prevent="handleResetPwd">
-        <!-- 手机号 -->
-        <div class="form-item">
-          <label>手机号</label>
-          <input
-            type="tel"
-            v-model="form.phone"
-            placeholder="请输入手机号"
-            class="form-input"
-          />
-          <div class="error-tip" v-if="!isPhoneValid && form.phone">
-            请输入正确的手机号
-          </div>
+    <transition name="modal-fade" mode="out-in">
+        <div 
+            v-if="state.item.dialog"
+            class="modal fade show"
+            style="display: block;"
+            tabindex="-1" 
+            aria-labelledby="resetPasswordModalLabel" 
+            aria-hidden="false"
+            data-bs-backdrop="static"
+        >
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+                <div class="modal-content rounded-xl shadow-lg border-0 overflow-hidden">
+                    <div class="modal-header bg-gradient-to-r from-warning to-yellow-600 text-white py-4">
+                        <h3 class="modal-title fs-5 fw-semibold" id="resetPasswordModalLabel">忘记密码</h3>
+                        <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
+                    </div>
+                    
+                    <div class="modal-body px-6 py-5">
+                        <form @submit.prevent="method.reset()" novalidate class="space-y-4">
+                            <div>
+                                <label for="resetAccountInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">账号</label>
+                                <input type="text" 
+                                       class="form-control rounded-lg border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                       id="resetAccountInput"
+                                       v-model="state.struct.account"
+                                       placeholder="注册时使用的账号">
+                                <div class="form-text text-xs text-gray-500 mt-1">或填写下面的联系方式</div>
+                            </div>
+                            
+                            <div>
+                                <label for="contactInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">邮箱或手机号</label>
+                                <input type="text" 
+                                       class="form-control rounded-lg border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                       id="contactInput"
+                                       v-model="state.struct.social"
+                                       placeholder="用于接收验证码">
+                                <div class="form-text text-xs text-gray-500 mt-1">填写账号或联系方式至少一项</div>
+                            </div>
+                            
+                            <div>
+                                <label for="verificationCode" class="form-label text-sm font-medium text-gray-700 mb-1 block">
+                                    验证码 <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group rounded-lg overflow-hidden">
+                                    <input type="text" 
+                                           class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                           id="verificationCode"
+                                           v-model="state.struct.code"
+                                           placeholder="请输入验证码"
+                                           required
+                                           autocomplete="username">
+                                    <button type="button" 
+                                            class="btn btn-outline-warning" 
+                                            @click="method.code()"
+                                            :disabled="state.item.loading">
+                                        <span v-if="state.item.loading" class="spinner-border spinner-border-sm me-1"></span>
+                                        {{ state.item.loading ? `${state.item.second}秒后重试` : '获取验证码' }}
+                                    </button>
+                                </div>
+                                <div class="form-text text-xs text-gray-500 mt-1">确认您的邮箱或者手机号是有效的</div>
+                            </div>
+                            
+                            <div>
+                                <label for="newPassword" class="form-label text-sm font-medium text-gray-700 mb-1 block">
+                                    新的密码 <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group rounded-lg overflow-hidden">
+                                    <input 
+                                        :type="showPassword ? 'text' : 'password'" 
+                                        class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                        id="resetNewPassword"
+                                        v-model="state.password.value"
+                                        placeholder="请输入新密码（至少6位）"
+                                        minlength="6"
+                                        required
+                                        autocomplete="new-password">
+                                    <button class="btn border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors" type="button" @click="showPassword = !showPassword">
+                                        <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="confirmPassword" class="form-label text-sm font-medium text-gray-700 mb-1 block">
+                                    确认密码 <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group rounded-lg overflow-hidden">
+                                    <input :type="showConfirmPassword ? 'text' : 'password'" 
+                                           class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                           id="confirmPassword"
+                                           v-model="state.password.verify"
+                                           placeholder="请再次输入新密码"
+                                           minlength="6"
+                                           required
+                                           autocomplete="new-password">
+                                    <button class="btn border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors" type="button" @click="showConfirmPassword = !showConfirmPassword">
+                                        <i class="bi" :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info small mb-4" v-if="state.password.value && state.password.value.length > 0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>密码强度：</span>
+                                    <div class="progress" style="width: 70%; height: 8px;">
+                                        <div class="progress-bar" :class="getPasswordStrengthClass" 
+                                             :style="{width: getPasswordStrength}"></div>
+                                    </div>
+                                    <small class="ms-2">{{ getPasswordStrengthText }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" 
+                                        class="btn btn-outline-secondary w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50"
+                                        @click="method.login()">
+                                    记起来了？登录
+                                </button>
+                                <button type="submit" 
+                                        class="btn btn-warning w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:shadow-lg"
+                                        :disabled="state.item.wait || !isFormValid">
+                                    <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
+                                    {{ state.item.wait ? '重置中...' : '重置密码' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <!-- 验证码 -->
-        <div class="form-item code-item">
-          <div class="code-input">
-            <label>验证码</label>
-            <input
-              type="text"
-              v-model="form.code"
-              placeholder="请输入6位验证码"
-              class="form-input"
-            />
-          </div>
-          <button
-            type="button"
-            class="code-btn"
-            @click="sendCode"
-            :disabled="!isPhoneValid || codeCount > 0"
-          >
-            {{ codeCount > 0 ? `${codeCount}s后重新发送` : '获取验证码' }}
-          </button>
-          <div class="error-tip" v-if="!isCodeValid && form.code">
-            请输入6位数字验证码
-          </div>
-        </div>
-
-        <!-- 新密码 -->
-        <div class="form-item">
-          <label>设置新密码</label>
-          <input
-            type="password"
-            v-model="form.newPassword"
-            placeholder="请设置新密码（6-18位字母+数字）"
-            class="form-input"
-          />
-          <div class="error-tip" v-if="!isPwdValid && form.newPassword">
-            密码格式错误（6-18位字母+数字）
-          </div>
-        </div>
-
-        <!-- 确认新密码 -->
-        <div class="form-item">
-          <label>确认新密码</label>
-          <input
-            type="password"
-            v-model="form.confirmPwd"
-            placeholder="请再次输入新密码"
-            class="form-input"
-          />
-          <div class="error-tip" v-if="form.confirmPwd && form.newPassword !== form.confirmPwd">
-            两次密码输入不一致
-          </div>
-        </div>
-
-        <!-- 提交按钮 -->
-        <button type="submit" class="auth-btn" :disabled="!isFormValid">
-          重置密码
-        </button>
-
-        <!-- 跳转登录 -->
-        <div class="auth-link">
-          <router-link to="/login">返回登录</router-link>
-        </div>
-      </form>
-    </div>
-  </div>
+    </transition>
+    
+    <transition name="backdrop-fade">
+        <div 
+            v-if="state.item.dialog"
+            class="modal-backdrop fade show"
+            style="z-index: 1050;"
+            @click="method.hide()"
+        ></div>
+    </transition>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { sendCodeApi, resetPwdApi } from '@/api/auth';
-import { validatePhone, validateCode, validatePwd } from '@/utils/validate';
+import { reactive, ref, computed, onUnmounted, watch } from 'vue'
+import utils from '@/utils/utils.js'
+import axios from '@/utils/request.js'
+import { useCommStore } from '@/store/comm'
 
-const router = useRouter();
+const emit = defineEmits(['finish'])
+const store = {
+    comm: useCommStore()
+}
 
-// 表单数据
-const form = ref({
-  phone: '',
-  code: '',
-  newPassword: '',
-  confirmPwd: ''
-});
+const state = reactive({
+    item: {
+        loading: false,
+        dialog: false,
+        wait: false,
+        second: 0,
+    },
+    struct: {
+        social: null,
+        account: null,
+        code: null,
+    },
+    password: {
+        value: null,
+        verify: null,
+    },
+    timer: null,
+})
 
-// 验证码倒计时
-const codeCount = ref(0);
-let timer = null;
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
-// 验证规则
-const isPhoneValid = computed(() => validatePhone(form.value.phone));
-const isCodeValid = computed(() => validateCode(form.value.code));
-const isPwdValid = computed(() => validatePwd(form.value.newPassword));
-const isConfirmPwdValid = computed(() => form.value.newPassword === form.value.confirmPwd);
-
-// 表单整体有效
 const isFormValid = computed(() => {
-  return isPhoneValid.value && isCodeValid.value && isPwdValid.value && isConfirmPwdValid.value;
-});
+    const { account, social, code } = state.struct
+    const { value: pwd, verify: pwdVerify } = state.password
+    
+    const hasIdentity = !utils.is.empty(account) || !utils.is.empty(social)
+    const hasCode = !utils.is.empty(code)
+    const hasPassword = !utils.is.empty(pwd) && pwd.length >= 6
+    const passwordsMatch = pwd === pwdVerify && !utils.is.empty(pwdVerify)
+    
+    return hasIdentity && hasCode && hasPassword && passwordsMatch
+})
 
-// 发送验证码
-const sendCode = async () => {
-  if (!isPhoneValid.value) return;
-  try {
-    await sendCodeApi({ phone: form.value.phone, type: 'reset' });
-    // 开始倒计时
-    codeCount.value = 60;
-    timer = setInterval(() => {
-      codeCount.value--;
-      if (codeCount.value <= 0) {
-        clearInterval(timer);
-      }
-    }, 1000);
-    alert('验证码发送成功！');
-  } catch (err) {
-    alert('验证码发送失败：' + (err.response?.data?.msg || '网络错误'));
-  }
-};
+const getPasswordStrength = computed(() => {
+    const password = state.password.value || ''
+    if (password.length === 0) return '0%'
+    
+    let strength = 0
+    if (password.length >= 6) strength += 25
+    if (/[A-Z]/.test(password)) strength += 25
+    if (/[a-z]/.test(password)) strength += 25
+    if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) strength += 25
+    
+    return `${Math.min(strength, 100)}%`
+})
 
-// 重置密码
-const handleResetPwd = async () => {
-  try {
-    await resetPwdApi({
-      phone: form.value.phone,
-      code: form.value.code,
-      newPassword: form.value.newPassword
-    });
-    alert('密码重置成功！即将跳转到登录页');
-    router.push('/login');
-  } catch (err) {
-    alert('密码重置失败：' + (err.response?.data?.msg || '重置失败'));
-  }
-};
+const getPasswordStrengthClass = computed(() => {
+    const strength = parseInt(getPasswordStrength.value)
+    if (strength < 25) return 'bg-danger'
+    if (strength < 50) return 'bg-warning'
+    if (strength < 75) return 'bg-info'
+    return 'bg-success'
+})
 
-// 页面卸载清除定时器
+const getPasswordStrengthText = computed(() => {
+    const strength = parseInt(getPasswordStrength.value)
+    if (strength < 25) return '很弱'
+    if (strength < 50) return '较弱'
+    if (strength < 75) return '中等'
+    return '强'
+})
+
+const showNotification = (message, type = 'info') => {
+    try {
+        if (typeof window !== 'undefined' && window.Toast) {
+            const toastType = type === 'success' ? 'success' : 
+                           type === 'error' ? 'error' : 
+                           type === 'warning' ? 'warning' : 'info'
+            
+            if (window.Toast[toastType]) {
+                window.Toast[toastType](message)
+                return
+            }
+        }
+        
+        if (typeof window !== 'undefined' && window.$toast) {
+            if (window.$toast[type]) {
+                window.$toast[type](message)
+                return
+            }
+        }
+    } catch (error) {
+        // 忽略显示消息失败的错误
+    }
+}
+
+const method = {
+    async reset() {
+        if (!isFormValid.value) {
+            showNotification('请完善所有必填信息！', 'warning')
+            return
+        }
+
+        try {
+            state.item.wait = true
+            const { code: resCode, msg } = await axios.post('/api/comm/reset-password', {
+                ...state.struct, 
+                password: state.password.value
+            })
+
+            state.item.wait = false
+
+            if (resCode !== 200) {
+                throw new Error(msg || '重置密码失败！')
+            }
+
+            state.item.dialog = false
+            emit('finish')
+
+        } catch (error) {
+            state.item.wait = false
+            showNotification(error.message || '网络异常，请稍后再试！', 'error')
+        }
+    },
+
+    async code() {
+        const { account, social } = state.struct
+        if (utils.is.empty(account) && utils.is.empty(social)) {
+            showNotification('请填写账号或联系方式！', 'warning')
+            return
+        }
+
+        if (social) {
+            const isPhone = /^1[3-9]\d{9}$/.test(social)
+            const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(social)
+            if (!isPhone && !isEmail) {
+                showNotification('请填写正确的手机号或邮箱！', 'warning')
+                return
+            }
+        }
+
+        try {
+            state.item.loading = true
+            const { code: resCode, msg } = await axios.post('/api/comm/reset-password', {
+                social,
+                account
+            })
+
+            if (!utils.in.array(resCode, [200, 201])) {
+                throw new Error(msg || '发送验证码失败！')
+            }
+
+            showNotification(msg || '验证码发送成功！', 'success')
+
+            if (state.timer) clearInterval(state.timer)
+            state.item.second = 60
+            state.timer = setInterval(() => {
+                state.item.second--
+                if (state.item.second <= 0) {
+                    clearInterval(state.timer)
+                    state.timer = null
+                    state.item.second = 0
+                    state.item.loading = false
+                }
+            }, 1000)
+
+        } catch (error) {
+            state.item.loading = false
+            showNotification(error.message || '网络异常，验证码发送失败！', 'error')
+        }
+    },
+
+    show() {
+        state.item.dialog = true
+        state.struct.account = ''
+        state.struct.social = ''
+        state.struct.code = ''
+        state.password.value = ''
+        state.password.verify = ''
+        showPassword.value = false
+        showConfirmPassword.value = false
+        
+        setTimeout(() => {
+            const accountInput = document.getElementById('resetAccountInput')
+            if (accountInput) {
+                accountInput.focus()
+            }
+        }, 300)
+    },
+
+    hide() {
+        state.item.dialog = false
+        showPassword.value = false
+        showConfirmPassword.value = false
+    },
+
+    login() {
+        state.item.dialog = false
+        setTimeout(() => {
+            store.comm.switchAuth('login', true)
+        }, 300)
+    },
+}
+
+watch(() => state.struct.code, (val) => {
+    if (val) {
+        state.struct.code = val.replace(/\s+/g, '')
+    }
+})
+
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
-});
+    if (state.timer) clearInterval(state.timer)
+})
+
+defineExpose({
+    show: method.show,
+    hide: method.hide
+})
 </script>
 
 <style scoped>
-/* 复用登录/注册页样式 */
-.code-item {
-  position: relative;
-}
-.code-input {
-  margin-right: 110px;
-}
-.code-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 40px;
-  margin-top: 24px;
-  background: #007aff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.code-btn:disabled {
-  background: #cccccc;
-  cursor: not-allowed;
+/* 自定义样式 */
+.modal-content {
+    border-radius: 1rem;
+    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.2);
+    border: none;
+    overflow: hidden;
 }
 
-/* 暗黑模式适配 */
-@media (prefers-color-scheme: dark) {
-  .code-btn {
-    background: #0a84ff;
-  }
-  .code-btn:disabled {
-    background: #444;
-  }
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #ffc107 0%, #f59e0b 100%);
+    color: white;
 }
 
-/* 继承登录页样式 */
-@import './Login.vue?vue&type=style&scoped=true';
+.modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+    outline: none;
+}
+
+.input-group {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.input-group .btn {
+    border-radius: 0;
+    border-left: none;
+    background-color: #f8f9fa;
+    border-color: #d1d5db;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.input-group .btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.btn {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-warning:hover {
+    background-color: #f59e0b;
+    border-color: #d97706;
+    box-shadow: 0 0.25rem 0.5rem rgba(255, 193, 7, 0.3);
+}
+
+.btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    color: white;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+.form-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+/* 密码强度指示器 */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+/* 网格布局 */
+.grid {
+    display: grid;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.space-y-4 {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* 响应式调整 */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    .modal-content {
+        border-radius: 0.75rem;
+    }
+    
+    .modal-body {
+        padding: 1.25rem;
+    }
+}
+
+/* 修复模态框层级 */
+.modal-backdrop {
+    z-index: 1050;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    z-index: 1051;
+}
+
+/* 过渡动画 */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: all 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.backdrop-fade-enter-active,
+.backdrop-fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.backdrop-fade-enter-from,
+.backdrop-fade-leave-to {
+    opacity: 0;
+}
 </style>
