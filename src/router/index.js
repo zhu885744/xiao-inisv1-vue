@@ -38,7 +38,7 @@ const routes = [
   },
   {
     path: '/archives/:id',
-    name: '文章详情',
+    name: '文章详情 ',
     component: () => import('@/views/index/pages/archives.vue'),
     meta: { title: '文章详情', requiresAuth: false },
     props: true
@@ -70,12 +70,21 @@ const routes = [
       (isLogin && isAdmin) ? next() : next('/')
     }
   },
-  // 🌟 新增：/links专属路由（精准匹配，放在/:key前面）
+  // 🌟 归档页面路由，指向独立页面组件
+  {
+    path: '/archive',
+    name: '归档页面',
+    component: () => import('@/views/index/pages/page.vue'),
+    meta: { title: '网站统计', requiresAuth: false },
+    props: { pageKey: 'archive' }
+  },
+  // 🌟 友链页面路由，指向独立页面组件
   {
     path: '/links',
     name: '友链页面',
-    component: () => import('@/views/index/pages/links.vue'),
-    meta: { title: '友链', requiresAuth: false }
+    component: () => import('@/views/index/pages/page.vue'),
+    meta: { title: '友链', requiresAuth: false },
+    props: { pageKey: 'links' }
   },
 
   // 独立页动态路由：匹配/xxx（如/about），排除/links（已精准匹配）

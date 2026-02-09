@@ -10,7 +10,7 @@
             <div class="avatar-upload-container mb-4">
               <div class="avatar-preview">
                 <img 
-                  :src="formData.avatar || '/src/assets/img/avatar.png'" 
+                  :src="formData.avatar || defaultAvatar" 
                   :alt="formData.nickname || '用户头像'"
                   class="rounded-circle avatar-image"
                 >
@@ -23,13 +23,6 @@
                 >
                   <i class="bi bi-upload me-2"></i>上传头像
                 </button>
-                <input 
-                  type="file" 
-                  ref="fileInput" 
-                  class="d-none" 
-                  accept="image/*"
-                  @change="handleFileUpload"
-                >
               </div>
               <p class="text-muted small mt-2">支持 JPG、PNG 格式，建议尺寸 200x200px</p>
             </div>
@@ -114,7 +107,7 @@
                 <label class="form-label">联系方式</label>
                 <div class="row">
                   <div class="col-md-6 mb-2">
-                    <div class="input-group">
+                    <div class="input-group input-group-contact">
                       <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                       <input 
                         type="text" 
@@ -125,7 +118,7 @@
                     </div>
                   </div>
                   <div class="col-md-6">
-                    <div class="input-group">
+                    <div class="input-group input-group-contact">
                       <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                       <input 
                         type="email" 
@@ -176,9 +169,10 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import request from '@/utils/request'
 import toast from '@/utils/toast'
 import { useCommStore } from '@/store/comm'
+import { uploadImage } from '@/utils/upload'
+import defaultAvatar from '@/assets/img/avatar.png'
 
 const store = useCommStore()
-const fileInput = ref(null)
 const loading = ref(false)
 
 // 表单数据
@@ -201,54 +195,11 @@ const originalData = reactive({})
 
 // 触发文件输入
 const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-// 处理文件上传
-const handleFileUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  // 验证文件大小
-  if (file.size > 5 * 1024 * 1024) { // 5MB
-    toast.error('文件大小不能超过 5MB')
-    return
-  }
-
-  // 验证文件类型
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
-  if (!allowedTypes.includes(file.type)) {
-    toast.error('只支持 JPG、PNG、GIF 格式的图片')
-    return
-  }
-
-  loading.value = true
-  try {
-    const uploadFormData = new FormData()
-    uploadFormData.append('file', file)
-
-    const res = await request.post('/api/file/upload', uploadFormData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-
-    if (res.code === 200 && res.data) {
-      formData.avatar = res.data.url
-      toast.success('头像上传成功')
-      // 更新用户信息
-      await updateBasicInfo()
-    } else {
-      toast.error('头像上传失败')
-    }
-  } catch (error) {
-    console.error('上传失败:', error)
-    toast.error('网络错误，请稍后重试')
-  } finally {
-    loading.value = false
-    // 清空文件输入，以便可以重复选择同一个文件
-    event.target.value = ''
-  }
+  uploadImage('avatar', (path) => {
+    formData.avatar = path
+    // 更新用户信息
+    updateBasicInfo()
+  })
 }
 
 // 更新基础信息
@@ -266,13 +217,13 @@ const updateBasicInfo = async () => {
     })
 
     if (res.code === 200) {
-      toast.success('信息更新成功')
+      toast.success('用户信息更新成功')
       // 同步用户信息
       await syncUserInfo()
       // 更新原始数据
       Object.assign(originalData, { ...formData })
     } else {
-      toast.error(res.msg || '信息更新失败')
+      toast.error(res.msg || '用户信息更新失败')
     }
   } catch (error) {
     console.error('更新失败:', error)
@@ -344,6 +295,8 @@ onMounted(() => {
 .form-control {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
 }
 
 .form-control:focus {
@@ -355,13 +308,79 @@ onMounted(() => {
 .btn {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* 表单标签 */
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.375rem;
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
   .avatar-image {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .col-md-4,
+  .col-md-8 {
+    width: 100%;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mb-3 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .card-title {
+    font-size: 0.9375rem;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .form-control {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  /* 联系方式的input-group保持水平排列 */
+  .input-group-contact {
+    flex-direction: row !important;
+    width: 100%;
+  }
+  
+  .input-group-contact .input-group-text {
+    flex-shrink: 0;
+    width: auto;
+  }
+  
+  .input-group-contact .form-control {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .d-flex.gap-2 {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+  
+  .d-flex.gap-2 .btn {
+    width: 100%;
   }
 }
 </style>

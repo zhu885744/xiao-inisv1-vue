@@ -14,7 +14,7 @@
             target="_blank" 
             rel="noopener noreferrer"
             class="text-decoration-none text-reset hover-text-primary transition-opacity"
-            aria-label="ICP备案查询"
+            aria-label="ICP备案号"
           >
             {{ icpCode }}
           </a>
@@ -27,7 +27,7 @@
             target="_blank" 
             rel="noopener noreferrer"
             class="text-decoration-none text-reset hover-text-primary transition-opacity"
-            aria-label="公安网安备查询"
+            aria-label="公安备案号"
           >
             {{ policeCode }}
           </a>

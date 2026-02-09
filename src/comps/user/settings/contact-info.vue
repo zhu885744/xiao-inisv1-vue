@@ -398,7 +398,13 @@ const cleanupTimers = () => {
 
 // 组件挂载时
 onMounted(() => {
-  // 可以在这里初始化一些数据
+  // 从store中获取当前用户的联系方式
+  const userInfo = store.getLogin.user
+  if (userInfo) {
+    // 填充当前用户的邮箱和手机号到表单中
+    emailForm.email = userInfo.email || ''
+    phoneForm.phone = userInfo.phone || ''
+  }
 })
 
 // 组件卸载时清理定时器
@@ -417,6 +423,8 @@ onUnmounted(() => {
 .form-control {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
 }
 
 .form-control:focus {
@@ -427,11 +435,33 @@ onUnmounted(() => {
 .btn {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* 表单标签 */
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.375rem;
 }
 
 .input-group {
   border-radius: 0.375rem;
   overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input-group .form-control {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-group .btn {
+  white-space: nowrap;
 }
 
 /* 安全提示列表 */
@@ -439,6 +469,8 @@ onUnmounted(() => {
   border-left: 0;
   border-right: 0;
   border-radius: 0 !important;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
 }
 
 .list-group-item:first-child {
@@ -451,8 +483,64 @@ onUnmounted(() => {
 
 /* 响应式调整 */
 @media (max-width: 768px) {
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mb-3 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .card-title {
+    font-size: 0.9375rem;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .form-control {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .input-group .form-control {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .input-group .btn {
+    white-space: nowrap;
+    min-width: 100px;
+  }
+  
   .col-md-6 {
-    margin-bottom: 1.5rem;
+    width: 100%;
+    margin-bottom: 1rem !important;
+  }
+  
+  .list-group-item {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .list-group-item i {
+    font-size: 0.9em;
   }
 }
 </style>

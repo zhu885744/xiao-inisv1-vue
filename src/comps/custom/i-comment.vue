@@ -1,4 +1,4 @@
-<!-- src/comps/CommentList.vue 评论通用组件（适配深色模式+UI优化） -->
+<!-- src/comps/CommentList.vue 通用评论组件 -->
 <template>
   <div class="card shadow-sm border-0 rounded-3 bg-body-tertiary">
     <!-- 评论区标题：接收props的评论数，动态展示 -->
@@ -13,18 +13,44 @@
       <div class="mb-5" v-if="isLogin">
         <textarea 
           v-model="commentInput"
-          class="form-control rounded-2 border border-secondary-subtle bg-body" 
+          class="form-control rounded-3 border border-secondary-subtle bg-body" 
           rows="3" 
           placeholder="请输入你的评论..."
           :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
         ></textarea>
-        <button 
-          @click="handlePublish"
-          class="btn btn-primary mt-3 px-4 rounded-2"
-          :disabled="!commentInput.trim()"
-        >
-          <i class="bi bi-paper-plane-fill me-1"></i> 发布评论
-        </button>
+        
+        <!-- 表情选择面板 -->
+        <div v-if="showEmojiPicker" class="emoji-picker-container mt-2 p-3 border rounded-3 bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+          <div class="d-flex flex-wrap gap-2">
+            <button 
+              v-for="(emoji, index) in emojis" 
+              :key="index"
+              @click="insertEmoji(emoji)"
+              class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+              :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+            >
+              {{ emoji }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- 按钮区域：表情按钮和发布评论按钮在同一行 -->
+        <div class="d-flex gap-2 mt-3">
+          <button 
+            @click="toggleEmojiPicker"
+            class="btn btn-outline-secondary btn-sm px-4 rounded-3 emoji-button"
+            :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+          >
+            <i class="bi bi-emoji-smile me-1"></i> 表情
+          </button>
+          <button 
+              @click="handlePublish"
+              class="btn btn-primary px-4 rounded-3 publish-btn flex-grow-1"
+              :disabled="!commentInput.trim()"
+            >
+              <i class="bi bi-paper-plane-fill me-1"></i> 发布评论
+            </button>
+        </div>
       </div>
 
       <!-- 未登录引导区：Bootstrap 深色模式适配 -->
@@ -34,13 +60,13 @@
         <div class="d-flex gap-2 justify-content-center">
           <button 
             @click="handleToLogin()"
-            class="btn btn-primary btn-sm px-4 rounded-2"
+            class="btn btn-primary btn-sm px-4 rounded-3"
           >
             登录
           </button>
           <button 
             @click="handleToRegister()"
-            class="btn btn-outline-primary btn-sm px-4 rounded-2"
+            class="btn btn-outline-primary btn-sm px-4 rounded-3"
           >
             注册
           </button>
@@ -62,24 +88,30 @@
               style="width: 50px; height: 50px; object-fit: cover;"
             >
             <div class="flex-grow-1">
-              <h6 class="fw-semibold mb-1">{{ item.nickname || '匿名用户' }}</h6>
+              <h6 class="fw-semibold mb-1">
+                <router-link v-if="item.authorId" :to="`/author/${item.authorId}`" class="text-decoration-none text-primary">
+                  {{ item.nickname || '匿名用户' }}
+                </router-link>
+                <span v-else>{{ item.nickname || '匿名用户' }}</span>
+                <span v-if="item.levelName" class="badge bg-secondary text-white ms-2 rounded-pill">{{ item.levelName }}</span>
+                <span v-if="item.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
+              </h6>
               <small class="text-muted">{{ item.time || '未知时间' }}</small>
-              <span v-if="item.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
             </div>
           </div>
-          <p class="text-secondary mb-3 px-2 py-1 rounded-2 bg-body-tertiary">{{ item.content }}</p>
+          <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary">{{ item.content }}</p>
           
           <!-- 回复按钮组：优化交互 -->
           <div class="d-flex gap-2">
             <button 
-              class="btn btn-sm btn-outline-primary rounded-2" 
+              class="btn btn-sm btn-outline-primary rounded-3" 
               @click="toggleReplyForm(index)"
               v-if="isLogin"
             >
               <i class="bi bi-reply-fill me-1"></i> 回复
             </button>
             <button 
-              class="btn btn-sm btn-outline-secondary rounded-2 disabled" 
+              class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
               v-else
               data-bs-toggle="tooltip"
               data-bs-title="登录后可回复"
@@ -89,34 +121,58 @@
           </div>
 
           <!-- 回复输入框 -->
-          <div v-if="showReplyIndex === index" class="mt-3">
+          <div v-if="showReplyIndex === index" class="mt-3 reply-form">
             <textarea 
               v-model="replyInput"
-              class="form-control rounded-2 border border-secondary-subtle bg-body" 
+              class="form-control rounded-3 border border-secondary-subtle bg-body" 
               rows="2" 
               placeholder="请输入你的回复..."
               :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
             ></textarea>
+            
+            <!-- 回复表情选择面板 -->
+            <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border rounded-3 bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+              <div class="d-flex flex-wrap gap-2">
+                <button 
+                  v-for="(emoji, index) in emojis" 
+                  :key="index"
+                  @click="insertReplyEmoji(emoji)"
+                  class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+                  :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+            </div>
+            
+            <!-- 按钮区域：表情按钮、发送回复按钮和取消按钮在同一行 -->
             <div class="d-flex gap-2 mt-2">
               <button 
+                @click="toggleReplyEmojiPicker"
+                class="btn btn-sm btn-outline-secondary px-3 rounded-3 emoji-button"
+                :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+              >
+                <i class="bi bi-emoji-smile me-1"></i> 表情
+              </button>
+              <button 
                 @click="handleSubmitReply(item.id || index)"
-                class="btn btn-sm btn-primary px-3 rounded-2"
+                class="btn btn-sm btn-primary px-3 rounded-3 flex-grow-1"
                 :disabled="!replyInput.trim()"
               >
                 发送回复
               </button>
               <button 
                 @click="cancelReply"
-                class="btn btn-sm btn-outline-secondary px-3 rounded-2"
+                class="btn btn-sm btn-outline-secondary px-3 rounded-3"
               >
                 取消
               </button>
             </div>
           </div>
 
-          <!-- 评论回复：嵌套展示，优化深色模式适配 -->
+          <!-- 评论回复：嵌套展示 -->
           <div 
-            class="ms-5 mt-3 pt-3 border-top border-secondary-subtle"
+            class="ms-5 mt-3 pt-3 border-top border-secondary-subtle reply-item"
             v-for="(reply, rIndex) in item.replies" 
             :key="reply.id || rIndex"
           >
@@ -129,25 +185,29 @@
               >
               <div class="flex-grow-1">
                 <h6 class="fw-semibold mb-1">
-                  {{ reply.nickname || '匿名用户' }}
+                  <router-link v-if="reply.authorId" :to="`/author/${reply.authorId}`" class="text-decoration-none text-primary">
+                    {{ reply.nickname || '匿名用户' }}
+                  </router-link>
+                  <span v-else>{{ reply.nickname || '匿名用户' }}</span>
+                  <span v-if="reply.levelName" class="badge bg-secondary text-white ms-2 rounded-pill">{{ reply.levelName }}</span>
                   <span v-if="reply.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
                 </h6>
                 <small class="text-muted">{{ reply.time || '未知时间' }}</small>
               </div>
             </div>
-            <p class="text-secondary mb-3 px-2 py-1 rounded-2 bg-body-tertiary">{{ reply.content }}</p>
+            <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary">{{ reply.content }}</p>
             
             <!-- 回复按钮组 -->
             <div class="d-flex gap-2">
               <button 
-                class="btn btn-sm btn-outline-primary rounded-2" 
+                class="btn btn-sm btn-outline-primary rounded-3" 
                 @click="toggleReplyForm(index)"
                 v-if="isLogin"
               >
                 <i class="bi bi-reply-fill me-1"></i> 回复
               </button>
               <button 
-                class="btn btn-sm btn-outline-secondary rounded-2 disabled" 
+                class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
                 v-else
                 data-bs-toggle="tooltip"
                 data-bs-title="登录后可回复"
@@ -159,7 +219,7 @@
         </div>
       </div>
 
-      <!-- 无评论提示：优化深色模式和视觉体验 -->
+      <!-- 无评论提示 -->
       <div v-else class="text-center py-5 text-muted">
         <p class="mb-0 h6">暂无评论，快来抢沙发吧～</p>
       </div>
@@ -168,8 +228,9 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useCommStore } from '@/store/comm'
+import utils from '@/utils/utils'
 
 // 🌟 1. 定义组件接收的props
 const props = defineProps({
@@ -191,6 +252,11 @@ const props = defineProps({
     required: true,
     default: false
   },
+  // 新增：文章作者信息，用于判断评论是否为作者所发
+  articleAuthor: {
+    type: Object,
+    default: () => ({})
+  },
   // 新增：接收深色模式状态（可选，自动检测兜底）
   isDarkMode: {
     type: Boolean,
@@ -208,41 +274,146 @@ const emit = defineEmits(['publishComment', 'replyComment', 'toLogin', 'toRegist
 const commentInput = ref('')
 const replyInput = ref('')
 const showReplyIndex = ref(null)
+const replyTarget = ref(null)
+// 表情功能相关状态
+const showEmojiPicker = ref(false)
+const showReplyEmojiPicker = ref(false)
 // 自动检测系统深色模式（兜底方案）
 const isSystemDark = ref(false)
+
+// 定义常用表情
+const emojis = [
+  // 颜文字
+  '😊', '😂', '😍', '🤔', '😎', '😢', '😡', '👍', '👎', '👏',
+  // Emoji表情
+  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
+  '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😙', '😚',
+  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩'
+]
 
 // 🌟 4. 处理评论数据，适配 API 返回格式
 const processedCommentList = computed(() => {
   return props.commentList.map(item => {
     // 格式化时间
-    const formatTime = (timestamp) => {
-      if (!timestamp || timestamp === 0) return '未知时间'
-      const date = new Date(timestamp * 1000)
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-    }
+       const formatTime = (timestamp) => {
+         if (!timestamp || timestamp === 0) return '未知时间'
+         return utils.timeToDate(timestamp, 'Y-m-d H:i')
+       }
     
     // 处理回复数据
     const processReplies = (replies) => {
       if (!Array.isArray(replies)) return []
       return replies.map(reply => {
+        // 尝试从不同位置获取等级信息
+        let levelName = '';
+        
+        // 1. 尝试从 result.author.result.level 获取（正确路径）
+        if (reply.result?.author?.result?.level?.current?.name) {
+          levelName = reply.result.author.result.level.current.name;
+        } 
+        // 2. 尝试从 result.author.level 获取
+        else if (reply.result?.author?.level?.current?.name) {
+          levelName = reply.result.author.level.current.name;
+        }
+        // 3. 尝试从 author.result.level 获取
+        else if (reply.author?.result?.level?.current?.name) {
+          levelName = reply.author.result.level.current.name;
+        }
+        // 4. 尝试从 level 获取
+        else if (reply.level?.current?.name) {
+          levelName = reply.level.current.name;
+        }
+        // 5. 尝试从 result.author.result.levelName 获取
+        else if (reply.result?.author?.result?.levelName) {
+          levelName = reply.result.author.result.levelName;
+        }
+        // 6. 尝试从 result.author.levelName 获取
+        else if (reply.result?.author?.levelName) {
+          levelName = reply.result.author.levelName;
+        }
+        // 7. 尝试从 author.levelName 获取
+        else if (reply.author?.levelName) {
+          levelName = reply.author.levelName;
+        }
+        // 8. 尝试从 levelName 获取
+        else if (reply.levelName) {
+          levelName = reply.levelName;
+        }
+        
+        // 获取评论作者ID
+        const commentAuthorId = reply.result?.author?.id || reply.author?.id || null;
+        // 获取文章作者ID
+        const articleAuthorId = props.articleAuthor.id;
+        // 判断是否为文章作者
+        const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
+        
         return {
           id: reply.id,
-          avatar: reply.result?.author?.avatar?.trim() || reply.avatar || 'https://picsum.photos/62/62',
-          nickname: reply.result?.author?.nickname || reply.nickname || '匿名用户',
+          authorId: commentAuthorId,
+          avatar: reply.result?.author?.avatar?.trim() || reply.author?.avatar?.trim() || reply.avatar || 'https://picsum.photos/62/62',
+          nickname: reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户',
+          level: reply.result?.author?.result?.level?.current?.value || reply.result?.author?.level?.current?.value || reply.author?.result?.level?.current?.value || reply.level?.current?.value || reply.level || null,
+          levelName: levelName,
           time: formatTime(reply.create_time || reply.time || reply.update_time),
           content: reply.content || '',
-          isAuthor: reply.result?.author?.isAuthor || reply.isAuthor || false
+          isAuthor: isCommentAuthor || reply.result?.author?.result?.isAuthor || reply.result?.author?.isAuthor || reply.author?.result?.isAuthor || reply.isAuthor || false
         }
       })
     }
     
+    // 尝试从不同位置获取等级信息
+    let levelName = '';
+    
+    // 1. 尝试从 result.author.result.level 获取（正确路径）
+    if (item.result?.author?.result?.level?.current?.name) {
+      levelName = item.result.author.result.level.current.name;
+    } 
+    // 2. 尝试从 result.author.level 获取
+    else if (item.result?.author?.level?.current?.name) {
+      levelName = item.result.author.level.current.name;
+    }
+    // 3. 尝试从 author.result.level 获取
+    else if (item.author?.result?.level?.current?.name) {
+      levelName = item.author.result.level.current.name;
+    }
+    // 4. 尝试从 level 获取
+    else if (item.level?.current?.name) {
+      levelName = item.level.current.name;
+    }
+    // 5. 尝试从 result.author.result.levelName 获取
+    else if (item.result?.author?.result?.levelName) {
+      levelName = item.result.author.result.levelName;
+    }
+    // 6. 尝试从 result.author.levelName 获取
+    else if (item.result?.author?.levelName) {
+      levelName = item.result.author.levelName;
+    }
+    // 7. 尝试从 author.levelName 获取
+    else if (item.author?.levelName) {
+      levelName = item.author.levelName;
+    }
+    // 8. 尝试从 levelName 获取
+    else if (item.levelName) {
+      levelName = item.levelName;
+    }
+    
+    // 获取评论作者ID
+    const commentAuthorId = item.result?.author?.id || item.author?.id || null;
+    // 获取文章作者ID
+    const articleAuthorId = props.articleAuthor.id;
+    // 判断是否为文章作者
+    const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
+    
     return {
       id: item.id,
-      avatar: item.result?.author?.avatar?.trim() || item.avatar || 'https://picsum.photos/60/60',
-      nickname: item.result?.author?.nickname || item.nickname || '匿名用户',
+      authorId: commentAuthorId,
+      avatar: item.result?.author?.avatar?.trim() || item.author?.avatar?.trim() || item.avatar || 'https://picsum.photos/60/60',
+      nickname: item.result?.author?.nickname || item.author?.nickname || item.nickname || '匿名用户',
+      level: item.result?.author?.result?.level?.current?.value || item.result?.author?.level?.current?.value || item.author?.result?.level?.current?.value || item.level?.current?.value || item.level || null,
+      levelName: levelName,
       time: formatTime(item.create_time || item.time || item.update_time),
       content: item.content || '',
-      isAuthor: item.result?.author?.isAuthor || item.isAuthor || false,
+      isAuthor: isCommentAuthor || item.result?.author?.result?.isAuthor || item.result?.author?.isAuthor || item.author?.result?.isAuthor || item.isAuthor || false,
       replies: processReplies(item.replies)
     }
   })
@@ -268,14 +439,21 @@ const toggleReplyForm = (index) => {
   if (showReplyIndex.value === index) {
     showReplyIndex.value = null
     replyInput.value = ''
+    replyTarget.value = null
   } else {
     showReplyIndex.value = index
-    replyInput.value = ''
+    // 获取要回复的用户信息
+    const comment = processedCommentList.value[index]
+    replyTarget.value = comment
+    // 在回复输入框中显示@用户
+    replyInput.value = `@${comment.nickname} `
     // 自动聚焦回复输入框
     setTimeout(() => {
       const textarea = document.querySelector('textarea[placeholder="请输入你的回复..."]')
       if (textarea) {
         textarea.focus()
+        // 将光标移动到输入框末尾
+        textarea.setSelectionRange(replyInput.value.length, replyInput.value.length)
       }
     }, 100)
   }
@@ -303,7 +481,66 @@ const handleSubmitReply = (commentId) => {
 const cancelReply = () => {
   showReplyIndex.value = null
   replyInput.value = ''
+  replyTarget.value = null
+  showReplyEmojiPicker.value = false
 }
+
+// 🌟 8. 表情功能
+// 切换评论表情选择面板
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value
+  showReplyEmojiPicker.value = false
+}
+
+// 切换回复表情选择面板
+const toggleReplyEmojiPicker = () => {
+  showReplyEmojiPicker.value = !showReplyEmojiPicker.value
+  showEmojiPicker.value = false
+}
+
+// 插入表情到评论输入框
+const insertEmoji = (emoji) => {
+  commentInput.value += emoji
+  // 自动聚焦输入框
+  setTimeout(() => {
+    const textarea = document.querySelector('textarea[placeholder="请输入你的评论..."]')
+    if (textarea) {
+      textarea.focus()
+    }
+  }, 100)
+}
+
+// 插入表情到回复输入框
+const insertReplyEmoji = (emoji) => {
+  replyInput.value += emoji
+  // 自动聚焦输入框
+  setTimeout(() => {
+    const textarea = document.querySelector('textarea[placeholder="请输入你的回复..."]')
+    if (textarea) {
+      textarea.focus()
+    }
+  }, 100)
+}
+
+// 点击外部关闭表情选择面板
+const handleClickOutside = (event) => {
+  const emojiPickers = event.target.closest('.emoji-picker-container')
+  const emojiButtons = event.target.closest('.emoji-button')
+  if (!emojiPickers && !emojiButtons) {
+    showEmojiPicker.value = false
+    showReplyEmojiPicker.value = false
+  }
+}
+
+// 组件挂载后添加点击外部事件监听器
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+// 组件卸载前移除点击外部事件监听器
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 // 🌟 8. 处理登录注册
 const handleToLogin = () => {
@@ -344,17 +581,47 @@ watch([() => props.isDarkMode, isSystemDark], () => {
 /* 基础样式优化 + 深色模式适配 */
 .avatar {
   transition: transform 0.2s ease;
+  border: 2px solid rgba(var(--bs-primary-rgb), 0.1);
 }
 
 .avatar:hover {
   transform: scale(1.05);
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
 }
 
 .comment-item {
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: rgba(var(--bs-primary-rgb), 0.01);
 }
 
 .comment-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+/* 评论内容样式优化 */
+.comment-item p {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: rgba(var(--bs-primary-rgb), 0.02);
+  transition: all 0.3s ease;
+}
+
+.comment-item p:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.04);
+}
+
+/* 回复输入框样式优化 */
+.reply-form {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 1rem;
   background-color: rgba(var(--bs-primary-rgb), 0.02);
 }
 
@@ -383,6 +650,16 @@ watch([() => props.isDarkMode, isSystemDark], () => {
   .card-body {
     padding: 1rem !important;
   }
+
+  .comment-item {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .comment-item p {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 /* 输入框焦点样式优化 */
@@ -396,6 +673,16 @@ watch([() => props.isDarkMode, isSystemDark], () => {
 :deep(.btn-outline-primary:hover) {
   background-color: var(--bs-primary);
   border-color: var(--bs-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+:deep(.btn) {
+  transition: all 0.2s ease;
+}
+
+:deep(.btn:hover) {
+  transform: translateY(-1px);
 }
 
 /* 无评论提示动画 */
@@ -412,6 +699,162 @@ watch([() => props.isDarkMode, isSystemDark], () => {
   }
   100% {
     transform: scale(1);
+  }
+}
+
+/* 评论输入框样式优化 */
+:deep(.form-control) {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+:deep(.form-control:focus) {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+  transform: translateY(-1px);
+}
+
+/* 回复输入框占位符样式 */
+:deep(textarea[placeholder="请输入你的回复..."]) {
+  font-size: 0.9rem;
+}
+
+/* 评论时间样式优化 */
+.comment-item small {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.comment-item:hover small {
+  opacity: 1;
+}
+
+/* 徽章样式优化 */
+.comment-item .badge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.comment-item:hover .badge {
+  transform: scale(1.05);
+}
+
+/* 回复评论的样式 */
+.reply-item {
+  border-left: 3px solid rgba(var(--bs-primary-rgb), 0.2);
+  padding-left: 1rem;
+  margin-left: 1rem;
+  margin-top: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.reply-item:hover {
+  border-left-color: rgba(var(--bs-primary-rgb), 0.4);
+  margin-left: 1.25rem;
+}
+
+/* 发布评论按钮样式优化 */
+.publish-btn {
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.publish-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.publish-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 表情功能样式 */
+.emoji-button {
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.emoji-button:hover {
+  transform: scale(1.1);
+  border-color: var(--bs-primary);
+}
+
+.emoji-picker-container {
+  transition: all 0.3s ease;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+}
+
+.emoji-item {
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.emoji-item:hover {
+  transform: scale(1.2);
+  border-color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* 表情选择面板滚动条样式 */
+.emoji-picker-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.emoji-picker-container::-webkit-scrollbar-track {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  border-radius: 3px;
+}
+
+.emoji-picker-container::-webkit-scrollbar-thumb {
+  background: rgba(var(--bs-primary-rgb), 0.3);
+  border-radius: 3px;
+}
+
+.emoji-picker-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--bs-primary-rgb), 0.5);
+}
+
+/* 深色模式表情样式 */
+:deep(.bg-dark) .emoji-item {
+  border-color: #444;
+  color: #fff;
+}
+
+:deep(.bg-dark) .emoji-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.2);
+}
+
+/* 移动端表情适配 */
+@media (max-width: 768px) {
+  .emoji-picker-container {
+    max-height: 150px;
+  }
+  
+  .emoji-item {
+    font-size: 1rem;
+    min-width: 32px;
+    height: 32px;
+  }
+  
+  .emoji-button {
+    bottom: 1rem !important;
+    end: 1rem !important;
   }
 }
 </style>

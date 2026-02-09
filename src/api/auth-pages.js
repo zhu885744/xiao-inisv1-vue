@@ -4,9 +4,7 @@ import axios from '@/utils/request'
 
 const authPages = {
     column: (params = {}) => {
-
         return new Promise(async (resolve, reject) => {
-
             // 缓存名称
             const cacheName = `auth-pages-column?${JSON.stringify(params)}`
 

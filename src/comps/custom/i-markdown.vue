@@ -1,4 +1,4 @@
-<!-- src\comps\custom\i-markdown.vue -->
+<!-- src\comps\custom\i-markdown.vue 文章markdown内容渲染组件 -->
 <template>
   <span v-html="renderedMd"></span>
 </template>
@@ -8,7 +8,7 @@ import { ref, watch, defineProps } from 'vue'
 // 导入marked核心渲染方法（v17+ 直接导入marked即可）
 import { marked } from 'marked'
 
-// 保留原有props规范，无需修改
+// props规范
 const props = defineProps({
   modelValue: {
     type: String,

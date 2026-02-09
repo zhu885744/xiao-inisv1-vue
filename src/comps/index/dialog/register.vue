@@ -10,7 +10,7 @@
             data-bs-backdrop="static"
         >
             <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
-                <div class="modal-content rounded-xl shadow-lg border-0 overflow-hidden">
+                <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
                     <div class="modal-header bg-gradient-to-r from-success to-green-600 text-white py-4">
                         <h3 class="modal-title fs-5 fw-semibold" id="registerModalLabel">注册账号</h3>
                         <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
@@ -23,7 +23,7 @@
                                     昵称 <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
-                                       class="form-control rounded-lg border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
+                                       class="form-control rounded-3 border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
                                        id="nicknameInput"
                                        v-model="state.struct.nickname"
                                        placeholder="希望别人怎么称呼您？"
@@ -36,7 +36,7 @@
                                     账号 <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
-                                       class="form-control rounded-lg border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
+                                       class="form-control rounded-3 border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
                                        id="registerAccountInput"
                                        v-model="state.struct.account"
                                        placeholder="定制您的专属账号"
@@ -49,7 +49,7 @@
                                     邮箱或手机号 <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" 
-                                       class="form-control rounded-lg border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
+                                       class="form-control rounded-3 border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
                                        id="socialInput"
                                        v-model="state.struct.social"
                                        placeholder="电子邮箱或手机号"
@@ -61,7 +61,7 @@
                                 <label for="codeInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">
                                     验证码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input type="text" 
                                            class="form-control border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
                                            id="codeInput"
@@ -84,7 +84,7 @@
                                 <label for="passwordInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">
                                     密码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input 
                                         :type="showPassword ? 'text' : 'password'" 
                                         class="form-control border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
@@ -103,7 +103,7 @@
                                 <label for="confirmPasswordInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">
                                     确认密码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input :type="showConfirmPassword ? 'text' : 'password'" 
                                            class="form-control border-gray-300 focus:border-success focus:ring focus:ring-success focus:ring-opacity-20 transition-all" 
                                            id="confirmPasswordInput"
@@ -119,12 +119,12 @@
                             
                             <div class="grid grid-cols-2 gap-3 mt-2">
                                 <button type="button" 
-                                        class="btn btn-outline-secondary w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50"
+                                        class="btn btn-outline-secondary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-gray-50"
                                         @click="method.login()">
                                     已有账号？登录
                                 </button>
                                 <button type="submit" 
-                                        class="btn btn-success w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:shadow-lg"
+                                        class="btn btn-success w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:shadow-lg"
                                         :disabled="state.item.wait">
                                     <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
                                     {{ state.item.wait ? '注册中...' : '注册' }}

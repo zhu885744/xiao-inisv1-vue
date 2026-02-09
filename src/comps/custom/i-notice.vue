@@ -38,12 +38,13 @@
   <!-- 公告弹窗 -->
   <div class="modal fade" id="noticeModal" tabindex="-1" aria-hidden="true" ref="noticeModal">
     <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content shadow">
+      <div class="modal-content shadow rounded-3">
         <div class="modal-header border-bottom py-3 px-4">
-          <h5 class="modal-title d-flex align-items-center mb-0">
-            <i class="bi bi-megaphone text-danger me-2"></i>
+          <h5 class="modal-title d-flex align-items-center mb-0 text-danger-emphasis">
+            <i class="bi bi-megaphone me-2"></i>
             {{ currentNotice?.title || '系统公告' }}
           </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
         </div>
 
         <div class="modal-body p-4">
@@ -56,7 +57,7 @@
               <a
                 :href="currentNotice.url"
                 :target="currentNotice.target || '_blank'"
-                class="btn btn-outline-secondary rounded-pill px-4 text-decoration-none"
+                class="btn btn-outline-danger rounded-pill px-4 text-decoration-none w-100"
               >
                 <i class="bi bi-link-45deg me-1"></i>查看详情
               </a>
@@ -64,7 +65,7 @@
           </div>
 
           <!-- 公告信息 -->
-          <div class="notice-meta d-flex align-items-center flex-wrap gap-2 mt-2">
+          <div class="notice-meta d-flex align-items-center flex-wrap gap-2 mt-4">
             <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">
               <i class="bi bi-tag me-1"></i> {{ currentNotice?.type || '系统通知' }}
             </span>
@@ -76,7 +77,7 @@
         </div>
 
         <div class="modal-footer border-top py-3 px-4 justify-content-center">
-          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-outline-danger rounded-pill px-4 w-100" data-bs-dismiss="modal">
             关闭
           </button>
         </div>
@@ -89,6 +90,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Modal } from 'bootstrap'
 import request from '@/utils/request'
+import utils from '@/utils/utils'
 
 // 响应式数据
 const noticeList = ref([])
@@ -129,8 +131,7 @@ const formatDate = (timestamp) => {
   if (!timestamp) return '未知时间'
   
   try {
-    const date = new Date(timestamp * 1000)
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    return utils.timeToDate(timestamp, 'Y-m-d')
   } catch {
     return '未知时间'
   }
@@ -251,5 +252,91 @@ onUnmounted(() => {
 
 .notice-text p:last-child {
   margin-bottom: 0;
+}
+
+/* 弹窗动画效果 */
+.modal.fade {
+  transition: opacity 0.3s ease;
+}
+
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease;
+  transform: translateY(-20px);
+}
+
+.modal.fade.show .modal-dialog {
+  transform: translateY(0);
+}
+
+.modal-backdrop.fade {
+  transition: opacity 0.3s ease;
+}
+
+/* 公告卡片动画 */
+.card {
+  animation: fadeInDown 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+@keyframes fadeInDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 公告项动画 */
+.notice-item {
+  animation: fadeIn 0.3s ease forwards;
+  opacity: 0;
+}
+
+.notice-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.notice-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.notice-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.notice-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.notice-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* 按钮动画 */
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 1rem;
+  }
+  
+  .card {
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
 }
 </style>

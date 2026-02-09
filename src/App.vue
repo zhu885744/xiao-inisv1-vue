@@ -15,10 +15,14 @@
   </div>
   <!-- 全局页脚 -->
   <i-footer></i-footer>
+
+  <!-- 检查客户端页面更新 -->
+  <upgrade-page></upgrade-page>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import upgradePage from '@/comps/upgrade/page.vue'
 import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'

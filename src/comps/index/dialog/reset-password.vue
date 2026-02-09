@@ -10,7 +10,7 @@
             data-bs-backdrop="static"
         >
             <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
-                <div class="modal-content rounded-xl shadow-lg border-0 overflow-hidden">
+                <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
                     <div class="modal-header bg-gradient-to-r from-warning to-yellow-600 text-white py-4">
                         <h3 class="modal-title fs-5 fw-semibold" id="resetPasswordModalLabel">忘记密码</h3>
                         <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
@@ -21,7 +21,7 @@
                             <div>
                                 <label for="resetAccountInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">账号</label>
                                 <input type="text" 
-                                       class="form-control rounded-lg border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                       class="form-control rounded-3 border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
                                        id="resetAccountInput"
                                        v-model="state.struct.account"
                                        placeholder="注册时使用的账号">
@@ -31,7 +31,7 @@
                             <div>
                                 <label for="contactInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">邮箱或手机号</label>
                                 <input type="text" 
-                                       class="form-control rounded-lg border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                       class="form-control rounded-3 border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
                                        id="contactInput"
                                        v-model="state.struct.social"
                                        placeholder="用于接收验证码">
@@ -42,7 +42,7 @@
                                 <label for="verificationCode" class="form-label text-sm font-medium text-gray-700 mb-1 block">
                                     验证码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input type="text" 
                                            class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
                                            id="verificationCode"
@@ -65,7 +65,7 @@
                                 <label for="newPassword" class="form-label text-sm font-medium text-gray-700 mb-1 block">
                                     新的密码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input 
                                         :type="showPassword ? 'text' : 'password'" 
                                         class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
@@ -85,7 +85,7 @@
                                 <label for="confirmPassword" class="form-label text-sm font-medium text-gray-700 mb-1 block">
                                     确认密码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input :type="showConfirmPassword ? 'text' : 'password'" 
                                            class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
                                            id="confirmPassword"
@@ -113,12 +113,12 @@
                             
                             <div class="grid grid-cols-2 gap-3">
                                 <button type="button" 
-                                        class="btn btn-outline-secondary w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50"
+                                        class="btn btn-outline-secondary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-gray-50"
                                         @click="method.login()">
                                     记起来了？登录
                                 </button>
                                 <button type="submit" 
-                                        class="btn btn-warning w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:shadow-lg"
+                                        class="btn btn-warning w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:shadow-lg"
                                         :disabled="state.item.wait || !isFormValid">
                                     <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
                                     {{ state.item.wait ? '重置中...' : '重置密码' }}

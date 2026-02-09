@@ -13,7 +13,7 @@ class Toast {
   // 初始化容器
   initContainer() {
     this.container = document.createElement('div');
-    this.container.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3 z-50';
+    this.container.className = 'toast-container position-fixed bottom-0 end-0 p-3 z-50';
     document.body.appendChild(this.container);
   }
 
@@ -52,11 +52,15 @@ class Toast {
     const textClass = 'text-dark';
 
     toastElement.innerHTML = `
+      <div class="toast-header ${bgClass} ${textClass}">
+        <strong class="me-auto">${title || '通知'}</strong>
+        <small>${new Date().toLocaleString()}</small>
+        ${showClose ? `
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        ` : ''}
+      </div>
       <div class="toast-body ${bgClass} ${textClass} p-3">
         ${message}
-        ${showClose ? `
-          <button type="button" class="btn-close float-end" data-bs-dismiss="toast" aria-label="Close"></button>
-        ` : ''}
       </div>
     `;
 

@@ -15,7 +15,7 @@
             <img
               :src="store.comm.login.user.avatar || defaultAvatar"
               :alt="store.comm.login.user.nickname || '用户头像'"
-              class="user-avatar"
+              class="rounded-3 user-avatar"
             >
             <span class="position-absolute bottom-0 right-0 w-6 h-6 bg-success rounded-full border border-2 border-white"></span>
           </div>
@@ -25,11 +25,11 @@
           <p v-else class="text-muted mb-3 user-bio">欢迎回来！</p>
           
           <div class="d-grid gap-2 mb-3">
-            <router-link :to="`/author/${store.comm.login.user.id}`" class="btn btn-primary btn-sm rounded-2 fw-medium py-2 text-decoration-none sidebar-btn">
+            <router-link :to="`/author/${store.comm.login.user.id}`" class="btn btn-primary btn-sm rounded-3 fw-medium py-2 text-decoration-none sidebar-btn">
               <i class="bi bi-person-circle me-1"></i>
               用户中心
             </router-link>
-            <button v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning btn-sm rounded-2 fw-medium py-2 sidebar-btn">
+            <button v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning btn-sm rounded-3 fw-medium py-2 sidebar-btn">
               <i class="bi bi-gear me-1"></i>
               后台管理
             </button>
@@ -59,7 +59,7 @@
             <img
               :src="defaultAvatar"
               alt="头像"
-              class="user-avatar"
+              class="rounded-3 user-avatar"
             >
           </div>
           
@@ -67,11 +67,11 @@
           <p class="text-muted mb-3 user-bio">登录后解锁更多功能</p>
           
           <div class="d-grid gap-2 mb-3">
-            <button class="btn btn-primary btn-sm rounded-2 fw-medium py-2 sidebar-btn" @click="$emit('showLogin')">
+            <button class="btn btn-primary btn-sm rounded-3 fw-medium py-2 sidebar-btn" @click="$emit('showLogin')">
               <i class="bi bi-box-arrow-in-right me-1"></i>
               立即登录
             </button>
-            <button class="btn btn-outline-primary btn-sm rounded-2 fw-medium py-2 sidebar-btn" @click="$emit('showRegister')">
+            <button class="btn btn-outline-primary btn-sm rounded-3 fw-medium py-2 sidebar-btn" @click="$emit('showRegister')">
               <i class="bi bi-person-plus me-1"></i>
               注册账号
             </button>
@@ -116,7 +116,7 @@
       <div class="card-body sidebar-card-body">
         <div class="d-grid mb-3">
           <button 
-            class="btn btn-warning btn-sm rounded-2 fw-medium py-2 sidebar-btn sign-btn"
+            class="btn btn-warning btn-sm rounded-3 fw-medium py-2 sidebar-btn sign-btn"
             @click="doSign"
             :disabled="signLoading || hasSigned"
           >
@@ -173,7 +173,7 @@
               <div class="progress sidebar-progress" style="height: 5px;">
                 <div 
                   class="progress-bar bg-primary" 
-                  :style="{ width: Math.min((user.exp || 0) / 1000 * 100, 100) + '%' }"
+                  :style="{ width: Math.min(((user.exp || 0) % 100) / 100 * 100, 100) + '%' }"
                 ></div>
               </div>
               <div class="d-flex justify-content-between align-items-center mt-1">
@@ -390,6 +390,7 @@ import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
 import defaultAvatar from '@/assets/img/avatar.png'
+import utils from '@/utils/utils'
 
 const router = useRouter()
 
@@ -436,7 +437,19 @@ const calculateLevel = (exp) => {
 }
 
 // 导航方法
-const goToArticle = (articleId) => router.push(`/archives/${articleId}`)
+const goToArticle = (articleId) => {
+  // 检查 articleId 是否为正整数
+  const numArticleId = Number(articleId);
+  const isPositiveNumber = !isNaN(numArticleId) && numArticleId > 0;
+  
+  if (isPositiveNumber) {
+    // 如果是正整数，跳转到文章详情页
+    router.push(`/archives/${articleId}`);
+  } else if (articleId && articleId !== '0') {
+    // 如果是字符串或 0，跳转到独立页面
+    router.push(`/${articleId}`);
+  }
+}
 const goToAuthor = (authorId) => router.push(`/author/${authorId}`)
 const goToTag = (tagId, tagName) => {
   router.push({
@@ -449,11 +462,10 @@ const goToTag = (tagId, tagName) => {
 const formatTime = (time) => {
   if (!time) return ''
   const timestamp = typeof time === 'number' && time.toString().length === 10 
-    ? time * 1000 
-    : time
-  const date = new Date(timestamp)
+    ? time 
+    : Math.floor(new Date(time).getTime() / 1000)
   const now = new Date()
-  const diff = now - date
+  const diff = now - new Date(timestamp * 1000)
   const dayDiff = Math.floor(diff / (1000 * 60 * 60 * 24))
 
   if (dayDiff === 0) {
@@ -462,7 +474,7 @@ const formatTime = (time) => {
     const minDiff = Math.floor(diff / (1000 * 60))
     return minDiff > 0 ? `${minDiff}分钟前` : '刚刚'
   } else if (dayDiff <= 7) return `${dayDiff}天前`
-  else return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+  else return utils.timeToDate(timestamp, 'Y-m-d')
 }
 
 // 导入Toast
@@ -669,14 +681,9 @@ onMounted(() => {
   border-radius: 0.375rem;
 }
 
-/* 用户信息样式 */
-.user-info-container {
-}
-
 .user-avatar {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
   border: 3px solid var(--bs-white);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   object-fit: cover;

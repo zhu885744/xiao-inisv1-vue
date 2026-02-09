@@ -8,6 +8,13 @@
           <div class="card-body">
             <h6 class="card-title mb-3">密码设置</h6>
             <form @submit.prevent="updatePassword">
+              <!-- 隐藏的用户名字段，用于可访问性 -->
+              <input 
+                type="text" 
+                class="d-none" 
+                autocomplete="username"
+                :value="store.getLogin.user.username || store.getLogin.user.account"
+              >
               <!-- 当前密码 -->
               <div class="mb-3">
                 <label for="currentPassword" class="form-label">当前密码</label>
@@ -17,6 +24,7 @@
                   v-model="passwordForm.currentPassword" 
                   class="form-control"
                   placeholder="请输入当前密码"
+                  autocomplete="current-password"
                 >
               </div>
 
@@ -31,6 +39,7 @@
                   placeholder="请输入新密码"
                   minlength="6"
                   maxlength="20"
+                  autocomplete="new-password"
                 >
               </div>
 
@@ -43,6 +52,7 @@
                   v-model="passwordForm.confirmPassword" 
                   class="form-control"
                   placeholder="请再次输入新密码"
+                  autocomplete="new-password"
                 >
               </div>
 
@@ -269,6 +279,8 @@ onMounted(() => {
 .form-control {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
 }
 
 .form-control:focus {
@@ -279,6 +291,15 @@ onMounted(() => {
 .btn {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* 表单标签 */
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.375rem;
 }
 
 /* 安全提示列表 */
@@ -286,6 +307,8 @@ onMounted(() => {
   border-left: 0;
   border-right: 0;
   border-radius: 0 !important;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
 }
 
 .list-group-item:first-child {
@@ -298,8 +321,41 @@ onMounted(() => {
 
 /* 响应式调整 */
 @media (max-width: 768px) {
-  .col-md-6 {
-    margin-bottom: 1.5rem;
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .mb-3 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .card-title {
+    font-size: 0.9375rem;
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .form-control {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    width: 100%;
+  }
+  
+  .list-group-item {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .list-group-item i {
+    font-size: 0.9em;
   }
 }
 </style>

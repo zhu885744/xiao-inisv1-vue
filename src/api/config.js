@@ -1,13 +1,10 @@
-// 导入依赖：与你的项目工具文件路径、命名完全一致
 import utils from '@/utils/utils'
 import axios from '@/utils/request'
 import cache from '@/utils/cache'
 
 const config = {
     one: (key = null) => {
-
         return new Promise((resolve, reject) => {
-
             if (utils.is.empty(key)) return resolve(null)
 
             // 缓存名称

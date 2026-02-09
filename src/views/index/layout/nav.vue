@@ -203,32 +203,41 @@
       <!-- 移动端功能按钮组 -->
       <div class="mt-auto pt-3 border-top">
         <!-- 未登录状态 -->
-        <div v-if="!store.comm.login.user" class="d-flex flex-column gap-2">
-          <button class="btn btn-outline-primary w-100" type="button" @click="method.showLogin()">
-            <i class="bi bi-person-circle me-1"></i>登录
-          </button>
-          <button 
-            v-if="parseInt(store.config.getAllowRegister?.value) === 1"
-            class="btn btn-outline-success w-100" 
-            type="button" 
-            @click="method.showRegister()"
-          >
-            注册账号
-          </button>
-          <button class="btn btn-link w-100 text-decoration-none" type="button" @click="method.showResetPassword()">
-            忘记密码？
-          </button>
+        <div v-if="utils.is.empty(store.comm.login.user)" class="d-flex flex-column gap-2">
+          <ul class="navbar-nav flex-grow-1">
+            <li class="nav-item">
+              <button class="btn btn-outline-primary me-2 w-100 text-left" type="button" @click="method.showLogin()">
+                <i class="bi bi-person-circle me-1"></i>登录
+              </button>
+            </li>
+            <li class="nav-item" v-if="parseInt(store.config.getAllowRegister?.value) === 1">
+              <button class="btn btn-outline-success me-2 w-100 text-left mt-2" type="button" @click="method.showRegister()">
+                <i class="bi bi-person-plus me-1"></i>注册账号
+              </button>
+            </li>
+          </ul>
         </div>
         
         <!-- 已登录状态 -->
-        <div v-else class="d-flex flex-column gap-2">
+        <div v-else-if="!utils.is.empty(store.comm.login.user)" class="d-flex flex-column gap-2">
           <div class="text-center mb-2">
             <i class="bi bi-person-circle fs-4 text-success"></i>
             <div class="mt-1">{{ store.comm.login.user.nickname }}</div>
             <small class="text-muted">{{ store.comm.login.user.email }}</small>
           </div>
-          <router-link class="btn btn-outline-secondary w-100" to="/account/home" @click="closeSidebar">
-            个人中心
+          <button 
+            class="btn btn-warning w-100" 
+            type="button" 
+            @click="doSign"
+            :disabled="signLoading || hasSigned"
+          >
+            <i v-if="!signLoading" :class="hasSigned ? 'bi bi-check-circle' : 'bi bi-calendar-check'" class="me-1"></i>
+            <i v-else class="bi bi-arrow-clockwise animate-spin me-1"></i>
+            {{ hasSigned ? '今日已签到' : '每日签到' }}
+            <span v-if="signDays > 0" class="ms-1 text-muted">({{ signDays }}天)</span>
+          </button>
+          <router-link class="btn btn-outline-secondary w-100" :to="`/author/${store.comm.login.user.id}`" @click="closeSidebar">
+            用户中心
           </router-link>
           <router-link class="btn btn-outline-secondary w-100" to="/user" @click="closeSidebar">
             用户资料
@@ -275,6 +284,7 @@
 import { ref, onMounted, computed, nextTick, reactive, watch, onUpdated, defineExpose } from 'vue'
 import axios from '@/utils/request'
 import utils from '@/utils/utils'
+import Toast from '@/utils/toast'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import { useConfigStore } from '@/store/config'
@@ -294,6 +304,11 @@ const isDarkMode = ref(false)
 const sidebarOpen = ref(false)
 const categoryDropdownOpen = ref(false)
 const userDropdownOpen = ref(false)
+
+// 签到相关数据
+const hasSigned = ref(false)
+const signDays = ref(0)
+const signLoading = ref(false)
 
 // Refs for dropdowns
 const pcDropdownRef = ref(null)
@@ -325,9 +340,6 @@ const state = reactive({
     }
   },
 })
-
-// 导入Toast
-import Toast from '@/utils/toast'
 
 // 方法定义
 const method = {
@@ -626,7 +638,7 @@ const fetchCategories = async () => {
         cache: false
       }
     })
-    
+
     if (response.data && response.data.code === 200 && response.data.data && response.data.data.data) {
       categories.value = response.data.data.data
     } else if (response.data && Array.isArray(response.data)) {
@@ -642,12 +654,58 @@ const fetchCategories = async () => {
   }
 }
 
+// 签到相关方法
+const checkSignStatus = async () => {
+  if (!store.comm.login.finish || !store.comm.login.user) return
+  
+  try {
+    const response = await axios.get('/api/exp/check-in/status')
+    if (response.code === 200) {
+      hasSigned.value = response.data?.hasSigned || false
+      signDays.value = response.data?.signDays || 0
+    }
+  } catch (error) {
+    console.error('获取签到状态失败：', error)
+  }
+}
+
+const doSign = async () => {
+  if (!store.comm.login.finish || !store.comm.login.user) {
+    Toast.warning('请先登录')
+    return
+  }
+  
+  if (hasSigned.value) {
+    Toast.info('今日已签到')
+    return
+  }
+  
+  try {
+    signLoading.value = true
+    const response = await axios.post('/api/exp/check-in')
+    
+    if (response.code === 200) {
+      hasSigned.value = true
+      signDays.value += 1
+      Toast.success(`签到成功！获得 ${response.data?.exp || 10} 点经验`)
+    } else {
+      Toast.error(response.msg || '签到失败')
+    }
+  } catch (error) {
+    console.error('签到失败：', error)
+    Toast.error('网络异常，签到失败')
+  } finally {
+    signLoading.value = false
+  }
+}
+
 // 组件挂载时获取数据并初始化
 onMounted(() => {
   fetchNavData()
   fetchCategories()
   initTheme()
   setupSystemThemeListener()
+  checkSignStatus()
   
   // 监听窗口大小变化，自动关闭侧边栏
   window.addEventListener('resize', () => {

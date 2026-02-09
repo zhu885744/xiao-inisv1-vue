@@ -52,7 +52,7 @@
             <img 
               :src="userInfo.avatar || defaultAvatar" 
               :alt="userInfo.nickname"
-              class="rounded-full border-4 border-white shadow-md transition-transform duration-300 hover:scale-105"
+              class="rounded-3 border-4 border-white shadow-md transition-transform duration-300 hover:scale-105"
               width="120"
               height="120"
               style="object-fit: cover;"
@@ -189,24 +189,16 @@
 
       <!-- 交互按钮 -->
       <div class="user-actions d-flex gap-2 flex-wrap">
-        <router-link 
-          :to="'/user'" 
-          class="btn btn-primary btn-sm rounded-1 px-4 py-2"
-          v-if="isCurrentUser"
-        >
-          <i class="bi bi-gear"></i>
-          编辑资料
-        </router-link>
         <button 
           @click="copyUserInfo" 
-          class="btn btn-outline-primary btn-sm rounded-1 px-4 py-2"
+          class="btn btn-outline-primary btn-sm rounded-3 px-4 py-2"
         >
           <i class="bi bi-copy"></i>
           复制信息
         </button>
         <button 
           @click="shareUserInfo" 
-          class="btn btn-outline-secondary btn-sm rounded-1 px-4 py-2"
+          class="btn btn-outline-secondary btn-sm rounded-3 px-4 py-2"
         >
           <i class="bi bi-share"></i>
           分享
@@ -425,3 +417,218 @@ watch(
   { immediate: true }
 )
 </script>
+
+<style scoped>
+/* 基础样式优化 */
+.card {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* 加载动画 */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  /* 卡片头部 */
+  .card-header {
+    padding: 1rem;
+  }
+  
+  .card-title {
+    font-size: 1.1rem !important;
+  }
+  
+  .btn-sm {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  /* 卡片内容 */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* 加载状态 */
+  .text-center.py-10 {
+    padding: 6rem 1rem !important;
+  }
+  
+  /* 用户基本信息 */
+  .user-basic-info {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* 头像和用户信息 */
+  .d-flex.align-items-start.gap-4 {
+    flex-direction: column;
+    align-items: center !important;
+    text-align: center;
+    gap: 1.5rem !important;
+  }
+  
+  /* 头像 */
+  img[src*="avatar"] {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  /* 用户信息 */
+  .flex-grow-1 {
+    width: 100%;
+  }
+  
+  h3.mb-0.fw-bold.text-lg {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .text-muted.mb-3 {
+    font-size: 0.9rem;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* 用户信息行 */
+  .d-flex.align-items-center.gap-4.flex-wrap {
+    justify-content: center;
+    gap: 1rem !important;
+    margin-top: 0.5rem;
+  }
+  
+  /* 昵称和等级标签容器居中 */
+  .d-flex.align-items-center.gap-3.mb-2 {
+    justify-content: center;
+    gap: 0.5rem !important;
+  }
+  
+  /* 头衔居中 */
+  .text-muted.mb-3 {
+    text-align: center;
+  }
+  
+  .text-sm {
+    font-size: 0.8rem;
+  }
+  
+  /* 个人简介 */
+  .user-description {
+    padding: 1rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .user-description p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  /* 用户标签 */
+  .user-tags {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .d-flex.align-items-center.gap-3.flex-wrap {
+    justify-content: center;
+    gap: 0.5rem !important;
+  }
+  
+  .badge.rounded-full {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.75rem !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* 等级信息和权限信息 */
+  .user-level,
+  .user-auth {
+    margin-bottom: 1.5rem !important;
+  }
+  
+  h6.mb-3 {
+    font-size: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .p-4 {
+    padding: 1rem !important;
+  }
+  
+  /* 进度条 */
+  .progress {
+    height: 8px !important;
+  }
+  
+  /* 权限信息 */
+  .mb-3 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .badge {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* 交互按钮 */
+  .user-actions {
+    justify-content: center;
+    gap: 0.5rem !important;
+  }
+  
+  /* 响应式文本调整 */
+  .text-gray-600,
+  .text-gray-700 {
+    font-size: 0.9rem;
+  }
+  
+  .fw-bold {
+    font-size: 0.95rem;
+  }
+  
+  /* 确保标签不溢出 */
+  .user-tags .d-flex {
+    flex-wrap: wrap;
+  }
+  
+  /* 确保按钮组在小屏幕上正确显示 */
+  .user-actions {
+    flex-wrap: wrap;
+  }
+  
+  .user-actions .btn {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+  }
+}
+
+/* 平板设备优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 头像大小调整 */
+  img[src*="avatar"] {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  /* 标签间距调整 */
+  .d-flex.align-items-center.gap-3.flex-wrap {
+    gap: 0.75rem !important;
+  }
+  
+  /* 按钮大小调整 */
+  .btn {
+    font-size: 0.9rem;
+  }
+}
+</style>

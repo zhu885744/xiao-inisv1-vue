@@ -13,7 +13,7 @@
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
-    <!-- 文章主体：核心UI重写 -->
+    <!-- 文章主体 -->
     <div v-else class="article-main">
       <!-- 文章内容区：核心阅读区，重写样式 -->
       <main class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
@@ -22,10 +22,10 @@
         <h1 class="article-title text-center fw-bold mb-3">{{ articleInfo.title }}</h1>
         <!-- 文章元信息：居中布局、弱化样式 -->
         <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-          <!-- <span class="meta-item d-flex align-items-center">
+          <span class="meta-item d-flex align-items-center">
             <i class="bi bi-person-fill me-2"></i>
             {{ articleInfo.result?.author?.nickname || '匿名' }}
-          </span>-->
+          </span>
           <span class="meta-item d-flex align-items-center">
             <i class="bi bi-folder-fill me-2"></i>
             {{ articleInfo.result?.group[0]?.name || '未分类' }}
@@ -57,6 +57,7 @@
           :commentList="staticCommentList"
           :isLogin="isLogin"
           :isDarkMode="isDarkMode"
+          :articleAuthor="articleInfo.result?.author || {}"
           @publishComment="handlePublishComment"
           @replyComment="handleReplyComment"
         />
@@ -72,6 +73,7 @@ import request from '@/utils/request'
 import iMarkdown from '@/comps/custom/i-markdown.vue'
 import CommentList from '@/comps/custom/i-comment.vue'
 import { useCommStore } from '@/store/comm'
+import utils from '@/utils/utils'
 
 // 存储
 const store = {
@@ -111,12 +113,11 @@ watch(
 )
 
 /**
- * 时间格式化：复用原有逻辑
+ * 时间格式化：使用utils.js中的timeToDate函数
  */
 const formatTime = (timestamp) => {
   if (!timestamp || timestamp === 0) return '未知时间'
-  const date = new Date(timestamp * 1000)
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  return utils.timeToDate(timestamp, 'Y-m-d')
 }
 
 /**

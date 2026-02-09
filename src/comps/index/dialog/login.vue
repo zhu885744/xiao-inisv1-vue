@@ -11,7 +11,7 @@
             id="loginModal"
         >
             <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
-                <div class="modal-content rounded-xl shadow-lg border-0 overflow-hidden">
+                <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
                     <div class="modal-header bg-gradient-to-r from-primary to-blue-600 text-white py-4">
                         <h3 class="modal-title fs-5 fw-semibold" id="loginModalLabel">账号密码登录</h3>
                         <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
@@ -22,7 +22,7 @@
                             <div>
                                 <label for="loginAccountInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">帐号</label>
                                 <input type="text" 
-                                       class="form-control rounded-lg border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20 transition-all"
+                                       class="form-control rounded-3 border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20 transition-all"
                                        id="loginAccountInput"
                                        v-model="state.struct.account"
                                        placeholder="帐号 | 邮箱 | 手机号"
@@ -32,7 +32,7 @@
                             
                             <div>
                                 <label for="loginPasswordInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">密码</label>
-                                <div class="input-group rounded-lg overflow-hidden">
+                                <div class="input-group rounded-3 overflow-hidden">
                                     <input :type="showPassword ? 'text' : 'password'" 
                                            class="form-control border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20 transition-all"
                                            id="loginPasswordInput"
@@ -51,7 +51,7 @@
 
                             <div>
                                 <button type="submit" 
-                                        class="btn btn-primary w-100 py-3 rounded-lg font-medium transition-all hover:shadow-lg"
+                                        class="btn btn-primary w-100 py-3 rounded-3 font-medium transition-all hover:shadow-lg"
                                         :disabled="state.item.wait">
                                     <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status"></span>
                                     {{ state.item.wait ? '登录中...' : '登录' }}
@@ -61,12 +61,12 @@
 
                         <div class="grid grid-cols-2 gap-3 mt-4">
                             <button type="button" 
-                                    class="btn btn-outline-secondary w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-gray-50"
+                                    class="btn btn-outline-secondary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-gray-50"
                                     @click="method.reset()">
                                 忘记密码
                             </button>
                             <button type="button" 
-                                    class="btn btn-outline-primary w-100 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-primary/5"
+                                    class="btn btn-outline-primary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-primary/5"
                                     v-if="parseInt(store.config.getAllowRegister?.value) === 1"
                                     @click="method.register()">
                                 注册帐号
