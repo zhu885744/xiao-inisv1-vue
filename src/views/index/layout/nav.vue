@@ -105,6 +105,11 @@
                     <i class="bi bi-gear-fill me-1"></i>后台管理
                   </router-link>
                 </li>
+                <li>
+                  <router-link class="dropdown-item" to="/upgrade/theme">
+                    <i class="bi bi-arrow-down-circle me-1"></i>版本更新
+                  </router-link>
+                </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <button class="dropdown-item text-danger" @click="method.logout()">

@@ -78,13 +78,25 @@ const routes = [
     meta: { title: '网站统计', requiresAuth: false },
     props: { pageKey: 'archive' }
   },
-  // 🌟 友链页面路由，指向独立页面组件
+  // 友链页面路由
   {
     path: '/links',
     name: '友链页面',
     component: () => import('@/views/index/pages/page.vue'),
     meta: { title: '友链', requiresAuth: false },
     props: { pageKey: 'links' }
+  },
+  // 版本更新页面路由
+  {
+    path: '/upgrade/theme',
+    name: '版本更新',
+    component: () => import('@/views/index/pages/theme-upgrade.vue'),
+    meta: { title: '版本更新', requiresAuth: true },
+    beforeEnter: (to, from, next) => {
+      const commStore = useCommStore()
+      const isLogin = !utils.is.empty(commStore.getLogin.user)
+      isLogin ? next() : next('/')
+    }
   },
 
   // 独立页动态路由：匹配/xxx（如/about），排除/links（已精准匹配）

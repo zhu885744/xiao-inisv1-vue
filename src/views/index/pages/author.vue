@@ -74,8 +74,20 @@
               <i class="bi bi-briefcase me-2"></i>
               {{ userInfo.title || '普通用户' }}
             </p>
+            <!-- 个人网站 -->
+            <div v-if="userInfo.json?.website?.url" class="text-sm mb-3">
+              <a 
+                :href="userInfo.json.website.url" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="d-flex align-items-center gap-2 text-primary hover:text-primary-emphasis transition-colors"
+              >
+                <i class="bi bi-globe text-primary"></i>
+                {{ userInfo.json.website.name || userInfo.json.website.url }}
+              </a>
+            </div>
             <!-- 用户信息 -->
-            <div class="d-flex align-items-center gap-4 flex-wrap text-sm">
+            <div class="d-flex align-items-center gap-4 flex-wrap text-sm mb-2">
               <!-- 注册时间 -->
               <span class="d-flex align-items-center gap-2 text-gray-600">
                 <i class="bi bi-calendar3 text-primary"></i>
@@ -325,6 +337,10 @@ const copyUserInfo = () => {
   if (!userInfo.value) return
   
   const user = userInfo.value
+  const websiteName = user.json?.website?.name || ''
+  const websiteUrl = user.json?.website?.url || ''
+  const websiteInfo = websiteUrl ? `${websiteName ? websiteName + ' - ' : ''}${websiteUrl}` : '未设置'
+  
   const infoText = `
 用户信息：
 昵称：${user.nickname}
@@ -334,6 +350,7 @@ const copyUserInfo = () => {
 性别：${user.gender === 'boy' ? '男孩' : user.gender === 'girl' ? '女孩' : '未知'}
 邮箱：${user.email || '未设置'}
 手机：${user.phone || '未设置'}
+网站：${websiteInfo}
 经验值：${user.exp} 点
 注册时间：${formatDate(user.create_time)}
 最后登录：${formatDate(user.login_time)}
@@ -556,6 +573,11 @@ watch(
   /* 头衔居中 */
   .text-muted.mb-3 {
     text-align: center;
+  }
+  
+  /* 个人网站模块居中 */
+  .text-sm > a.d-flex {
+    justify-content: center;
   }
   
   .text-sm {

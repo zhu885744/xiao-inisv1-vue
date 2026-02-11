@@ -1,6 +1,50 @@
 <!-- 联系方式设置组件 -->
 <template>
   <div class="contact-info-settings">
+    <!-- 个人网站设置 -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h6 class="card-title mb-3">个人网站设置</h6>
+        <form @submit.prevent="updateWebsite">
+          <!-- 网站名称 -->
+          <div class="mb-3">
+            <label for="websiteName" class="form-label">网站名称</label>
+            <input 
+              type="text" 
+              id="websiteName" 
+              v-model="(websiteForm || {}).name" 
+              class="form-control"
+              placeholder="请输入网站名称"
+              maxlength="50"
+            >
+          </div>
+
+          <!-- 网站网址 -->
+          <div class="mb-3">
+            <label for="websiteUrl" class="form-label">网站网址</label>
+            <input 
+              type="url" 
+              id="websiteUrl" 
+              v-model="(websiteForm || {}).url" 
+              class="form-control"
+              placeholder="请输入网站网址（例如：https://blog.example.com）"
+              maxlength="100"
+            >
+          </div>
+
+          <!-- 提交按钮 -->
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            :disabled="websiteLoading"
+          >
+            <i class="bi bi-save me-2"></i>
+            {{ websiteLoading ? '保存中...' : '保存网站信息' }}
+          </button>
+        </form>
+      </div>
+    </div>
+
     <div class="row">
       <!-- 邮箱设置 -->
       <div class="col-md-6 mb-4">
@@ -163,9 +207,16 @@ const phoneForm = reactive({
   code: ''
 })
 
+// 网站信息表单数据
+const websiteForm = reactive({
+  name: '',
+  url: ''
+})
+
 // 加载状态
 const emailLoading = ref(false)
 const phoneLoading = ref(false)
+const websiteLoading = ref(false)
 
 // 发送状态
 const emailSending = ref(false)
@@ -384,6 +435,65 @@ const syncUserInfo = async () => {
   }
 }
 
+// 更新网站信息
+const updateWebsite = async () => {
+  if (websiteLoading.value) return
+  
+  // 确保 websiteForm 存在
+  if (!websiteForm) {
+    toast.error('表单数据初始化失败，请刷新页面重试')
+    return
+  }
+  
+  if (!websiteForm.name && !websiteForm.url) {
+    toast.error('请至少填写网站名称或网址')
+    return
+  }
+  
+  if (websiteForm.url && !/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/.test(websiteForm.url)) {
+    toast.error('请输入有效的网站网址')
+    return
+  }
+
+  // 获取用户 ID
+  const userInfo = store.getLogin.user
+  if (!userInfo || !userInfo.id) {
+    toast.error('用户信息获取失败，请刷新页面重试')
+    websiteLoading.value = false
+    return
+  }
+
+  websiteLoading.value = true
+  try {
+    // 构造请求数据
+    const requestData = {
+      id: userInfo.id,
+      json: {
+        website: {
+          name: websiteForm.name || '',
+          url: websiteForm.url || ''
+        }
+      }
+    }
+
+    // 发送请求到 /api/users/update 接口
+    const res = await request.put('/api/users/update', requestData)
+
+    if (res.code === 200) {
+      toast.success('网站信息保存成功')
+      // 同步用户信息
+      await syncUserInfo()
+    } else {
+      toast.error(res.msg || '网站信息保存失败')
+    }
+  } catch (error) {
+    console.error('保存网站信息失败:', error)
+    toast.error('网络错误，请稍后重试')
+  } finally {
+    websiteLoading.value = false
+  }
+}
+
 // 清理定时器
 const cleanupTimers = () => {
   if (emailTimer) {
@@ -404,6 +514,12 @@ onMounted(() => {
     // 填充当前用户的邮箱和手机号到表单中
     emailForm.email = userInfo.email || ''
     phoneForm.phone = userInfo.phone || ''
+    
+    // 填充当前用户的网站信息到表单中
+    if (websiteForm && userInfo.json && userInfo.json.website) {
+      websiteForm.name = userInfo.json.website.name || ''
+      websiteForm.url = userInfo.json.website.url || ''
+    }
   }
 })
 
