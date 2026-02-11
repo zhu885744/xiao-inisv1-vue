@@ -1,6 +1,5 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router' 
 import { createPinia } from 'pinia'
 
 // ========== 样式引入（按「第三方 → 自定义」顺序） ==========
@@ -17,46 +16,93 @@ import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import Toast from './utils/toast'
 import socket from './utils/socket'
 import API from './api'
+import { loadConfigFile } from './utils/config'
 
-// ========== 创建并配置应用实例 ==========
-const app = createApp(App)
-
-// 1. 注册 Pinia（状态管理）
-const pinia = createPinia()
-app.use(pinia)
-
-// 2. 注册路由
-app.use(router)
-
-// 3. 全局挂载/提供工具（按「通用 → 业务」顺序）
-// ✅ 修复：原代码直接用 bootstrap 变量会报错，需通过 import * as 解构后挂载
-if (typeof window !== 'undefined') {
-  window.bootstrap = bootstrap
+// ========== 初始化应用 ==========
+async function initApp() {
+  try {
+    // 1. 加载配置文件
+    console.log('正在加载配置文件...')
+    await loadConfigFile()
+    console.log('配置文件加载完成')
+    
+    // 2. 配置文件加载完成后再导入路由
+    const router = (await import('./router')).default
+    
+    // 3. 创建并配置应用实例
+    const app = createApp(App)
+    
+    // 4. 注册 Pinia（状态管理）
+    const pinia = createPinia()
+    app.use(pinia)
+    
+    // 5. 注册路由
+    app.use(router)
+    
+    // 6. 全局挂载/提供工具（按「通用 → 业务」顺序）
+    // ✅ 修复：原代码直接用 bootstrap 变量会报错，需通过 import * as 解构后挂载
+    if (typeof window !== 'undefined') {
+      window.bootstrap = bootstrap
+    }
+    
+    // ✅ Toast 全局配置 + 挂载（配置优先，再挂载）
+    
+    // 配置 Toast（可以根据需要添加全局配置）
+    Toast.config({})
+    
+    // 挂载到 Vue 实例
+    app.config.globalProperties.$toast = Toast
+    app.provide('$toast', Toast) // 组合式API用
+    
+    // 同时挂载到 window 对象，方便其他地方使用
+    if (typeof window !== 'undefined') {
+      window.Toast = Toast
+    }
+    
+    // ✅ Socket 全局提供
+    app.provide('socket', socket)
+    app.config.globalProperties.$socket = socket
+    
+    // ✅ API 全局挂载
+    app.config.globalProperties.$api = API
+    
+    // 7. 挂载应用（确保所有配置完成后挂载）
+    // 挂载前可等待路由就绪（可选，解决首屏路由白屏）
+    await router.isReady()
+    app.mount('#app')
+    console.log('应用初始化完成')
+  } catch (error) {
+    console.error('应用初始化失败:', error)
+    // 即使配置加载失败，也尝试启动应用
+    try {
+      const router = (await import('./router')).default
+      const app = createApp(App)
+      const pinia = createPinia()
+      app.use(pinia)
+      app.use(router)
+      
+      if (typeof window !== 'undefined') {
+        window.bootstrap = bootstrap
+      }
+      
+      app.config.globalProperties.$toast = Toast
+      app.provide('$toast', Toast)
+      
+      if (typeof window !== 'undefined') {
+        window.Toast = Toast
+      }
+      
+      app.provide('socket', socket)
+      app.config.globalProperties.$socket = socket
+      app.config.globalProperties.$api = API
+      
+      await router.isReady()
+      app.mount('#app')
+    } catch (innerError) {
+      console.error('启动应用失败:', innerError)
+    }
+  }
 }
 
-// ✅ Toast 全局配置 + 挂载（配置优先，再挂载）
-
-// 配置 Toast（可以根据需要添加全局配置）
-// Toast.config({})
-
-// 挂载到 Vue 实例
-app.config.globalProperties.$toast = Toast
-app.provide('$toast', Toast) // 组合式API用
-
-// 同时挂载到 window 对象，方便其他地方使用
-if (typeof window !== 'undefined') {
-  window.Toast = Toast
-}
-
-// ✅ Socket 全局提供
-app.provide('socket', socket)
-app.config.globalProperties.$socket = socket
-
-// ✅ API 全局挂载
-app.config.globalProperties.$api = API
-
-// ========== 挂载应用（确保所有配置完成后挂载） ==========
-// 挂载前可等待路由就绪（可选，解决首屏路由白屏）
-router.isReady().then(() => {
-  app.mount('#app')
-})
+// 启动应用
+initApp()

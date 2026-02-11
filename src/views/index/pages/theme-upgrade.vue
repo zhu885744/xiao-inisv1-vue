@@ -176,7 +176,7 @@ const checkInterval = ref(null)
 // 计算属性
 // 当前版本
 const currentVersionComputed = computed(() => {
-  return import.meta.env.VITE_VERSION || '1.0.0-beta'
+  return '1.0.0-beta'
 })
 
 // 主题名称

@@ -6,14 +6,11 @@ import CryptoJS from 'crypto-js'
  * 支持：环境变量配置、多种加密算法、错误处理
  */
 
-// 环境变量配置
-const ENV = import.meta.env || {}
-
 // 默认配置
 const DEFAULT_CONFIG = {
   // AES配置
-  AES_KEY: ENV.VITE_AES_KEY || 'default_32byte_aes_key_here1234567890',
-  AES_IV: ENV.VITE_AES_IV || 'default_16byte_iv', // 长度16位
+  AES_KEY: 'default_32byte_aes_key_here1234567890',
+  AES_IV: 'default_16byte_iv', // 长度16位
   
   // Token配置
   TOKEN_MIN_LENGTH: 8,
@@ -21,7 +18,7 @@ const DEFAULT_CONFIG = {
   DEFAULT_TOKEN_LENGTH: 32,
   
   // 盐值配置（用于增加哈希安全性）
-  SALT: ENV.VITE_ENCRYPT_SALT || 'default_salt_value'
+  SALT: 'default_salt_value'
 }
 
 /**
@@ -83,7 +80,7 @@ class AESCrypto {
    * 验证向量长度（调试提示）
    */
   validateIvLength() {
-    if (this.originalIv.length !== 16 && import.meta.env.DEV) {
+    if (this.originalIv.length !== 16) {
       console.debug(`AES IV已自动调整为16位，原始长度：${this.originalIv.length}`);
     }
   }

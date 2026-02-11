@@ -3,15 +3,14 @@ import cache from '@/utils/cache'
 import utils from '@/utils/utils'
 import axios from '@/utils/request'
 import { useCommStore } from '@/store/comm'
+import config from '@/utils/config'
 
-// 读取Vite环境变量（统一管理，和.env配置匹配）
-const VITE_ENV = import.meta.env
-// 路由基础路径：优先读环境变量VITE_BASE_URL，兜底VITE内置BASE_URL
-const ROUTER_BASE = VITE_ENV.VITE_BASE_URL || VITE_ENV.BASE_URL || '/'
-// 路由模式：转小写+兜底hash，防止配置错误
-const ROUTER_MODE = (VITE_ENV.VITE_ROUTER_MODE || 'hash').toLowerCase()
-// 项目标题：从环境变量读取，用于页面标题拼接
-const APP_TITLE = VITE_ENV.VITE_TITLE || '朱某的生活印记'
+// 读取配置
+const ROUTER_BASE = config.getSync('base_url') || '/'
+// 从配置文件同步获取路由模式
+const ROUTER_MODE = config.getSync('router_mode') || 'hash'
+
+const APP_TITLE = '朱某的生活印记'
 
 // 1. 定义完整路由规则：新增/links专属路由
 const routes = [
@@ -86,6 +85,7 @@ const routes = [
     meta: { title: '友链', requiresAuth: false },
     props: { pageKey: 'links' }
   },
+
   // 版本更新页面路由
   {
     path: '/upgrade/theme',
@@ -126,13 +126,15 @@ const routes = [
 ]
 
 // 2. 动态创建路由历史对象（适配两种模式）
-const routerHistory = ROUTER_MODE === 'history'
-  ? createWebHistory(ROUTER_BASE)
-  : createWebHashHistory(ROUTER_BASE)
+const createRouterHistory = () => {
+  return ROUTER_MODE === 'history'
+    ? createWebHistory(ROUTER_BASE)
+    : createWebHashHistory(ROUTER_BASE)
+}
 
 // 3. 创建路由实例（精简配置，规范写法）
 const router = createRouter({
-  history: routerHistory,
+  history: createRouterHistory(),
   routes,
   // 路由跳转后回到顶部（提升体验，可选）
   scrollBehavior: (to, from, savedPosition) => {

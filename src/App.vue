@@ -1,4 +1,6 @@
 <template>
+  <!-- 配置初始化组件 -->
+  <ConfigInit />
   <!-- 全局导航栏 -->
   <i-nav ref="navRef"></i-nav>
   <!-- 主内容区 -->
@@ -26,6 +28,7 @@ import upgradePage from '@/comps/upgrade/page.vue'
 import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
+import ConfigInit from '@/comps/config/init.vue'
 
 const navRef = ref(null)
 

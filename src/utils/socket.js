@@ -1,15 +1,14 @@
 import utils from '@/utils/utils'
+import configManager from '@/utils/config'
 
-// 从Vite环境变量读取配置 - 区分开发/生产，纯环境变量驱动
-const VITE_ENV = import.meta.env
-// 核心配置：抽离常量，无全局配置兜底，注释明确各配置作用
+// 从配置管理工具读取配置
 const config = {
-  uri: VITE_ENV.VITE_SOCKET_URI, // Socket基础地址（.ws/.wss）
+  uri: configManager.getSync('socket_uri'), // Socket基础地址（.ws/.wss）
   reconnectInterval: 3000, // 重连间隔（毫秒）
   maxReconnectAttempts: 10, // 最大重连次数，0为无限重连
-  debug: VITE_ENV.VITE_SOCKET_DEBUG === 'true', // 调试模式（生产建议false）
-  routerMode: VITE_ENV.VITE_ROUTER_MODE || 'hash', // 路由模式（兼容地址拼接）
-  baseUrl: (VITE_ENV.VITE_BASE_URL || '/').replace(/\/$/, '') // 基础路径（统一去除末尾斜杠，避免拼接重复）
+  debug: configManager.getSync('socket_debug') === true, // 调试模式（生产建议false）
+  routerMode: configManager.getSync('router_mode') || 'hash', // 路由模式（兼容地址拼接）
+  baseUrl: (configManager.getSync('base_url') || '/').replace(/\/$/, '') // 基础路径（统一去除末尾斜杠，避免拼接重复）
 }
 
 // Socket 核心状态管理：使用let+私有化，仅通过暴露方法操作
