@@ -111,10 +111,10 @@ const fetchSiteInfo = async () => {
     
     if (res?.code === 200 && res.data?.json) {
       siteInfo.value = res.data.json
-      console.log('站点信息加载成功')
+      // console.log('站点信息加载成功')
     }
   } catch (error) {
-    console.error('站点信息加载失败:', error)
+    // console.error('站点信息加载失败:', error)
   }
 }
 
@@ -124,10 +124,10 @@ const fetchSystemVersion = async () => {
     
     if (res?.code === 200 && res.data?.inis) {
       systemVersion.value = res.data.inis
-      console.log('系统版本加载成功:', res.data.inis)
+      // console.log('系统版本加载成功:', res.data.inis)
     }
   } catch (error) {
-    console.error('系统版本加载失败:', error)
+    // console.error('系统版本加载失败:', error)
   }
 }
 

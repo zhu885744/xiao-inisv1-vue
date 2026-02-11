@@ -3,14 +3,14 @@
         <div 
             v-if="state.item.dialog"
             class="modal fade show"
-            style="display: block;"
+            style="display: block; z-index: 1060;"
             tabindex="-1" 
             aria-labelledby="loginModalLabel" 
             aria-hidden="false"
             aria-modal="true"
             id="loginModal"
         >
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px; margin: 0 auto;">
                 <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
                     <div class="modal-header bg-gradient-to-r from-primary to-blue-600 text-white py-4">
                         <h3 class="modal-title fs-5 fw-semibold" id="loginModalLabel">账号密码登录</h3>
@@ -82,7 +82,7 @@
         <div 
             v-if="state.item.dialog"
             class="modal-backdrop fade show"
-            style="z-index: 1050;"
+            style="z-index: 1059;"
             @click="method.hide()"
         ></div>
     </transition>
@@ -232,7 +232,7 @@ const method = {
                 }
                 
                 state.item.finish = true
-                state.item.dialog = false
+                method.hide()
                 
                 store.comm.login.finish = true
                 store.comm.login.user = data.user
@@ -272,6 +272,15 @@ const method = {
         state.struct.password = ''
         showPassword.value = false
         
+        // 禁止页面滚动
+        document.body.style.overflow = 'hidden'
+        document.body.style.position = 'fixed'
+        document.body.style.width = '100%'
+        document.body.style.height = '100%'
+        document.body.style.top = '0'
+        document.body.style.left = '0'
+        document.body.style.zIndex = '1059'
+        
         setTimeout(() => {
             const accountInput = document.getElementById('loginAccountInput')
             if (accountInput) {
@@ -283,6 +292,15 @@ const method = {
     hide() {
         state.item.dialog = false
         showPassword.value = false
+        
+        // 恢复页面滚动
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.height = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.zIndex = ''
     },
 
     register() {
@@ -387,6 +405,15 @@ onUnmounted(() => {
     state.struct.account = ''
     state.struct.password = ''
     showPassword.value = false
+    
+    // 确保在组件卸载时恢复页面滚动
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.width = ''
+    document.body.style.height = ''
+    document.body.style.top = ''
+    document.body.style.left = ''
+    document.body.style.zIndex = ''
 })
 
 defineExpose({

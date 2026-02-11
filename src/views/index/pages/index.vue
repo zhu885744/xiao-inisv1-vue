@@ -37,7 +37,6 @@
             :data-src="getCoverImg(article)" 
             :alt="article.title" 
             class="article-cover-img w-100 h-100 object-cover lazy-img"
-            loading="lazy"
             @load="onImageLoad"
             @error="handleImageError"
           >
@@ -86,7 +85,6 @@
             :data-src="getCoverImg(article)" 
             :alt="article.title" 
             class="article-cover-img w-100 h-100 object-cover lazy-img"
-            loading="lazy"
             @load="onImageLoad"
             @error="handleImageError"
           >
@@ -256,10 +254,11 @@ const initIntersectionObserver = () => {
 // 观察所有懒加载图片
 const observeLazyImages = () => {
   nextTick(() => {
-    const lazyImages = document.querySelectorAll('.lazy-img')
+    const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed])')
     lazyImages.forEach(img => {
       if (observer) {
         observer.observe(img)
+        img.dataset.observed = 'true'
       }
     })
   })
@@ -278,10 +277,7 @@ const loadAllImages = () => {
 
 // 手动触发加载（用于特殊情况下）
 const loadVisibleImages = () => {
-  if (observer) {
-    // 重新观察所有图片
-    observeLazyImages()
-  }
+  // 移除滚动事件的调用，避免重复加载
 }
 
 const getArticleList = async (page = 1, isLoadMore = false) => {
@@ -299,15 +295,18 @@ const getArticleList = async (page = 1, isLoadMore = false) => {
       currentPage.value = page
       
       // 数据更新后，观察新图片
-      if (!isLoadMore || page === 2) { // 只在第一次加载或第二页时重新观察
+      if (!isLoadMore) { // 只在第一次加载时重新观察
+        observeLazyImages()
+      } else {
+        // 加载更多时观察新添加的图片
         observeLazyImages()
       }
     } else {
-      console.error('获取文章列表失败：', res.msg)
+      // console.error('获取文章列表失败：', res.msg)
       !isLoadMore && (articleList.value = [])
     }
   } catch (error) {
-    console.error('获取文章列表接口异常：', error)
+    // console.error('获取文章列表接口异常：', error)
     !isLoadMore && (articleList.value = [])
   } finally {
     loading.value = false
@@ -329,9 +328,6 @@ onMounted(() => {
   
   // 获取文章列表
   getArticleList(1, false)
-  
-  // 监听窗口滚动重新检查图片（可选）
-  window.addEventListener('scroll', loadVisibleImages)
 })
 
 onUnmounted(() => {
@@ -340,9 +336,6 @@ onUnmounted(() => {
     observer.disconnect()
     observer = null
   }
-  
-  // 移除事件监听
-  window.removeEventListener('scroll', loadVisibleImages)
 })
 </script>
 

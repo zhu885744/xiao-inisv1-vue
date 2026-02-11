@@ -86,6 +86,11 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMenu" :class="{ 'show': userDropdownOpen }">
                 <li>
+                  <button class="dropdown-item" type="button" @click="method.showPublishNotification()">
+                    <i class="bi bi-plus-circle me-1"></i>发布文章
+                  </button>
+                </li>
+                <li>
                   <router-link class="dropdown-item" :to="`/author/${store.comm.login.user.id}`">
                     <i class="bi bi-person me-1"></i>用户中心
                   </router-link>
@@ -129,7 +134,7 @@
 
   <!-- 移动端侧边栏 -->
   <div 
-    class="sidebar offcanvas offcanvas-start" 
+    class="offcanvas offcanvas-start" 
     tabindex="-1" 
     id="mobileSidebar"
     aria-labelledby="mobileSidebarLabel"
@@ -139,8 +144,9 @@
       <button 
         type="button" 
         class="btn-close" 
-        @click="closeSidebar"
+        data-bs-dismiss="offcanvas" 
         aria-label="Close"
+        @click="closeSidebar"
       ></button>
     </div>
     <div class="offcanvas-body d-flex flex-column">
@@ -203,30 +209,31 @@
       <!-- 移动端功能按钮组 -->
       <div class="mt-auto pt-3 border-top">
         <!-- 未登录状态 -->
-        <div v-if="utils.is.empty(store.comm.login.user)" class="d-flex flex-column gap-2">
-          <ul class="navbar-nav flex-grow-1">
-            <li class="nav-item">
-              <button class="btn btn-outline-primary me-2 w-100 text-left" type="button" @click="method.showLogin()">
-                <i class="bi bi-person-circle me-1"></i>登录
-              </button>
-            </li>
-            <li class="nav-item" v-if="parseInt(store.config.getAllowRegister?.value) === 1">
-              <button class="btn btn-outline-success me-2 w-100 text-left mt-2" type="button" @click="method.showRegister()">
-                <i class="bi bi-person-plus me-1"></i>注册账号
-              </button>
-            </li>
-          </ul>
+        <div v-if="utils.is.empty(store.comm.login.user)" class="mb-4">
+          <div class="d-grid grid-cols-2 gap-3">
+            <button class="btn btn-outline-primary text-center" type="button" @click="method.showLogin()">
+              <i class="bi bi-person-circle me-1"></i>登录
+            </button>
+            <button 
+              v-if="parseInt(store.config.getAllowRegister?.value) === 1" 
+              class="btn btn-outline-success text-center" 
+              type="button" 
+              @click="method.showRegister()"
+            >
+              <i class="bi bi-person-plus me-1"></i>注册
+            </button>
+          </div>
         </div>
         
         <!-- 已登录状态 -->
-        <div v-else-if="!utils.is.empty(store.comm.login.user)" class="d-flex flex-column gap-2">
-          <div class="text-center mb-2">
+        <div v-else-if="!utils.is.empty(store.comm.login.user)" class="mb-4">
+          <div class="text-center mb-3">
             <i class="bi bi-person-circle fs-4 text-success"></i>
             <div class="mt-1">{{ store.comm.login.user.nickname }}</div>
             <small class="text-muted">{{ store.comm.login.user.email }}</small>
           </div>
           <button 
-            class="btn btn-warning w-100" 
+            class="btn btn-warning w-100 mb-3" 
             type="button" 
             @click="doSign"
             :disabled="signLoading || hasSigned"
@@ -236,18 +243,23 @@
             {{ hasSigned ? '今日已签到' : '每日签到' }}
             <span v-if="signDays > 0" class="ms-1 text-muted">({{ signDays }}天)</span>
           </button>
-          <router-link class="btn btn-outline-secondary w-100" :to="`/author/${store.comm.login.user.id}`" @click="closeSidebar">
-            用户中心
-          </router-link>
-          <router-link class="btn btn-outline-secondary w-100" to="/user" @click="closeSidebar">
-            用户资料
-          </router-link>
-          <router-link v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning w-100" to="/admin" @click="closeSidebar">
-            后台管理
-          </router-link>
-          <button class="btn btn-outline-danger w-100" type="button" @click="method.logout()">
-            退出登录
-          </button>
+          <div class="d-grid grid-cols-2 gap-3">
+            <router-link class="btn btn-outline-secondary text-center" :to="`/author/${store.comm.login.user.id}`" @click="closeSidebar">
+              <i class="bi bi-person me-1"></i>用户中心
+            </router-link>
+            <router-link class="btn btn-outline-secondary text-center" to="/user" @click="closeSidebar">
+              <i class="bi bi-gear me-1"></i>用户资料
+            </router-link>
+            <router-link v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning text-center" to="/admin" @click="closeSidebar">
+              <i class="bi bi-shield me-1"></i>后台管理
+            </router-link>
+            <button class="btn btn-outline-success text-center" type="button" @click="method.showPublishNotification()">
+              <i class="bi bi-plus-circle me-1"></i>发布文章
+            </button>
+            <button class="btn btn-outline-danger text-center" type="button" @click="method.logout()">
+              <i class="bi bi-box-arrow-right me-1"></i>退出登录
+            </button>
+          </div>
         </div>
         
         <!-- 其他功能按钮 -->
@@ -267,13 +279,6 @@
     </div>
   </div>
 
-  <!-- 侧边栏遮罩层 -->
-  <div 
-    v-if="sidebarOpen"
-    class="sidebar-backdrop"
-    @click="closeSidebar"
-  ></div>
-  
   <!-- 引入三个对话框组件 -->
   <DialogLogin ref="loginDialog" @finish="method.onLoginFinish" />
   <DialogRegister ref="registerDialog" @finish="method.onRegisterFinish" />
@@ -345,6 +350,9 @@ const state = reactive({
 const method = {
   // 显示对话框
   showLogin: () => {
+    // 先关闭侧边栏
+    closeSidebar()
+    
     if (loginDialog.value && loginDialog.value.show) {
       loginDialog.value.show()
     } else {
@@ -358,6 +366,9 @@ const method = {
   },
   
   showRegister: () => {
+    // 先关闭侧边栏
+    closeSidebar()
+    
     if (registerDialog.value && registerDialog.value.show) {
       registerDialog.value.show()
     } else {
@@ -371,6 +382,9 @@ const method = {
   },
   
   showResetPassword: () => {
+    // 先关闭侧边栏
+    closeSidebar()
+    
     if (resetDialog.value && resetDialog.value.show) {
       resetDialog.value.show()
     } else {
@@ -385,7 +399,7 @@ const method = {
   
   // 事件处理
   onLoginFinish: (user) => {
-    console.log('登录成功:', user)
+    // console.log('登录成功:', user)
     store.comm.login.finish = true
     store.comm.login.user = user
     closeSidebar()
@@ -398,14 +412,14 @@ const method = {
   },
   
   onRegisterFinish: (user) => {
-    console.log('注册成功:', user)
+    // console.log('注册成功:', user)
     // 注册成功提示
     Toast.success('注册成功，请登录')
     method.showLogin()
   },
   
   onResetFinish: () => {
-    console.log('密码重置成功')
+    // console.log('密码重置成功')
     // 密码重置成功提示
     Toast.success('密码重置成功，请登录')
     method.showLogin()
@@ -439,7 +453,7 @@ const method = {
       }
     } catch (error) {
       // 网络错误/接口调用失败
-      console.error('退出登录接口调用失败:', error)
+      // console.error('退出登录接口调用失败:', error)
       
       // 兜底清理前端状态（即使接口失败，也清理本地Token）
       utils.set.cookie(globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN', '', -1)
@@ -454,6 +468,12 @@ const method = {
       // 可选：登出后跳转到首页
       // router.push('/')
     }
+  },
+  
+  // 显示发布文章通知
+  showPublishNotification: () => {
+    Toast.info('该功能正在开发中，敬请期待！')
+    closeSidebar()
   },
   
   // 获取当前主题
@@ -529,7 +549,7 @@ const toggleDarkMode = () => {
   // 保存用户偏好到localStorage
   localStorage.setItem('preferred-theme', isDarkMode.value ? 'dark' : 'light')
   
-  console.log(`已切换到${isDarkMode.value ? '深色' : '浅色'}模式`)
+  // console.log(`已切换到${isDarkMode.value ? '深色' : '浅色'}模式`)
 }
 
 // 初始化主题
@@ -550,7 +570,7 @@ const initTheme = () => {
   const htmlElement = document.documentElement
   htmlElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
   
-  console.log(`初始化${isDarkMode.value ? '深色' : '浅色'}模式`)
+  // console.log(`初始化${isDarkMode.value ? '深色' : '浅色'}模式`)
 }
 
 // 监听系统主题变化
@@ -563,7 +583,7 @@ const setupSystemThemeListener = () => {
       isDarkMode.value = e.matches
       const htmlElement = document.documentElement
       htmlElement.setAttribute('data-bs-theme', e.matches ? 'dark' : 'light')
-      console.log(`系统主题已切换，跟随系统到${e.matches ? '深色' : '浅色'}模式`)
+      // console.log(`系统主题已切换，跟随系统到${e.matches ? '深色' : '浅色'}模式`)
     }
   }
   
@@ -574,26 +594,52 @@ const setupSystemThemeListener = () => {
   return () => mediaQuery.removeEventListener('change', handleThemeChange)
 }
 
+// 侧边栏实例
+let offcanvasInstance = null
+
+// 初始化侧边栏
+const initOffcanvas = () => {
+  if (window.bootstrap && !offcanvasInstance) {
+    const sidebar = document.getElementById('mobileSidebar')
+    if (sidebar) {
+      offcanvasInstance = new window.bootstrap.Offcanvas(sidebar, {
+        backdrop: true,
+        keyboard: true
+      })
+      
+      // 监听关闭事件
+      sidebar.addEventListener('hidden.bs.offcanvas', () => {
+        sidebarOpen.value = false
+        categoryDropdownOpen.value = false
+      })
+      
+      // 监听显示事件
+      sidebar.addEventListener('shown.bs.offcanvas', () => {
+        sidebarOpen.value = true
+      })
+    }
+  }
+}
+
 // 切换移动端侧边栏
 const toggleSidebar = () => {
-  sidebarOpen.value = !sidebarOpen.value
-  const sidebar = document.getElementById('mobileSidebar')
+  if (!offcanvasInstance) {
+    initOffcanvas()
+  }
+  
   if (sidebarOpen.value) {
-    sidebar.classList.add('show')
-    document.body.classList.add('sidebar-open')
+    offcanvasInstance.hide()
   } else {
-    sidebar.classList.remove('show')
-    document.body.classList.remove('sidebar-open')
+    offcanvasInstance.show()
   }
 }
 
 // 关闭侧边栏
 const closeSidebar = () => {
+  if (offcanvasInstance) {
+    offcanvasInstance.hide()
+  }
   sidebarOpen.value = false
-  const sidebar = document.getElementById('mobileSidebar')
-  sidebar.classList.remove('show')
-  document.body.classList.remove('sidebar-open')
-  // 同时关闭分类下拉
   categoryDropdownOpen.value = false
 }
 
@@ -625,7 +671,7 @@ const fetchNavData = async () => {
       navItems.value = []
     }
   } catch (error) {
-    console.error('获取导航数据失败:', error)
+    // console.error('获取导航数据失败:', error)
   }
 }
 
@@ -649,7 +695,7 @@ const fetchCategories = async () => {
       categories.value = []
     }
   } catch (error) {
-    console.error('获取分类数据失败:', error)
+    // console.error('获取分类数据失败:', error)
     categories.value = []
   }
 }
@@ -665,7 +711,7 @@ const checkSignStatus = async () => {
       signDays.value = response.data?.signDays || 0
     }
   } catch (error) {
-    console.error('获取签到状态失败：', error)
+    // console.error('获取签到状态失败：', error)
   }
 }
 
@@ -692,7 +738,7 @@ const doSign = async () => {
       Toast.error(response.msg || '签到失败')
     }
   } catch (error) {
-    console.error('签到失败：', error)
+    // console.error('签到失败：', error)
     Toast.error('网络异常，签到失败')
   } finally {
     signLoading.value = false
@@ -707,6 +753,20 @@ onMounted(() => {
   setupSystemThemeListener()
   checkSignStatus()
   
+  // 初始化 Bootstrap 组件
+  if (window.bootstrap) {
+    initDropdowns()
+    initOffcanvas()
+  } else {
+    // 如果Bootstrap未加载，等待一下再尝试
+    setTimeout(() => {
+      if (window.bootstrap) {
+        initDropdowns()
+        initOffcanvas()
+      }
+    }, 100)
+  }
+  
   // 监听窗口大小变化，自动关闭侧边栏
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 992) {
@@ -716,18 +776,6 @@ onMounted(() => {
   
   // 初始化主题获取
   method.getTheme()
-  
-  // 确保Bootstrap已加载后初始化下拉菜单
-  if (window.bootstrap) {
-    initDropdowns()
-  } else {
-    // 如果Bootstrap未加载，等待一下再尝试
-    setTimeout(() => {
-      if (window.bootstrap) {
-        initDropdowns()
-      }
-    }, 100)
-  }
 })
 
 // 当用户状态变化时重新初始化下拉菜单
@@ -784,50 +832,6 @@ watch(
   font-weight: 500;
 }
 
-/* 移动端侧边栏样式 */
-:deep(.sidebar) {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 280px;
-  height: 100vh;
-  z-index: 1050;
-  background-color: var(--bs-body-bg);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  overflow-y: auto;
-  border-right: 1px solid var(--bs-border-color);
-}
-
-:deep(.sidebar.show) {
-  transform: translateX(0);
-}
-
-:deep(.sidebar-backdrop) {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1040;
-  backdrop-filter: blur(2px);
-}
-
-/* 防止页面滚动 */
-:deep(.sidebar-open) {
-  overflow: hidden;
-}
-
-/* 移动端按钮样式 */
-:deep(.offcanvas-header) {
-  padding: 1rem 1.5rem;
-}
-
-:deep(.offcanvas-body) {
-  padding: 1.5rem;
-}
-
 /* 导航项样式优化 */
 :deep(.navbar-nav .nav-item .nav-link) {
   padding: 0.5rem 1rem;
@@ -837,6 +841,15 @@ watch(
 
 :deep(.navbar-nav .nav-item .nav-link:hover) {
   background-color: var(--bs-secondary-bg-subtle);
+}
+
+/* 网格布局 */
+:deep(.grid-cols-2) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+:deep(.d-grid) {
+  display: grid;
 }
 
 /* 适配不同主题 */
@@ -856,12 +869,6 @@ watch(
 }
 
 @media (min-width: 992px) {
-  :deep(.sidebar) {
-    display: none !important;
-  }
-  :deep(.sidebar-backdrop) {
-    display: none !important;
-  }
   /* PC端下拉强制展开修复 */
   :deep(.nav-item.dropdown) { position: relative; }
   :deep(.nav-item.dropdown .dropdown-menu) { z-index: 9999 !important; }

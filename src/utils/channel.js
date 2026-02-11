@@ -53,9 +53,9 @@ class Channel {
       this.bc.onmessage = this.handleMessage.bind(this)
       this.bc.onmessageerror = this.handleError.bind(this)
       
-      console.log(`[Channel] 信道 "${this.channelName}" 初始化成功`)
+      // console.log(`[Channel] 信道 "${this.channelName}" 初始化成功`)
     } catch (error) {
-      console.error(`[Channel] 信道 "${this.channelName}" 初始化失败:`, error.message)
+      // console.error(`[Channel] 信道 "${this.channelName}" 初始化失败:`, error.message)
       this.bc = null
       this.isClosed = true
     }
@@ -89,7 +89,7 @@ class Channel {
       try {
         callback(data, { type, timestamp, channel: this.channelName })
       } catch (error) {
-        console.error(`[Channel] 监听器执行错误 (${type}):`, error)
+        // console.error(`[Channel] 监听器执行错误 (${type}):`, error)
       }
     })
     
@@ -98,7 +98,7 @@ class Channel {
       try {
         callback(data, { type, timestamp, channel: this.channelName })
       } catch (error) {
-        console.error(`[Channel] 一次性监听器执行错误 (${type}):`, error)
+        // console.error(`[Channel] 一次性监听器执行错误 (${type}):`, error)
       }
     })
     
@@ -112,7 +112,7 @@ class Channel {
    * 错误处理器
    */
   handleError(event) {
-    console.error(`[Channel] 信道 "${this.channelName}" 消息错误:`, event)
+    // console.error(`[Channel] 信道 "${this.channelName}" 消息错误:`, event)
   }
 
   /**
@@ -123,7 +123,7 @@ class Channel {
    */
   on(typeOrCallback, callback) {
     if (this.isClosed) {
-      console.warn('[Channel] 信道已关闭，无法添加监听器')
+      // console.warn('[Channel] 信道已关闭，无法添加监听器')
       return () => {}
     }
     

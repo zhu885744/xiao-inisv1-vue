@@ -3,13 +3,13 @@
         <div 
             v-if="state.item.dialog"
             class="modal fade show"
-            style="display: block;"
+            style="display: block; z-index: 1060;"
             tabindex="-1" 
             aria-labelledby="registerModalLabel" 
             aria-hidden="false"
             data-bs-backdrop="static"
         >
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px; margin: 0 auto;">
                 <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
                     <div class="modal-header bg-gradient-to-r from-success to-green-600 text-white py-4">
                         <h3 class="modal-title fs-5 fw-semibold" id="registerModalLabel">注册账号</h3>
@@ -141,7 +141,7 @@
         <div 
             v-if="state.item.dialog"
             class="modal-backdrop fade show"
-            style="z-index: 1050;"
+            style="z-index: 1059;"
             @click="method.hide()"
         ></div>
     </transition>
@@ -254,7 +254,7 @@ const method = {
 
             cache.set('user-info', data.user, 10)
             utils.set.cookie(globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN', data.token, 7 * 24 * 60 * 60)
-            state.item.dialog = false
+            method.hide()
             
             store.comm.login.finish = true
             store.comm.login.user = data.user
@@ -322,6 +322,15 @@ const method = {
         showPassword.value = false
         showConfirmPassword.value = false
         
+        // 禁止页面滚动
+        document.body.style.overflow = 'hidden'
+        document.body.style.position = 'fixed'
+        document.body.style.width = '100%'
+        document.body.style.height = '100%'
+        document.body.style.top = '0'
+        document.body.style.left = '0'
+        document.body.style.zIndex = '1059'
+        
         setTimeout(() => {
             const nicknameInput = document.getElementById('nicknameInput')
             if (nicknameInput) {
@@ -334,10 +343,19 @@ const method = {
         state.item.dialog = false
         showPassword.value = false
         showConfirmPassword.value = false
+        
+        // 恢复页面滚动
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.height = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.zIndex = ''
     },
 
     login() {
-        state.item.dialog = false
+        method.hide()
         setTimeout(() => {
             store.comm.switchAuth('login', true)
         }, 300)
@@ -352,6 +370,15 @@ watch(() => state.struct.code, (val) => {
 
 onUnmounted(() => {
     if (state.timer) clearInterval(state.timer)
+    
+    // 确保在组件卸载时恢复页面滚动
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.width = ''
+    document.body.style.height = ''
+    document.body.style.top = ''
+    document.body.style.left = ''
+    document.body.style.zIndex = ''
 })
 
 defineExpose({

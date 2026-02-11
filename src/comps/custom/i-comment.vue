@@ -101,7 +101,7 @@
           </div>
           <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary">{{ item.content }}</p>
           
-          <!-- 回复按钮组：优化交互 -->
+          <!-- 回复和点赞按钮组：优化交互 -->
           <div class="d-flex gap-2">
             <button 
               class="btn btn-sm btn-outline-primary rounded-3" 
@@ -118,10 +118,31 @@
             >
               <i class="bi bi-reply-fill me-1"></i> 回复
             </button>
+            <!-- 点赞/点踩按钮 -->
+            <button 
+              class="btn btn-sm rounded-3" 
+              :class="getLikeStatus(item.id) ? 'btn-outline-danger' : 'btn-outline-success'"
+              @click="handleCommentLike(item.id)"
+              v-if="isLogin"
+            >
+              <i :class="getLikeStatus(item.id) ? 'bi bi-hand-thumbs-down' : 'bi bi-hand-thumbs-up'"></i>
+              <span class="ms-1">{{ getLikeStatus(item.id) ? '点踩' : '点赞' }}</span>
+              <span class="ms-1">{{ getLikeCount(item.id) }}</span>
+            </button>
+            <button 
+              class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
+              v-else
+              data-bs-toggle="tooltip"
+              data-bs-title="登录后可点赞"
+            >
+              <i class="bi bi-hand-thumbs-up"></i>
+              <span class="ms-1">点赞</span>
+              <span class="ms-1">{{ getLikeCount(item.id) }}</span>
+            </button>
           </div>
 
           <!-- 回复输入框 -->
-          <div v-if="showReplyIndex === index" class="mt-3 reply-form">
+          <div v-if="showReplyIndex === index || (typeof showReplyIndex === 'string' && showReplyIndex.startsWith(`${index}-`))" class="mt-3 reply-form">
             <textarea 
               v-model="replyInput"
               class="form-control rounded-3 border border-secondary-subtle bg-body" 
@@ -155,7 +176,7 @@
                 <i class="bi bi-emoji-smile me-1"></i> 表情
               </button>
               <button 
-                @click="handleSubmitReply(item.id || index)"
+                @click="handleSubmitReply()"
                 class="btn btn-sm btn-primary px-3 rounded-3 flex-grow-1"
                 :disabled="!replyInput.trim()"
               >
@@ -197,11 +218,11 @@
             </div>
             <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary">{{ reply.content }}</p>
             
-            <!-- 回复按钮组 -->
+            <!-- 回复和点赞按钮组 -->
             <div class="d-flex gap-2">
               <button 
                 class="btn btn-sm btn-outline-primary rounded-3" 
-                @click="toggleReplyForm(index)"
+                @click="toggleReplyForm(index, rIndex)"
                 v-if="isLogin"
               >
                 <i class="bi bi-reply-fill me-1"></i> 回复
@@ -213,6 +234,27 @@
                 data-bs-title="登录后可回复"
               >
                 <i class="bi bi-reply-fill me-1"></i> 回复
+              </button>
+              <!-- 点赞/点踩按钮 -->
+              <button 
+                class="btn btn-sm rounded-3" 
+                :class="getLikeStatus(reply.id) ? 'btn-outline-danger' : 'btn-outline-success'"
+                @click="handleCommentLike(reply.id)"
+                v-if="isLogin"
+              >
+                <i :class="getLikeStatus(reply.id) ? 'bi bi-hand-thumbs-down' : 'bi bi-hand-thumbs-up'"></i>
+                <span class="ms-1">{{ getLikeStatus(reply.id) ? '点踩' : '点赞' }}</span>
+                <span class="ms-1">{{ getLikeCount(reply.id) }}</span>
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
+                v-else
+                data-bs-toggle="tooltip"
+                data-bs-title="登录后可点赞"
+              >
+                <i class="bi bi-hand-thumbs-up"></i>
+                <span class="ms-1">点赞</span>
+                <span class="ms-1">{{ getLikeCount(reply.id) }}</span>
               </button>
             </div>
           </div>
@@ -231,6 +273,8 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useCommStore } from '@/store/comm'
 import utils from '@/utils/utils'
+import request from '@/utils/request'
+import Toast from '@/utils/toast'
 
 // 🌟 1. 定义组件接收的props
 const props = defineProps({
@@ -280,6 +324,20 @@ const showEmojiPicker = ref(false)
 const showReplyEmojiPicker = ref(false)
 // 自动检测系统深色模式（兜底方案）
 const isSystemDark = ref(false)
+
+// 评论点赞状态
+const commentLikes = ref(new Map())
+const commentLikeCounts = ref(new Map())
+
+// 获取评论点赞数的辅助函数
+const getLikeCount = (commentId) => {
+  return commentLikeCounts.value.get(commentId) || 0
+}
+
+// 获取评论点赞状态的辅助函数
+const getLikeStatus = (commentId) => {
+  return commentLikes.value.get(commentId) || false
+}
 
 // 定义常用表情
 const emojis = [
@@ -423,10 +481,10 @@ const processedCommentList = computed(() => {
 const handlePublish = () => {
   const content = commentInput.value.trim()
   if (!content) return
-  console.log('发布评论:', {
-    articleId: props.articleId,
-    content
-  })
+  // console.log('发布评论:', {
+  //   articleId: props.articleId,
+  //   content
+  // })
   emit('publishComment', {
     articleId: props.articleId,
     content
@@ -435,18 +493,33 @@ const handlePublish = () => {
 }
 
 // 🌟 5. 切换回复输入框
-const toggleReplyForm = (index) => {
-  if (showReplyIndex.value === index) {
+// 参数说明：
+// - index: 一级评论的索引
+// - replyIndex: 二级评论（回复）的索引，可选
+const toggleReplyForm = (index, replyIndex = null) => {
+  // 创建一个唯一的标识符，用于区分不同评论的回复输入框
+  const uniqueKey = replyIndex !== null ? `${index}-${replyIndex}` : index
+  
+  if (showReplyIndex.value === uniqueKey) {
     showReplyIndex.value = null
     replyInput.value = ''
     replyTarget.value = null
   } else {
-    showReplyIndex.value = index
-    // 获取要回复的用户信息
-    const comment = processedCommentList.value[index]
-    replyTarget.value = comment
+    showReplyIndex.value = uniqueKey
+    let targetComment
+    
+    if (replyIndex !== null) {
+      // 回复二级评论
+      const parentComment = processedCommentList.value[index]
+      targetComment = parentComment.replies[replyIndex]
+    } else {
+      // 回复一级评论
+      targetComment = processedCommentList.value[index]
+    }
+    
+    replyTarget.value = targetComment
     // 在回复输入框中显示@用户
-    replyInput.value = `@${comment.nickname} `
+    replyInput.value = `@${targetComment.nickname} `
     // 自动聚焦回复输入框
     setTimeout(() => {
       const textarea = document.querySelector('textarea[placeholder="请输入你的回复..."]')
@@ -460,14 +533,19 @@ const toggleReplyForm = (index) => {
 }
 
 // 🌟 6. 提交回复
-const handleSubmitReply = (commentId) => {
+const handleSubmitReply = () => {
   const content = replyInput.value.trim()
   if (!content) return
-  console.log('提交回复:', {
-    articleId: props.articleId,
-    commentId,
-    content
-  })
+  
+  // 使用 replyTarget.value.id 作为目标评论的 ID
+  const commentId = replyTarget.value?.id
+  if (!commentId) return
+  
+  // console.log('提交回复:', {
+  //   articleId: props.articleId,
+  //   commentId,
+  //   content
+  // })
   emit('replyComment', {
     articleId: props.articleId,
     commentId,
@@ -475,6 +553,7 @@ const handleSubmitReply = (commentId) => {
   })
   showReplyIndex.value = null
   replyInput.value = ''
+  replyTarget.value = null
 }
 
 // 🌟 7. 取消回复
@@ -551,6 +630,170 @@ const handleToRegister = () => {
   store.switchAuth('register', true)
 }
 
+// 🌟 9. 评论点赞/点踩功能
+const handleCommentLike = async (commentId) => {
+  if (!props.isLogin) {
+    store.switchAuth('login', true)
+    return
+  }
+
+  try {
+    // 确保commentId有效
+    if (!commentId) return
+
+    // 获取当前状态
+    const currentState = commentLikes.value.get(commentId) ? 0 : 1
+    // console.log('评论点赞操作，当前状态:', currentState)
+    // console.log('准备发送的state:', currentState)
+
+    // 获取用户ID
+    const userId = store.login.user?.id
+    // console.log('当前用户ID:', userId)
+
+    // 调用API
+    const res = await request.post('/api/exp/like', {
+      bind_id: commentId,
+      bind_type: 'comment',
+      state: currentState,
+      description: '评论点赞',
+      uid: userId // 显式传递用户ID
+    })
+
+    // console.log('评论点赞API响应:', res)
+
+    if (res.code === 200) {
+      // 计算新状态
+      const newState = currentState === 1
+      // 更新点赞状态
+      commentLikes.value.set(commentId, newState)
+      // 更新点赞数，确保不小于0
+      const currentCount = commentLikeCounts.value.get(commentId) || 0
+      const newCount = newState ? currentCount + 1 : Math.max(0, currentCount - 1)
+      commentLikeCounts.value.set(commentId, newCount)
+      
+      // console.log('更新后点赞状态:', newState)
+      // console.log('更新后点赞数:', newCount)
+      
+      // 添加消息提示
+      if (newState) {
+        Toast.success('点赞成功！')
+      } else {
+        Toast.success('已取消点赞')
+      }
+    } else if (res.code === 400 && res.msg === '已经点过赞啦！') {
+      // 当API返回"已经点过赞啦！"的错误时，更新点赞状态为true
+      commentLikes.value.set(commentId, true)
+      // console.log('更新点赞状态为true，因为已经点过赞啦！')
+      Toast.info('已经点过赞啦！')
+    } else {
+      // console.error('评论点赞操作失败，API返回码:', res.code)
+      Toast.error(res.msg || '操作失败，请重试')
+    }
+  } catch (error) {
+    // console.error('评论点赞操作失败:', error)
+    Toast.error('网络异常，操作失败')
+  }
+}
+
+// 🌟 10. 获取评论点赞数
+const getCommentLikeCount = async (commentId) => {
+  try {
+    // 确保commentId有效
+    if (!commentId) {
+      commentLikeCounts.value.set(commentId, 0)
+      return
+    }
+    
+    const whereParam = JSON.stringify({ bind_id: commentId, type: 'like', bind_type: 'comment', state: 1 })
+    // console.log('获取评论点赞数，commentId:', commentId)
+    // console.log('获取评论点赞数，whereParam:', whereParam)
+    
+    const res = await request.get('/api/exp/count', {
+      where: whereParam
+    })
+
+    // console.log('获取评论点赞数API响应:', res)
+    
+    if (res.code === 200) {
+      commentLikeCounts.value.set(commentId, res.data || 0)
+    } else {
+      commentLikeCounts.value.set(commentId, 0)
+    }
+  } catch (error) {
+    // console.error('获取评论点赞数失败:', error)
+    commentLikeCounts.value.set(commentId, 0)
+  }
+}
+
+// 🌟 11. 检查评论是否已点赞
+const checkCommentLikeStatus = async (commentId) => {
+  if (!props.isLogin) return
+
+  try {
+    // 确保commentId有效
+    if (!commentId) return
+    
+    const userId = store.login.user?.id
+    if (!userId) return
+
+    const whereParam = JSON.stringify({ uid: userId, bind_id: commentId, type: 'like', bind_type: 'comment', state: 1 })
+    // console.log('检查评论点赞状态，commentId:', commentId)
+    // console.log('检查评论点赞状态，userId:', userId)
+    // console.log('检查评论点赞状态，whereParam:', whereParam)
+    
+    const res = await request.get('/api/exp/one', {
+      where: whereParam
+    })
+
+    // console.log('检查评论点赞状态API响应:', res)
+    
+    if (res.code === 200 && res.data) {
+      commentLikes.value.set(commentId, true)
+    } else {
+      commentLikes.value.set(commentId, false)
+    }
+  } catch (error) {
+    // console.error('检查评论点赞状态失败:', error)
+    commentLikes.value.set(commentId, false)
+  }
+}
+
+// 🌟 12. 初始化评论点赞数据
+const initCommentLikeData = async () => {
+  if (processedCommentList.value.length === 0) return
+
+  // 获取所有评论和回复的ID
+  const allCommentIds = []
+  processedCommentList.value.forEach(comment => {
+    if (comment.id) {
+      allCommentIds.push(comment.id)
+    }
+    if (comment.replies && comment.replies.length > 0) {
+      comment.replies.forEach(reply => {
+        if (reply.id) {
+          allCommentIds.push(reply.id)
+        }
+      })
+    }
+  })
+
+  // console.log('所有评论和回复的ID:', allCommentIds)
+
+  // 并行获取所有评论的点赞数和点赞状态
+  await Promise.all(
+    allCommentIds.map(async (id) => {
+      await getCommentLikeCount(id)
+      if (props.isLogin) {
+        await checkCommentLikeStatus(id)
+      }
+    })
+  )
+
+  // console.log('初始化评论点赞数据完成')
+  // console.log('评论点赞状态:', Object.fromEntries(commentLikes.value))
+  // console.log('评论点赞数:', Object.fromEntries(commentLikeCounts.value))
+}
+
 // 🌟 9. 初始化Bootstrap tooltip + 检测系统深色模式
 onMounted(() => {
   // 初始化tooltip
@@ -565,6 +808,9 @@ onMounted(() => {
   if (!props.isDarkMode) {
     isSystemDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
   }
+
+  // 初始化评论点赞数据
+  initCommentLikeData()
 })
 
 // 🌟 10. 监听深色模式变化，更新tooltip样式
@@ -575,6 +821,18 @@ watch([() => props.isDarkMode, isSystemDark], () => {
     })
   }
 })
+
+// 🌟 11. 监听评论列表变化，初始化点赞数据
+watch(
+  () => processedCommentList.value,
+  (newCommentList) => {
+    if (newCommentList && newCommentList.length > 0) {
+      // console.log('评论列表变化，重新初始化点赞数据')
+      initCommentLikeData()
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>

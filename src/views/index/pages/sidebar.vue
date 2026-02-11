@@ -38,16 +38,16 @@
           <div class="mt-3 pt-3 border-top border-light-subtle user-stats">
             <div class="row g-2">
               <div class="col-4 text-center">
-                <div class="fw-bold fs-6 user-stat-value">{{ store.comm.login.user.articleCount || 0 }}</div>
+                <div class="fw-bold fs-6 user-stat-value">{{ userStats.articleCount }}</div>
                 <div class="text-muted fs-7 user-stat-label">文章</div>
               </div>
               <div class="col-4 text-center">
-                <div class="fw-bold fs-6 user-stat-value">{{ store.comm.login.user.followerCount || 0 }}</div>
-                <div class="text-muted fs-7 user-stat-label">粉丝</div>
+                <div class="fw-bold fs-6 user-stat-value">{{ userStats.collectCount }}</div>
+                <div class="text-muted fs-7 user-stat-label">收藏</div>
               </div>
               <div class="col-4 text-center">
-                <div class="fw-bold fs-6 user-stat-value">{{ store.comm.login.user.followingCount || 0 }}</div>
-                <div class="text-muted fs-7 user-stat-label">关注</div>
+                <div class="fw-bold fs-6 user-stat-value">{{ userStats.likeCount }}</div>
+                <div class="text-muted fs-7 user-stat-label">点赞</div>
               </div>
             </div>
           </div>
@@ -85,11 +85,11 @@
               </div>
               <div class="col-4 text-center">
                 <div class="fw-bold fs-6 user-stat-value">0</div>
-                <div class="text-muted fs-7 user-stat-label">粉丝</div>
+                <div class="text-muted fs-7 user-stat-label">收藏</div>
               </div>
               <div class="col-4 text-center">
                 <div class="fw-bold fs-6 user-stat-value">0</div>
-                <div class="text-muted fs-7 user-stat-label">关注</div>
+                <div class="text-muted fs-7 user-stat-label">点赞</div>
               </div>
             </div>
           </div>
@@ -345,15 +345,13 @@
 
         <!-- 标签云 -->
         <div v-else class="tag-cloud">
-          <a
-            href="#"
+          <span
             class="tag-item"
             v-for="tag in tagList"
             :key="tag.id"
-            @click.prevent="goToTag(tag.id, tag.name)"
           >
             {{ tag.name }}
-          </a>
+          </span>
         </div>
       </div>
     </div>
@@ -413,6 +411,14 @@ const signLoading = ref(false)
 const hasSigned = ref(false)
 const signDays = ref(0)
 
+// 用户统计数据
+const userStats = ref({
+  articleCount: 0,
+  collectCount: 0,
+  likeCount: 0
+})
+const statsLoading = ref(false)
+
 // 快速导航数据
 const quickNavs = ref([
   { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archives' },
@@ -430,10 +436,38 @@ const detectDarkMode = () => {
   isDarkMode.value = pageDark || systemDark
 }
 
+// 等级数据
+const levelInfo = ref(null)
+
 // 根据经验值计算等级
+// 现在使用后端返回的等级数据来动态计算
 const calculateLevel = (exp) => {
-  // 每100经验值升一级，经验值为0时显示Lv.0
-  return Math.floor(exp / 100)
+  // 如果没有等级数据，使用默认逻辑
+  if (!levelInfo.value || !levelInfo.value.data) {
+    // 默认每100经验值一级
+    return Math.floor(exp / 100)
+  }
+  
+  // 从后端返回的等级数据中获取等级阈值
+  const levelData = levelInfo.value.data
+  
+  // 检查levelData是否是数组
+  if (!Array.isArray(levelData)) {
+    // 如果不是数组，使用默认逻辑
+    return Math.floor(exp / 100)
+  }
+  
+  // 按经验值阈值从高到低排序
+  const sortedLevels = [...levelData].sort((a, b) => b.exp - a.exp)
+  
+  // 找到用户当前经验值对应的最高等级
+  for (const level of sortedLevels) {
+    if (exp >= level.exp) {
+      return level.value
+    }
+  }
+  
+  return 0 // 默认返回Lv.0
 }
 
 // 导航方法
@@ -451,12 +485,6 @@ const goToArticle = (articleId) => {
   }
 }
 const goToAuthor = (authorId) => router.push(`/author/${authorId}`)
-const goToTag = (tagId, tagName) => {
-  router.push({
-    path: '/tags/detail',
-    query: { id: tagId, name: tagName }
-  })
-}
 
 // 格式化时间
 const formatTime = (time) => {
@@ -480,6 +508,18 @@ const formatTime = (time) => {
 // 导入Toast
 import Toast from '@/utils/toast'
 
+// 获取等级数据
+const getLevelInfo = async () => {
+  try {
+    const res = await request.get('/api/exp/all')
+    if (res.code === 200) {
+      levelInfo.value = res
+    }
+  } catch (error) {
+    // console.error('获取等级数据失败:', error)
+  }
+}
+
 // 接口请求方法
 const getHotArticles = async () => {
   try {
@@ -494,7 +534,7 @@ const getHotArticles = async () => {
       hotArticles.value = response.data.data || []
     }
   } catch (error) {
-    console.error('获取热门文章失败：', error)
+    // console.error('获取热门文章失败：', error)
     hotArticles.value = []
   } finally {
     loading.value = false
@@ -512,7 +552,7 @@ const getActiveRank = async () => {
       activeRankList.value = response.data || []
     }
   } catch (error) {
-    console.error('获取活跃度排行失败：', error)
+    // console.error('获取活跃度排行失败：', error)
     activeRankList.value = []
   } finally {
     activeLoading.value = false
@@ -532,7 +572,7 @@ const getTagList = async () => {
       tagList.value = response.data.data || []
     }
   } catch (error) {
-    console.error('获取标签云失败：', error)
+    // console.error('获取标签云失败：', error)
     tagList.value = []
   } finally {
     tagLoading.value = false
@@ -561,10 +601,88 @@ const getLatestComments = async () => {
       }))
     }
   } catch (error) {
-    console.error('获取最新评论失败：', error)
+    // console.error('获取最新评论失败：', error)
     commentList.value = []
   } finally {
     commentLoading.value = false
+  }
+}
+
+// 获取用户文章数量
+const getArticleCount = async (userId) => {
+  try {
+    const whereParam = JSON.stringify({ uid: userId })
+    const response = await request.get('/api/article/count', {
+      where: whereParam
+    })
+    if (response.code === 200) {
+      return response.data
+    }
+    return 0
+  } catch (error) {
+    // console.error('获取文章数量失败:', error)
+    return 0
+  }
+}
+
+// 获取用户收藏数量
+const getCollectCount = async (userId) => {
+  try {
+    const whereParam = JSON.stringify({ uid: userId, type: 'collect', state: 1 })
+    const response = await request.get('/api/exp/count', {
+      where: whereParam
+    })
+    if (response.code === 200) {
+      return response.data
+    }
+    return 0
+  } catch (error) {
+    // console.error('获取收藏数量失败:', error)
+    return 0
+  }
+}
+
+// 获取用户点赞数量
+const getLikeCount = async (userId) => {
+  try {
+    const whereParam = JSON.stringify({ uid: userId, type: 'like', state: 1 })
+    const response = await request.get('/api/exp/count', {
+      where: whereParam
+    })
+    if (response.code === 200) {
+      return response.data
+    }
+    return 0
+  } catch (error) {
+    // console.error('获取点赞数量失败:', error)
+    return 0
+  }
+}
+
+// 初始化用户统计数据
+const initUserStats = async () => {
+  if (!store.comm.login.finish || !store.comm.login.user) return
+  
+  statsLoading.value = true
+  try {
+    const userId = store.comm.login.user.id
+    const [articleCount, collectCount, likeCount] = await Promise.all([
+      getArticleCount(userId),
+      getCollectCount(userId),
+      getLikeCount(userId)
+    ])
+    
+    userStats.value = {
+      articleCount,
+      collectCount,
+      likeCount
+    }
+    
+    // console.log('用户统计数据:', userStats.value)
+  } catch (error) {
+    // console.error('初始化用户统计数据失败:', error)
+  } finally {
+    statsLoading.value = false
   }
 }
 
@@ -579,7 +697,7 @@ const checkSignStatus = async () => {
       signDays.value = response.data?.signDays || 0
     }
   } catch (error) {
-    console.error('获取签到状态失败：', error)
+    // console.error('获取签到状态失败：', error)
   }
 }
 
@@ -608,7 +726,7 @@ const doSign = async () => {
       Toast.error(response.msg || '签到失败')
     }
   } catch (error) {
-    console.error('签到失败：', error)
+    // console.error('签到失败：', error)
     Toast.error('网络异常，签到失败')
   } finally {
     signLoading.value = false
@@ -626,7 +744,9 @@ onMounted(() => {
     getActiveRank(),
     getTagList(),
     getLatestComments(),
-    checkSignStatus()
+    checkSignStatus(),
+    initUserStats(),
+    getLevelInfo() // 获取等级数据
   ]).catch(err => console.error('数据加载失败：', err))
 })
 </script>

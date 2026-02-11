@@ -1,6 +1,6 @@
 <template>
   <div class="card mt-2">
-    <!-- 作者信息卡片头部 -->
+    <!-- 用户中心卡片头部 -->
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0 d-flex align-items-center gap-2 text-primary fw-semibold">
@@ -65,8 +65,8 @@
                 {{ userInfo.nickname }}
               </h3>
               <!-- 等级标识 -->
-              <span v-if="userLevel" class="badge bg-primary rounded-full px-3 py-1 text-sm font-medium">
-                {{ userLevel }}
+              <span v-if="userLevelInfo" class="badge bg-primary rounded-full px-3 py-1 text-sm font-medium">
+                Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
               </span>
             </div>
             <!-- 头衔 -->
@@ -101,9 +101,9 @@
         <!-- 用户标签 -->
         <div class="user-tags mb-4">
           <div class="d-flex align-items-center gap-3 flex-wrap">
-            <!-- 管理员标识 -->
-            <span v-if="isAdmin" class="badge rounded-full bg-danger text-white px-4 py-2 text-sm font-medium transition-all hover:bg-primary hover:text-white cursor-pointer">
-              系统管理员
+            <!-- 用户组标识 -->
+            <span v-for="(group, index) in userGroups" :key="index" class="badge rounded-full bg-danger text-white px-4 py-2 text-sm font-medium transition-all hover:bg-primary hover:text-white cursor-pointer">
+              {{ group.name }}
             </span>
             <!-- 性别标签 -->
             <span class="badge rounded-full bg-primary-subtle text-primary px-4 py-2 text-sm font-medium transition-all hover:bg-primary hover:text-white cursor-pointer">
@@ -113,10 +113,10 @@
             <!-- 等级标签 -->
             <span class="badge rounded-full bg-success-subtle text-success px-4 py-2 text-sm font-medium transition-all hover:bg-success hover:text-white cursor-pointer">
               <i class="bi bi-activity"></i>
-              {{ userLevel || '普通用户' }}
+              Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
             </span>
             <!-- 经验值标签 -->
-            <span class="badge rounded-full bg-warning-subtle text-warning px-4 py-2 text-sm font-medium transition-all hover:bg-warning hover:text-white cursor-pointer">
+            <span class="badge rounded-full bg-info-subtle text-info px-4 py-2 text-sm font-medium transition-all hover:bg-info hover:text-white cursor-pointer">
               <i class="bi bi-star"></i>
               {{ userInfo.exp }} 经验值
             </span>
@@ -133,11 +133,11 @@
         <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3 border border-primary/20">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <span class="text-gray-600">当前等级</span>
-            <span class="fw-bold text-primary">{{ userLevelInfo.current.name }}</span>
+            <span class="fw-bold text-primary">Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}</span>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-4">
             <span class="text-gray-600">下一等级</span>
-            <span class="text-gray-700">{{ userLevelInfo.next.name }}</span>
+            <span class="text-gray-700">Lv.{{ userLevelInfo.next.value }} {{ userLevelInfo.next.name }}</span>
           </div>
           <!-- 经验值进度条 -->
           <div class="mb-1">
@@ -165,6 +165,8 @@
         </div>
       </div>
 
+
+
       <!-- 用户权限信息 -->
       <div v-if="userAuthInfo" class="user-auth mb-5">
         <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
@@ -186,6 +188,7 @@
           </div>
         </div>
       </div>
+
 
       <!-- 交互按钮 -->
       <div class="user-actions d-flex gap-2 flex-wrap">
@@ -223,6 +226,11 @@ const store = useCommStore()
 const loading = ref(false)
 const error = ref('')
 const userInfo = ref(null)
+
+
+
+// 定时器引用
+const refreshInterval = ref(null)
 
 // 计算属性
 // 用户ID从路由参数获取
@@ -270,6 +278,22 @@ const isCurrentUser = computed(() => {
   return currentUser && userInfo.value && currentUser.id === userInfo.value.id
 })
 
+// 用户组信息
+const userGroups = computed(() => {
+  if (!userAuthInfo.value) {
+    // 如果没有用户权限信息，显示普通用户
+    return [{ name: '普通用户' }]
+  }
+  
+  if (userAuthInfo.value.group?.list && userAuthInfo.value.group.list.length > 0) {
+    // 如果有权限组信息，显示接口返回的用户组
+    return userAuthInfo.value.group.list
+  }
+  
+  // 默认显示普通用户
+  return [{ name: '普通用户' }]
+})
+
 // 方法
 // 获取用户信息
 const fetchUserInfo = async () => {
@@ -288,7 +312,7 @@ const fetchUserInfo = async () => {
       userInfo.value = null
     }
   } catch (err) {
-    console.error('获取用户信息失败:', err)
+    // console.error('获取用户信息失败:', err)
     error.value = '网络错误，请稍后重试'
     userInfo.value = null
   } finally {
@@ -363,6 +387,8 @@ const formatDate = (timestamp) => {
   })
 }
 
+
+
 // 处理头像错误
 const handleAvatarError = (event) => {
   event.target.src = defaultAvatar
@@ -388,11 +414,22 @@ onMounted(() => {
   
   // 监听路由参数变化，重新获取用户信息
   route.params.id && fetchUserInfo()
+  
+  // 清除定时刷新机制
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value)
+    refreshInterval.value = null
+  }
 })
 
-// 组件卸载时恢复原始页面标题
+// 组件卸载时恢复原始页面标题并清除定时器
 onUnmounted(() => {
   document.title = originalTitle.value
+  // 清除定时器
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value)
+    refreshInterval.value = null
+  }
 })
 
 // 监听用户信息变化，更新页面标题

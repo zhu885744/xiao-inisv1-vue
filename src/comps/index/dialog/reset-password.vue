@@ -3,13 +3,13 @@
         <div 
             v-if="state.item.dialog"
             class="modal fade show"
-            style="display: block;"
+            style="display: block; z-index: 1060;"
             tabindex="-1" 
             aria-labelledby="resetPasswordModalLabel" 
             aria-hidden="false"
             data-bs-backdrop="static"
         >
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px; margin: 0 auto;">
                 <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
                     <div class="modal-header bg-gradient-to-r from-warning to-yellow-600 text-white py-4">
                         <h3 class="modal-title fs-5 fw-semibold" id="resetPasswordModalLabel">忘记密码</h3>
@@ -19,23 +19,13 @@
                     <div class="modal-body px-6 py-5">
                         <form @submit.prevent="method.reset()" novalidate class="space-y-4">
                             <div>
-                                <label for="resetAccountInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">账号</label>
-                                <input type="text" 
-                                       class="form-control rounded-3 border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
-                                       id="resetAccountInput"
-                                       v-model="state.struct.account"
-                                       placeholder="注册时使用的账号">
-                                <div class="form-text text-xs text-gray-500 mt-1">或填写下面的联系方式</div>
-                            </div>
-                            
-                            <div>
                                 <label for="contactInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">邮箱或手机号</label>
                                 <input type="text" 
                                        class="form-control rounded-3 border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
                                        id="contactInput"
                                        v-model="state.struct.social"
                                        placeholder="用于接收验证码">
-                                <div class="form-text text-xs text-gray-500 mt-1">填写账号或联系方式至少一项</div>
+                                <div class="form-text text-xs text-gray-500 mt-1">请输入您的邮箱或手机号</div>
                             </div>
                             
                             <div>
@@ -135,7 +125,7 @@
         <div 
             v-if="state.item.dialog"
             class="modal-backdrop fade show"
-            style="z-index: 1050;"
+            style="z-index: 1059;"
             @click="method.hide()"
         ></div>
     </transition>
@@ -175,10 +165,10 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const isFormValid = computed(() => {
-    const { account, social, code } = state.struct
+    const { social, code } = state.struct
     const { value: pwd, verify: pwdVerify } = state.password
     
-    const hasIdentity = !utils.is.empty(account) || !utils.is.empty(social)
+    const hasIdentity = !utils.is.empty(social)
     const hasCode = !utils.is.empty(code)
     const hasPassword = !utils.is.empty(pwd) && pwd.length >= 6
     const passwordsMatch = pwd === pwdVerify && !utils.is.empty(pwdVerify)
@@ -259,7 +249,7 @@ const method = {
                 throw new Error(msg || '重置密码失败！')
             }
 
-            state.item.dialog = false
+            method.hide()
             emit('finish')
 
         } catch (error) {
@@ -269,9 +259,9 @@ const method = {
     },
 
     async code() {
-        const { account, social } = state.struct
-        if (utils.is.empty(account) && utils.is.empty(social)) {
-            showNotification('请填写账号或联系方式！', 'warning')
+        const { social } = state.struct
+        if (utils.is.empty(social)) {
+            showNotification('请填写邮箱或手机号！', 'warning')
             return
         }
 
@@ -325,10 +315,19 @@ const method = {
         showPassword.value = false
         showConfirmPassword.value = false
         
+        // 禁止页面滚动
+        document.body.style.overflow = 'hidden'
+        document.body.style.position = 'fixed'
+        document.body.style.width = '100%'
+        document.body.style.height = '100%'
+        document.body.style.top = '0'
+        document.body.style.left = '0'
+        document.body.style.zIndex = '1059'
+        
         setTimeout(() => {
-            const accountInput = document.getElementById('resetAccountInput')
-            if (accountInput) {
-                accountInput.focus()
+            const contactInput = document.getElementById('contactInput')
+            if (contactInput) {
+                contactInput.focus()
             }
         }, 300)
     },
@@ -337,10 +336,19 @@ const method = {
         state.item.dialog = false
         showPassword.value = false
         showConfirmPassword.value = false
+        
+        // 恢复页面滚动
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.height = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.zIndex = ''
     },
 
     login() {
-        state.item.dialog = false
+        method.hide()
         setTimeout(() => {
             store.comm.switchAuth('login', true)
         }, 300)
@@ -355,6 +363,15 @@ watch(() => state.struct.code, (val) => {
 
 onUnmounted(() => {
     if (state.timer) clearInterval(state.timer)
+    
+    // 确保在组件卸载时恢复页面滚动
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.width = ''
+    document.body.style.height = ''
+    document.body.style.top = ''
+    document.body.style.left = ''
+    document.body.style.zIndex = ''
 })
 
 defineExpose({

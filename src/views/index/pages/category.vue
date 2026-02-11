@@ -157,7 +157,7 @@ const goToArticle = (articleId) => {
   if (!isNaN(validArticleId) && validArticleId > 0) {
     router.push(`/archives/${validArticleId}`)
   } else {
-    console.error('文章ID不合法:', articleId)
+    // console.error('文章ID不合法:', articleId)
   }
 }
 
@@ -267,22 +267,22 @@ const getCategoryArticleCount = async (categoryId) => {
     // 使用like参数获取分类文章总数，使用与文章列表相同的参数格式和传递方式
     const like = `Group|%7C${categoryId}%7C`;
     const apiUrl = `/api/article/count?like=${like}`;
-    console.log('分类文章总数请求URL:', apiUrl);
-    console.log('当前分类ID:', categoryId);
-    console.log('like参数:', like);
+    // console.log('分类文章总数请求URL:', apiUrl);
+    // console.log('当前分类ID:', categoryId);
+    // console.log('like参数:', like);
     
     const response = await request.get(apiUrl);
     
     if (response.code === 200) {
       articleCount.value = response.data || 0
-      console.log('分类文章总数:', articleCount.value)
+      // console.log('分类文章总数:', articleCount.value)
     } else {
       articleCount.value = 0
-      console.error('获取分类文章总数失败:', response.msg)
+      // console.error('获取分类文章总数失败:', response.msg)
     }
   } catch (err) {
     articleCount.value = 0
-    console.error('获取分类文章总数失败:', err)
+    // console.error('获取分类文章总数失败:', err)
   }
 }
 
@@ -326,7 +326,7 @@ const getCategoryDetail = async (categoryParam) => {
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
-    console.error('获取分类详情失败:', err)
+    // console.error('获取分类详情失败:', err)
   } finally {
     loading.value = false
   }
@@ -339,15 +339,15 @@ const getCategoryArticles = async (page = 1) => {
     const like = `Group|%7C${categoryInfo.value.id}%7C`;
     const apiUrl = `/api/article/all?like=${like}&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
     
-    console.log('修复版请求URL:', apiUrl);
-    console.log('当前分类ID:', categoryInfo.value.id);
-    console.log('like参数:', like);
+    // console.log('修复版请求URL:', apiUrl);
+    // console.log('当前分类ID:', categoryInfo.value.id);
+    // console.log('like参数:', like);
     
     const res = await request.get(apiUrl);
 
     if (res.code === 200) {
       // 调试：查看API返回的数据结构
-      console.log('API返回数据:', res);
+      // console.log('API返回数据:', res);
       
       // 处理不同的数据结构
       if (res.data && res.data.data) {
@@ -367,12 +367,12 @@ const getCategoryArticles = async (page = 1) => {
     } else {
       articles.value = [];
       total.value = 0;
-      console.error('API返回错误:', res.msg);
+      // console.error('API返回错误:', res.msg);
     }
   } catch (err) {
     articles.value = [];
     total.value = 0;
-    console.error('获取分类文章失败:', err);
+    // console.error('获取分类文章失败:', err);
   }
 };
 

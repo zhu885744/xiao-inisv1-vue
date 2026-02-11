@@ -442,7 +442,7 @@ const getPageData = async (pageKey) => {
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
-    console.error('[独立页面接口异常]：', err)
+    // console.error('[独立页面接口异常]：', err)
     pageTitle.value = `网络异常 - ${SITE_TITLE}`
   } finally {
     loading.value = false
@@ -514,7 +514,7 @@ const getComments = async (pageId) => {
       commentList.value = res.data?.data || []
     }
   } catch (error) {
-    console.error('获取评论失败：', error)
+    // console.error('获取评论失败：', error)
   }
 }
 
@@ -529,7 +529,7 @@ const getAuthorInfo = async (authorId) => {
       authorInfo.value = res.data
     }
   } catch (error) {
-    console.error('获取作者信息失败：', error)
+    // console.error('获取作者信息失败：', error)
   }
 }
 
@@ -566,7 +566,7 @@ const handlePublishComment = async (data) => {
       }
     }
   } catch (error) {
-    console.error('发布评论失败：', error)
+    // console.error('发布评论失败：', error)
     if (window.Toast) {
       window.Toast.error('网络异常，评论发布失败')
     }
@@ -607,7 +607,7 @@ const handleReplyComment = async (data) => {
       }
     }
   } catch (error) {
-    console.error('回复评论失败：', error)
+    // console.error('回复评论失败：', error)
     if (window.Toast) {
       window.Toast.error('网络异常，回复发布失败')
     }
@@ -624,7 +624,7 @@ const getArticleCount = async () => {
       archiveStats.value.articleCount = res.data || 0
     }
   } catch (error) {
-    console.error('获取文章总数失败：', error)
+    // console.error('获取文章总数失败：', error)
   }
 }
 
@@ -636,7 +636,7 @@ const getCategoryCount = async () => {
       archiveStats.value.categoryCount = res.data || 0
     }
   } catch (error) {
-    console.error('获取文章分类总数失败：', error)
+    // console.error('获取文章分类总数失败：', error)
   }
 }
 
@@ -650,7 +650,7 @@ const getPageCount = async () => {
       archiveStats.value.pageCount = res.data || 0
     }
   } catch (error) {
-    console.error('获取独立页面总数失败：', error)
+    // console.error('获取独立页面总数失败：', error)
   }
 }
 
@@ -662,7 +662,7 @@ const getTagCount = async () => {
       archiveStats.value.tagCount = res.data || 0
     }
   } catch (error) {
-    console.error('获取标签总数失败：', error)
+    // console.error('获取标签总数失败：', error)
   }
 }
 
@@ -676,7 +676,7 @@ const getLinkCount = async () => {
       archiveStats.value.linkCount = res.data || 0
     }
   } catch (error) {
-    console.error('获取友情链接总数失败：', error)
+    // console.error('获取友情链接总数失败：', error)
   }
 }
 
@@ -688,7 +688,7 @@ const getCommentCount = async () => {
       archiveStats.value.commentCount = res.data || 0
     }
   } catch (error) {
-    console.error('获取评论总数失败：', error)
+    // console.error('获取评论总数失败：', error)
   }
 }
 
@@ -704,7 +704,7 @@ const fetchArchiveStats = async () => {
       getCommentCount()
     ])
   } catch (error) {
-    console.error('获取归档统计数据失败：', error)
+    // console.error('获取归档统计数据失败：', error)
   } finally {
     loading.value = false
     refreshingArchive.value = false
@@ -842,7 +842,7 @@ const getLinksComments = async () => {
 // 处理友链头像错误
 const handleLinkAvatarError = (event) => {
   // 可以设置默认头像
-  event.target.src = 'https://via.placeholder.com/64x64?text=Link'
+  event.target.src = 'https://img1.zhuxu.asia/2026/L2SIxoK1ss.png'
 }
 
 // 检测深色模式
