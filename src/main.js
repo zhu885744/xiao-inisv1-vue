@@ -14,6 +14,9 @@ import './assets/css/buyu.style.css'
 // ========== 工具类引入 ==========
 // Bootstrap 5 JS（建议放到最后，避免DOM未加载完成时执行）
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
+// Fancybox 图片灯箱
+import { Fancybox } from "@fancyapps/ui/dist/fancybox/";
+import "@fancyapps/ui/dist/fancybox/fancybox.css";
 // 自定义工具
 import Toast from './utils/toast'
 import socket from './utils/socket'
@@ -76,6 +79,11 @@ async function initApp() {
     await router.isReady()
     app.mount('#app')
     console.log('应用初始化完成')
+    
+    // 绑定 Fancybox 图片灯箱
+    Fancybox.bind("[data-fancybox]", {
+      // 自定义选项
+    });
   } catch (error) {
     console.error('应用初始化失败:', error)
     // 即使配置加载失败，也尝试启动应用
@@ -110,6 +118,11 @@ async function initApp() {
       
       await router.isReady()
       app.mount('#app')
+      
+      // 绑定 Fancybox 图片灯箱
+      Fancybox.bind("[data-fancybox]", {
+        // 自定义选项
+      });
     } catch (innerError) {
       console.error('启动应用失败:', innerError)
     }

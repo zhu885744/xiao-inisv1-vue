@@ -26,11 +26,16 @@ const renderMarkdown = (content) => {
     return
   }
   // marked直接渲染Markdown为HTML，开启HTML解析（适配文章中的HTML标签）
-  renderedMd.value = marked.parse(content, {
+  let html = marked.parse(content, {
     gfm: true, // 开启GitHub风格的Markdown
     breaks: true, // 换行符转换为<br>
     html: true, // 允许解析内容中的HTML标签（关键，和你原有需求一致）
   })
+  
+  // 为所有图片添加 data-fancybox 属性，实现图片灯箱功能
+  html = html.replace(/<img\s+src="([^"]+)"\s+alt="([^"]*)"\s*(.*?)\s*>/g, '<a href="$1" data-fancybox="gallery" data-caption="$2"><img src="$1" alt="$2" $3></a>')
+  
+  renderedMd.value = html
 }
 
 // 首次加载立即渲染
