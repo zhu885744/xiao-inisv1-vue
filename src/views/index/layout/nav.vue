@@ -3,7 +3,9 @@
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container">
       <!-- 网站标题：跳首页 -->
-      <router-link class="navbar-brand" to="/">朱某的生活印记</router-link>
+      <router-link class="navbar-brand" to="/">
+        {{ store.comm.siteInfo?.title || '朱某的生活印记' }}
+      </router-link>
 
       <!-- 移动端侧边栏触发按钮 -->
       <button 
@@ -147,7 +149,7 @@
     aria-labelledby="mobileSidebarLabel"
   >
     <div class="offcanvas-header border-bottom">
-      <h5 class="offcanvas-title" id="mobileSidebarLabel">朱某的生活印记</h5>
+      <h5 class="offcanvas-title" id="mobileSidebarLabel">{{ store.comm.siteInfo?.title || '朱某的生活印记' }}</h5>
       <button 
         type="button" 
         class="btn-close" 
@@ -297,6 +299,7 @@ import { ref, onMounted, computed, nextTick, reactive, watch, onUpdated, defineE
 import axios from '@/utils/request'
 import utils from '@/utils/utils'
 import Toast from '@/utils/toast'
+import cache from '@/utils/cache'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import { useConfigStore } from '@/store/config'
@@ -663,43 +666,88 @@ const toggleUserDropdown = () => {
 // 从API获取导航数据
 const fetchNavData = async () => {
   try {
-    const response = await axios.get('/api/pages/all', {
-      params: {
-        field: 'key,title',
-        cache: false
-      }
-    })
+    // 缓存键
+    const cacheKey = 'nav_items'
+    const cacheExpire = 60 // 缓存60分钟
     
-    if (response.data && Array.isArray(response.data)) {
-      navItems.value = response.data
-    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-      navItems.value = response.data.data
+    // 尝试从缓存获取导航数据
+    let cachedNavItems = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!cachedNavItems) {
+      const response = await axios.get('/api/pages/all', {
+        params: {
+          field: 'key,title',
+          cache: false
+        }
+      })
+      
+      if (response.data && Array.isArray(response.data)) {
+        navItems.value = response.data
+        // 缓存导航数据
+        cache.set(cacheKey, response.data, cacheExpire)
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        navItems.value = response.data.data
+        // 缓存导航数据
+        cache.set(cacheKey, response.data.data, cacheExpire)
+      } else {
+        navItems.value = []
+      }
     } else {
-      navItems.value = []
+      // 使用缓存数据
+      navItems.value = cachedNavItems
     }
   } catch (error) {
     // console.error('获取导航数据失败:', error)
   }
 }
 
+// 从store获取站点信息
+const fetchSiteInfo = async () => {
+  try {
+    await store.comm.fetchSiteInfo()
+  } catch (error) {
+    // console.error('获取站点信息失败:', error)
+  }
+}
+
 // 从API获取分类数据
 const fetchCategories = async () => {
   try {
-    const response = await axios.get('/api/article-group/all', {
-      params: {
-        field: 'id,key,name',
-        cache: false
-      }
-    })
+    // 缓存键
+    const cacheKey = 'categories_list'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取分类数据
+    let cachedCategories = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!cachedCategories) {
+      const response = await axios.get('/api/article-group/all', {
+        params: {
+          field: 'id,key,name',
+          cache: false
+        }
+      })
 
-    if (response.data && response.data.code === 200 && response.data.data && response.data.data.data) {
-      categories.value = response.data.data.data
-    } else if (response.data && Array.isArray(response.data)) {
-      categories.value = response.data
-    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
-      categories.value = response.data.data
+      if (response.data && response.data.code === 200 && response.data.data && response.data.data.data) {
+        categories.value = response.data.data.data
+        // 缓存分类数据
+        cache.set(cacheKey, response.data.data.data, cacheExpire)
+      } else if (response.data && Array.isArray(response.data)) {
+        categories.value = response.data
+        // 缓存分类数据
+        cache.set(cacheKey, response.data, cacheExpire)
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        categories.value = response.data.data
+        // 缓存分类数据
+        cache.set(cacheKey, response.data.data, cacheExpire)
+      } else {
+        categories.value = []
+      }
     } else {
-      categories.value = []
+      // 使用缓存数据
+      categories.value = cachedCategories
     }
   } catch (error) {
     // console.error('获取分类数据失败:', error)
@@ -756,6 +804,7 @@ const doSign = async () => {
 onMounted(() => {
   fetchNavData()
   fetchCategories()
+  fetchSiteInfo()
   initTheme()
   setupSystemThemeListener()
   checkSignStatus()

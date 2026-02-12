@@ -292,6 +292,7 @@ import request from '@/utils/request'
 import iMarkdown from '@/comps/custom/i-markdown.vue'
 import iComment from '@/comps/custom/i-comment.vue'
 import utils from '@/utils/utils'
+import cache from '@/utils/cache'
 
 // 环境变量网站标题，兜底处理
 const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
@@ -417,27 +418,49 @@ const getPageData = async (pageKey) => {
   error.value = false
   errorMsg.value = ''
   try {
-    const queryParams = {
-      key: String(pageKey || '').trim(), // 兜底空字符串
-      cache: false,
-      withTrashed: false
-    }
-    const res = await request.get('/api/pages/one', queryParams)
+    // 缓存键
+    const cacheKey = `page_detail_${pageKey}`
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取页面数据
+    let cachedPage = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!cachedPage) {
+      const queryParams = {
+        key: String(pageKey || '').trim(), // 兜底空字符串
+        cache: false,
+        withTrashed: false
+      }
+      const res = await request.get('/api/pages/one', queryParams)
 
-    if (res.code === 200) {
-      if (!res.data || Object.keys(res.data).length === 0) {
-        error.value = true
-        errorMsg.value = '未找到该独立页面，可能已被删除或访问地址错误'
-        pageTitle.value = `页面不存在 - ${SITE_TITLE}`
+      if (res.code === 200) {
+        if (!res.data || Object.keys(res.data).length === 0) {
+          error.value = true
+          errorMsg.value = '未找到该独立页面，可能已被删除或访问地址错误'
+          pageTitle.value = `页面不存在 - ${SITE_TITLE}`
+        } else {
+          cachedPage = res.data
+          // 缓存页面数据
+          cache.set(cacheKey, cachedPage, cacheExpire)
+          pageInfo.value = cachedPage
+          // 更新浏览量
+          viewCount.value = res.data.views || 0
+          error.value = false
+          pageTitle.value = `${pageInfo.value.title} - ${SITE_TITLE}`
+        }
       } else {
-        pageInfo.value = res.data
-        error.value = false
-        pageTitle.value = `${pageInfo.value.title} - ${SITE_TITLE}`
+        error.value = true
+        errorMsg.value = res.msg || '获取独立页面数据失败'
+        pageTitle.value = `获取页面失败 - ${SITE_TITLE}`
       }
     } else {
-      error.value = true
-      errorMsg.value = res.msg || '获取独立页面数据失败'
-      pageTitle.value = `获取页面失败 - ${SITE_TITLE}`
+      // 使用缓存数据
+      pageInfo.value = cachedPage
+      // 更新浏览量
+      viewCount.value = cachedPage.views || 0
+      error.value = false
+      pageTitle.value = `${pageInfo.value.title} - ${SITE_TITLE}`
     }
   } catch (err) {
     error.value = true
@@ -695,14 +718,29 @@ const getCommentCount = async () => {
 // 获取所有归档统计数据
 const fetchArchiveStats = async () => {
   try {
-    await Promise.all([
-      getArticleCount(),
-      getCategoryCount(),
-      getPageCount(),
-      getTagCount(),
-      getLinkCount(),
-      getCommentCount()
-    ])
+    // 缓存键
+    const cacheKey = 'archive_stats'
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取归档统计数据
+    let cachedStats = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!cachedStats) {
+      await Promise.all([
+        getArticleCount(),
+        getCategoryCount(),
+        getPageCount(),
+        getTagCount(),
+        getLinkCount(),
+        getCommentCount()
+      ])
+      // 缓存归档统计数据
+      cache.set(cacheKey, archiveStats.value, cacheExpire)
+    } else {
+      // 使用缓存数据
+      archiveStats.value = cachedStats
+    }
   } catch (error) {
     // console.error('获取归档统计数据失败：', error)
   } finally {
@@ -714,6 +752,8 @@ const fetchArchiveStats = async () => {
 // 手动刷新归档统计数据
 const refreshArchiveStats = async () => {
   refreshingArchive.value = true
+  // 清除缓存，确保获取最新数据
+  cache.del('archive_stats')
   await fetchArchiveStats()
   if (window.Toast) {
     window.Toast.success('数据刷新成功')
@@ -745,6 +785,8 @@ const getLinksPageData = async () => {
     })
     if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
+      // 更新浏览量
+      viewCount.value = res.data.views || 0
       pageTitle.value = `${res.data.title || '友链'} - ${SITE_TITLE}`
       document.title = pageTitle.value
     } else {
@@ -778,6 +820,8 @@ const getArchivePageData = async () => {
     })
     if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
+      // 更新浏览量
+      viewCount.value = res.data.views || 0
       pageTitle.value = `${res.data.title || '归档'} - ${SITE_TITLE}`
       document.title = pageTitle.value
     }
@@ -800,15 +844,31 @@ const fetchLinks = async () => {
   linksErrorMsg.value = ''
   
   try {
-    // 直接写死API地址参数，不配置任何动态参数
-    const res = await request.get('/api/links/all?page=1&limit=500&order=id+asc')
-    if (res && res.code === 200 && res.data) {
-      const { data = [], count = 0 } = res.data
-      links.value = data     // 直接赋值全部数据
-      linkTotal.value = count   // 总条数
+    // 缓存键
+    const cacheKey = 'links_list'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取友链数据
+    let cachedLinks = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!cachedLinks) {
+      // 直接写死API地址参数，不配置任何动态参数
+      const res = await request.get('/api/links/all?page=1&limit=500&order=id+asc')
+      if (res && res.code === 200 && res.data) {
+        const { data = [], count = 0 } = res.data
+        links.value = data     // 直接赋值全部数据
+        linkTotal.value = count   // 总条数
+        // 缓存友链数据
+        cache.set(cacheKey, { data, count }, cacheExpire)
+      } else {
+        linksError.value = true
+        linksErrorMsg.value = res?.msg || '获取友链数据失败'
+      }
     } else {
-      linksError.value = true
-      linksErrorMsg.value = res?.msg || '获取友链数据失败'
+      // 使用缓存数据
+      links.value = cachedLinks.data || []
+      linkTotal.value = cachedLinks.count || 0
     }
   } catch (err) {
     linksError.value = true

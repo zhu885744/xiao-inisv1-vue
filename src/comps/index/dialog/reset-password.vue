@@ -3,94 +3,92 @@
         <div 
             v-if="state.item.dialog"
             class="modal fade show"
-            style="display: block; z-index: 1060;"
+            style="display: block;"
             tabindex="-1" 
             aria-labelledby="resetPasswordModalLabel" 
             aria-hidden="false"
             data-bs-backdrop="static"
         >
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px; margin: 0 auto;">
-                <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
-                    <div class="modal-header bg-gradient-to-r from-warning to-yellow-600 text-white py-4">
-                        <h3 class="modal-title fs-5 fw-semibold" id="resetPasswordModalLabel">忘记密码</h3>
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 450px; margin: 1.75rem auto;">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="resetPasswordModalLabel">忘记密码</h5>
                         <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
                     </div>
                     
-                    <div class="modal-body px-6 py-5">
-                        <form @submit.prevent="method.reset()" novalidate class="space-y-4">
-                            <div>
-                                <label for="contactInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">邮箱或手机号</label>
+                    <div class="modal-body">
+                        <form @submit.prevent="method.reset()" novalidate>
+                            <div class="mb-3">
+                                <label for="contactInput" class="form-label">邮箱或手机号</label>
                                 <input type="text" 
-                                       class="form-control rounded-3 border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                       class="form-control" 
                                        id="contactInput"
                                        v-model="state.struct.social"
                                        placeholder="用于接收验证码">
-                                <div class="form-text text-xs text-gray-500 mt-1">请输入您的邮箱或手机号</div>
                             </div>
                             
-                            <div>
-                                <label for="verificationCode" class="form-label text-sm font-medium text-gray-700 mb-1 block">
+                            <div class="mb-3">
+                                <label for="verificationCode" class="form-label">
                                     验证码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-3 overflow-hidden">
+                                <div class="input-group">
                                     <input type="text" 
-                                           class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                           class="form-control" 
                                            id="verificationCode"
                                            v-model="state.struct.code"
                                            placeholder="请输入验证码"
                                            required
                                            autocomplete="username">
                                     <button type="button" 
-                                            class="btn btn-outline-warning" 
+                                            class="btn btn-outline-primary" 
                                             @click="method.code()"
                                             :disabled="state.item.loading">
                                         <span v-if="state.item.loading" class="spinner-border spinner-border-sm me-1"></span>
                                         {{ state.item.loading ? `${state.item.second}秒后重试` : '获取验证码' }}
                                     </button>
                                 </div>
-                                <div class="form-text text-xs text-gray-500 mt-1">确认您的邮箱或者手机号是有效的</div>
                             </div>
                             
-                            <div>
-                                <label for="newPassword" class="form-label text-sm font-medium text-gray-700 mb-1 block">
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">
                                     新的密码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-3 overflow-hidden">
+                                <div class="input-group">
                                     <input 
                                         :type="showPassword ? 'text' : 'password'" 
-                                        class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                        class="form-control" 
                                         id="resetNewPassword"
                                         v-model="state.password.value"
                                         placeholder="请输入新密码（至少6位）"
                                         minlength="6"
                                         required
                                         autocomplete="new-password">
-                                    <button class="btn border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors" type="button" @click="showPassword = !showPassword">
+                                    <button class="btn btn-outline-secondary" type="button" @click="showPassword = !showPassword">
                                         <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
                                     </button>
                                 </div>
                             </div>
                             
-                            <div>
-                                <label for="confirmPassword" class="form-label text-sm font-medium text-gray-700 mb-1 block">
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">
                                     确认密码 <span class="text-danger">*</span>
                                 </label>
-                                <div class="input-group rounded-3 overflow-hidden">
+                                <div class="input-group">
                                     <input :type="showConfirmPassword ? 'text' : 'password'" 
-                                           class="form-control border-gray-300 focus:border-warning focus:ring focus:ring-warning focus:ring-opacity-20 transition-all" 
+                                           class="form-control" 
                                            id="confirmPassword"
                                            v-model="state.password.verify"
                                            placeholder="请再次输入新密码"
                                            minlength="6"
                                            required
                                            autocomplete="new-password">
-                                    <button class="btn border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors" type="button" @click="showConfirmPassword = !showConfirmPassword">
+                                    <button class="btn btn-outline-secondary" type="button" @click="showConfirmPassword = !showConfirmPassword">
                                         <i class="bi" :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
                                     </button>
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info small mb-4" v-if="state.password.value && state.password.value.length > 0">
+                            <div class="alert alert-info mb-4" v-if="state.password.value && state.password.value.length > 0">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span>密码强度：</span>
                                     <div class="progress" style="width: 70%; height: 8px;">
@@ -101,18 +99,22 @@
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" 
-                                        class="btn btn-outline-secondary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-gray-50"
-                                        @click="method.login()">
-                                    记起来了？登录
-                                </button>
-                                <button type="submit" 
-                                        class="btn btn-warning w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:shadow-lg"
-                                        :disabled="state.item.wait || !isFormValid">
-                                    <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
-                                    {{ state.item.wait ? '重置中...' : '重置密码' }}
-                                </button>
+                            <div class="row">
+                                <div class="col">
+                                    <button type="button" 
+                                            class="btn btn-outline-secondary w-100"
+                                            @click="method.login()">
+                                        记起来了？登录
+                                    </button>
+                                </div>
+                                <div class="col">
+                                    <button type="submit" 
+                                            class="btn btn-primary w-100"
+                                            :disabled="state.item.wait || !isFormValid">
+                                        <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
+                                        {{ state.item.wait ? '重置中...' : '重置密码' }}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -125,7 +127,6 @@
         <div 
             v-if="state.item.dialog"
             class="modal-backdrop fade show"
-            style="z-index: 1059;"
             @click="method.hide()"
         ></div>
     </transition>
@@ -381,169 +382,6 @@ defineExpose({
 </script>
 
 <style scoped>
-/* 自定义样式 */
-.modal-content {
-    border-radius: 1rem;
-    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.2);
-    border: none;
-    overflow: hidden;
-}
-
-.modal-header {
-    padding: 1.25rem 1.5rem;
-    background: linear-gradient(135deg, #ffc107 0%, #f59e0b 100%);
-    color: white;
-}
-
-.modal-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.form-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #4b5563;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.form-control {
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db;
-    transition: all 0.2s ease;
-}
-
-.form-control:focus {
-    border-color: #ffc107;
-    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
-    outline: none;
-}
-
-.input-group {
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.input-group .btn {
-    border-radius: 0;
-    border-left: none;
-    background-color: #f8f9fa;
-    border-color: #d1d5db;
-    color: #6c757d;
-    transition: all 0.2s ease;
-}
-
-.input-group .btn:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
-}
-
-.btn {
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-warning {
-    background-color: #ffc107;
-    border-color: #ffc107;
-}
-
-.btn-warning:hover {
-    background-color: #f59e0b;
-    border-color: #d97706;
-    box-shadow: 0 0.25rem 0.5rem rgba(255, 193, 7, 0.3);
-}
-
-.btn-outline-warning {
-    color: #ffc107;
-    border-color: #ffc107;
-}
-
-.btn-outline-warning:hover {
-    background-color: #ffc107;
-    color: white;
-}
-
-.btn-outline-secondary {
-    color: #6c757d;
-    border-color: #6c757d;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #6c757d;
-    color: white;
-}
-
-.form-text {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
-}
-
-/* 密码强度指示器 */
-.progress {
-    background-color: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    transition: width 0.3s ease;
-}
-
-/* 网格布局 */
-.grid {
-    display: grid;
-}
-
-.grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.gap-3 {
-    gap: 0.75rem;
-}
-
-.space-y-4 {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-/* 响应式调整 */
-@media (max-width: 576px) {
-    .modal-dialog {
-        margin: 0.5rem;
-        max-width: calc(100% - 1rem);
-    }
-    
-    .modal-content {
-        border-radius: 0.75rem;
-    }
-    
-    .modal-body {
-        padding: 1.25rem;
-    }
-}
-
-/* 修复模态框层级 */
-.modal-backdrop {
-    z-index: 1050;
-    backdrop-filter: blur(4px);
-}
-
-.modal {
-    z-index: 1051;
-}
-
 /* 过渡动画 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {

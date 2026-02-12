@@ -114,6 +114,7 @@ import iMarkdown from '@/comps/custom/i-markdown.vue'
 import CommentList from '@/comps/custom/i-comment.vue'
 import { useCommStore } from '@/store/comm'
 import utils from '@/utils/utils'
+import cache from '@/utils/cache'
 
 // 存储
 const store = {
@@ -190,27 +191,49 @@ const checkArticleId = (id) => {
 const getArticleDetail = async (id) => {
   loading.value = true
   try {
-    const queryParams = { id, cache: false }
-    const res = await request.get('/api/article/one', queryParams)
+    // 缓存键
+    const cacheKey = `article_detail_${id}`
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取文章详情
+    let cachedArticle = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!cachedArticle) {
+      const queryParams = { id, cache: false }
+      const res = await request.get('/api/article/one', queryParams)
 
-    if (res.code === 200) {
-      if (!res.data || Object.keys(res.data).length === 0) {
-          error.value = true
-          errorMsg.value = '未找到该文章，可能已被删除或ID错误'
-          pageTitle.value = `文章不存在 - ${SITE_TITLE}`
-        } else {
-          articleInfo.value = res.data
-          error.value = false
-          pageTitle.value = `${articleInfo.value.title} - ${SITE_TITLE}`
-          // 初始化文章操作状态（获取点赞数、收藏数等）
-          await initArticleActions()
-          // 获取文章评论
-          getComments(articleInfo.value.id)
-        }
+      if (res.code === 200) {
+        if (!res.data || Object.keys(res.data).length === 0) {
+            error.value = true
+            errorMsg.value = '未找到该文章，可能已被删除或ID错误'
+            pageTitle.value = `文章不存在 - ${SITE_TITLE}`
+          } else {
+            cachedArticle = res.data
+            // 缓存文章详情
+            cache.set(cacheKey, cachedArticle, cacheExpire)
+            articleInfo.value = cachedArticle
+            error.value = false
+            pageTitle.value = `${articleInfo.value.title} - ${SITE_TITLE}`
+            // 初始化文章操作状态（获取点赞数、收藏数等）
+            await initArticleActions()
+            // 获取文章评论
+            getComments(articleInfo.value.id)
+          }
+      } else {
+        error.value = true
+        errorMsg.value = res.msg || '获取文章详情失败'
+        pageTitle.value = `获取文章失败 - ${SITE_TITLE}`
+      }
     } else {
-      error.value = true
-      errorMsg.value = res.msg || '获取文章详情失败'
-      pageTitle.value = `获取文章失败 - ${SITE_TITLE}`
+      // 使用缓存数据
+      articleInfo.value = cachedArticle
+      error.value = false
+      pageTitle.value = `${articleInfo.value.title} - ${SITE_TITLE}`
+      // 初始化文章操作状态（获取点赞数、收藏数等）
+      await initArticleActions()
+      // 获取文章评论
+      getComments(articleInfo.value.id)
     }
   } catch (err) {
     error.value = true
@@ -639,10 +662,6 @@ watch(
 }
 
 /* 适配Markdown渲染的内部样式（核心：保证阅读体验） */
-.article-content :deep(p) {
-  margin-bottom: 1.2rem;
-  text-align: justify;
-}
 .article-content :deep(h2),
 .article-content :deep(h3),
 .article-content :deep(h4) {
@@ -652,7 +671,6 @@ watch(
 }
 .article-content :deep(h2) {
   font-size: 1.5rem;
-  padding-bottom: 0.5rem;
 }
 .article-content :deep(h3) {
   font-size: 1.25rem;
@@ -693,13 +711,6 @@ watch(
 .article-content :deep(a:hover) {
   text-decoration: underline;
   text-underline-offset: 0.2rem;
-}
-.article-content :deep(blockquote) {
-  border-left: 4px solid #d1d5db;
-  padding: 0.5rem 1rem;
-  background-color: #f9fafb;
-  margin-bottom: 1.2rem;
-  color: #4b5563;
 }
 .article-content :deep(table) {
   width: 100%;

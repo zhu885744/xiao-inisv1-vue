@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import { createPinia } from 'pinia'
+import router from './router'
+import { useCommStore } from './store/comm'
 
 // ========== 样式引入（按「第三方 → 自定义」顺序） ==========
 // Bootstrap 5 样式 + 图标
@@ -26,20 +28,17 @@ async function initApp() {
     await loadConfigFile()
     console.log('配置文件加载完成')
     
-    // 2. 配置文件加载完成后再导入路由
-    const router = (await import('./router')).default
-    
-    // 3. 创建并配置应用实例
+    // 2. 创建并配置应用实例
     const app = createApp(App)
     
-    // 4. 注册 Pinia（状态管理）
+    // 3. 注册 Pinia（状态管理）
     const pinia = createPinia()
     app.use(pinia)
     
-    // 5. 注册路由
+    // 4. 注册路由
     app.use(router)
     
-    // 6. 全局挂载/提供工具（按「通用 → 业务」顺序）
+    // 5. 全局挂载/提供工具（按「通用 → 业务」顺序）
     // ✅ 修复：原代码直接用 bootstrap 变量会报错，需通过 import * as 解构后挂载
     if (typeof window !== 'undefined') {
       window.bootstrap = bootstrap
@@ -66,6 +65,12 @@ async function initApp() {
     // ✅ API 全局挂载
     app.config.globalProperties.$api = API
     
+    // 6. 提前获取站点信息（在挂载前）
+    console.log('正在获取站点信息...')
+    const commStore = useCommStore()
+    await commStore.fetchSiteInfo()
+    console.log('站点信息获取完成')
+    
     // 7. 挂载应用（确保所有配置完成后挂载）
     // 挂载前可等待路由就绪（可选，解决首屏路由白屏）
     await router.isReady()
@@ -75,7 +80,6 @@ async function initApp() {
     console.error('应用初始化失败:', error)
     // 即使配置加载失败，也尝试启动应用
     try {
-      const router = (await import('./router')).default
       const app = createApp(App)
       const pinia = createPinia()
       app.use(pinia)
@@ -95,6 +99,14 @@ async function initApp() {
       app.provide('socket', socket)
       app.config.globalProperties.$socket = socket
       app.config.globalProperties.$api = API
+      
+      // 即使出错也尝试获取站点信息
+      try {
+        const commStore = useCommStore()
+        await commStore.fetchSiteInfo()
+      } catch (siteInfoError) {
+        console.error('获取站点信息失败:', siteInfoError)
+      }
       
       await router.isReady()
       app.mount('#app')

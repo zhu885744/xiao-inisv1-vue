@@ -10,7 +10,7 @@ const ROUTER_BASE = config.getSync('base_url') || '/'
 // 从配置文件同步获取路由模式
 const ROUTER_MODE = config.getSync('router_mode') || 'hash'
 
-const APP_TITLE = '朱某的生活印记'
+// 从store获取站点标题
 
 // 1. 定义完整路由规则：新增/links专属路由
 const routes = [
@@ -144,11 +144,12 @@ const router = createRouter({
 
 // 全局前置守卫：统一标题 + 通用权限校验（保留原有逻辑）
 router.beforeEach((to, from, next) => {
+  const commStore = useCommStore()
+  const siteTitle = commStore.siteInfo?.title || '朱某的生活印记'
   const pageTitle = to.meta.title || to.name || '未知页面'
-  document.title = `${pageTitle} - ${APP_TITLE}`
+  document.title = `${pageTitle} - ${siteTitle}`
 
   if (to.meta.requiresAuth) {
-    const commStore = useCommStore()
     const userInfo = commStore.getLogin.user
     const isLogin = !utils.is.empty(userInfo)
 
