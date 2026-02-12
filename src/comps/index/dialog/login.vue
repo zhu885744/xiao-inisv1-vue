@@ -3,26 +3,26 @@
         <div 
             v-if="state.item.dialog"
             class="modal fade show"
-            style="display: block; z-index: 1060;"
+            style="display: block;"
             tabindex="-1" 
             aria-labelledby="loginModalLabel" 
             aria-hidden="false"
             aria-modal="true"
             id="loginModal"
         >
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px; margin: 0 auto;">
-                <div class="modal-content rounded-3 shadow-lg border-0 overflow-hidden">
-                    <div class="modal-header bg-gradient-to-r from-primary to-blue-600 text-white py-4">
-                        <h3 class="modal-title fs-5 fw-semibold" id="loginModalLabel">账号密码登录</h3>
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 450px; margin: 1.75rem auto;">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="loginModalLabel">账号密码登录</h5>
                         <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
                     </div>
                     
-                    <div class="modal-body px-6 py-5">
-                        <form @submit.prevent="method.login()" class="space-y-4">
-                            <div>
-                                <label for="loginAccountInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">帐号</label>
+                    <div class="modal-body">
+                        <form @submit.prevent="method.login()">
+                            <div class="mb-3">
+                                <label for="loginAccountInput" class="form-label">帐号</label>
                                 <input type="text" 
-                                       class="form-control rounded-3 border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20 transition-all"
+                                       class="form-control"
                                        id="loginAccountInput"
                                        v-model="state.struct.account"
                                        placeholder="帐号 | 邮箱 | 手机号"
@@ -30,18 +30,18 @@
                                        autocomplete="username">
                             </div>
                             
-                            <div>
-                                <label for="loginPasswordInput" class="form-label text-sm font-medium text-gray-700 mb-1 block">密码</label>
-                                <div class="input-group rounded-3 overflow-hidden">
+                            <div class="mb-3">
+                                <label for="loginPasswordInput" class="form-label">密码</label>
+                                <div class="input-group">
                                     <input :type="showPassword ? 'text' : 'password'" 
-                                           class="form-control border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-20 transition-all"
+                                           class="form-control"
                                            id="loginPasswordInput"
                                            v-model="state.struct.password"
                                            @keyup.enter="method.login()"
                                            placeholder="请输入密码"
                                            required
                                            autocomplete="current-password">
-                                    <button class="btn border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                                    <button class="btn btn-outline-secondary"
                                             type="button" 
                                             @click="showPassword = !showPassword">
                                         <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
@@ -49,9 +49,9 @@
                                 </div>
                             </div>
 
-                            <div>
+                            <div class="mb-3">
                                 <button type="submit" 
-                                        class="btn btn-primary w-100 py-3 rounded-3 font-medium transition-all hover:shadow-lg"
+                                        class="btn btn-primary w-100"
                                         :disabled="state.item.wait">
                                     <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status"></span>
                                     {{ state.item.wait ? '登录中...' : '登录' }}
@@ -59,18 +59,22 @@
                             </div>
                         </form>
 
-                        <div class="grid grid-cols-2 gap-3 mt-4">
-                            <button type="button" 
-                                    class="btn btn-outline-secondary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-gray-50"
-                                    @click="method.reset()">
-                                忘记密码
-                            </button>
-                            <button type="button" 
-                                    class="btn btn-outline-primary w-100 py-2 rounded-3 text-sm font-medium transition-colors hover:bg-primary/5"
-                                    v-if="parseInt(store.config.getAllowRegister?.value) === 1"
-                                    @click="method.register()">
-                                注册帐号
-                            </button>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <button type="button" 
+                                        class="btn btn-outline-secondary w-100"
+                                        @click="method.reset()">
+                                    忘记密码
+                                </button>
+                            </div>
+                            <div class="col">
+                                <button type="button" 
+                                        class="btn btn-outline-primary w-100"
+                                        v-if="parseInt(store.config.getAllowRegister?.value) === 1"
+                                        @click="method.register()">
+                                    注册帐号
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -82,7 +86,6 @@
         <div 
             v-if="state.item.dialog"
             class="modal-backdrop fade show"
-            style="z-index: 1059;"
             @click="method.hide()"
         ></div>
     </transition>
@@ -423,163 +426,6 @@ defineExpose({
 </script>
 
 <style scoped>
-/* 自定义样式 */
-.modal-content {
-    border-radius: 1rem;
-    box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.2);
-    border: none;
-    overflow: hidden;
-}
-
-.modal-header {
-    padding: 1.25rem 1.5rem;
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    color: white;
-}
-
-.modal-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.form-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #4b5563;
-    margin-bottom: 0.5rem;
-    display: block;
-}
-
-.form-control {
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db;
-    transition: all 0.2s ease;
-}
-
-.form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    outline: none;
-}
-
-.input-group {
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.input-group .btn {
-    border-radius: 0;
-    border-left: none;
-    background-color: #f8f9fa;
-    border-color: #d1d5db;
-    color: #6c757d;
-    transition: all 0.2s ease;
-}
-
-.input-group .btn:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
-}
-
-.btn {
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.btn-primary {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-.btn-primary:hover {
-    background-color: #0b5ed7;
-    border-color: #0a58ca;
-    box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.3);
-}
-
-.btn-outline-primary {
-    color: #0d6efd;
-    border-color: #0d6efd;
-}
-
-.btn-outline-primary:hover {
-    background-color: #0d6efd;
-    color: white;
-}
-
-.btn-outline-secondary {
-    color: #6c757d;
-    border-color: #6c757d;
-}
-
-.btn-outline-secondary:hover {
-    background-color: #6c757d;
-    color: white;
-}
-
-/* 抖动动画 */
-.shake-horizontal {
-    animation: shake-horizontal 0.5s cubic-bezier(0.455, 0.030, 0.515, 0.955) both;
-}
-
-@keyframes shake-horizontal {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
-    20%, 40%, 60%, 80% { transform: translateX(8px); }
-}
-
-/* 响应式调整 */
-@media (max-width: 576px) {
-    .modal-dialog {
-        margin: 0.5rem;
-        max-width: calc(100% - 1rem);
-    }
-    
-    .modal-content {
-        border-radius: 0.75rem;
-    }
-    
-    .modal-body {
-        padding: 1.25rem;
-    }
-}
-
-/* 修复模态框层级 */
-:deep(.modal-backdrop) {
-    z-index: 1050;
-    backdrop-filter: blur(4px);
-}
-
-:deep(.modal) {
-    z-index: 1051;
-}
-
-/* 网格布局 */
-.grid {
-    display: grid;
-}
-
-.grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.gap-3 {
-    gap: 0.75rem;
-}
-
-.space-y-4 {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
 /* 过渡动画 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {

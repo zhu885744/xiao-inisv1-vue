@@ -61,7 +61,7 @@
                       :value="'boy'"
                       class="form-check-input"
                     >
-                    <label for="gender-boy" class="form-check-label">男孩</label>
+                    <label for="gender-boy" class="form-check-label">男</label>
                   </div>
                   <div class="form-check">
                     <input 
@@ -71,7 +71,7 @@
                       :value="'girl'"
                       class="form-check-input"
                     >
-                    <label for="gender-girl" class="form-check-label">女孩</label>
+                    <label for="gender-girl" class="form-check-label">女</label>
                   </div>
                   <div class="form-check">
                     <input 

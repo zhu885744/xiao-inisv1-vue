@@ -48,11 +48,11 @@
           <span class="mx-1">|</span>
           <span>Theme by </span>
           <a 
-            href="https://github.com/zhu885744/xiao-inis" 
+            href="https://github.com/zhu885744/xiao-inisv1-vue" 
             target="_blank" 
             rel="noopener noreferrer"
             class="text-decoration-none text-reset hover-text-primary transition-opacity"
-            title="xiao 开源地址"
+            title="xiao主题开源地址"
           >
             xiao v{{ themeVersion }}
           </a>
@@ -65,16 +65,19 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from '@/utils/request'
+import { useCommStore } from '@/store/comm'
 
 // 环境变量
-const THEME_VERSION = import.meta.env.VITE_VERSION || '1.0.0-beta'
+const THEME_VERSION = import.meta.env.VITE_VERSION || '1.0.0'
 
 // 响应式数据
-const siteInfo = ref({})
 const systemVersion = ref(THEME_VERSION)
 const currentYear = new Date().getFullYear()
+const commStore = useCommStore()
 
-// 计算属性
+// 直接使用store中的siteInfo
+const siteInfo = ref(commStore.siteInfo)
+
 const startYear = computed(() => {
   const timestamp = siteInfo.value?.date
   if (!timestamp) return currentYear
@@ -84,13 +87,17 @@ const startYear = computed(() => {
     const milliseconds = parseInt(timestamp) * 1000
     const date = new Date(milliseconds)
     const year = date.getFullYear()
+    console.log('解析时间戳:', timestamp, '->', milliseconds, '->', year)
     return isNaN(year) ? currentYear : year
-  } catch {
+  } catch (error) {
+    console.error('解析时间戳失败:', error)
     return currentYear
   }
 })
 
-const siteTitle = computed(() => siteInfo.value?.title || '朱某的生活印记')
+const siteTitle = computed(() => {
+  return siteInfo.value?.title || '朱某的生活印记'
+})
 
 // ICP备案
 const hasIcp = computed(() => !!siteInfo.value?.copy?.code)
@@ -105,35 +112,30 @@ const policeLink = computed(() => siteInfo.value?.police?.link || 'https://beian
 const themeVersion = computed(() => THEME_VERSION)
 
 // 数据获取方法
-const fetchSiteInfo = async () => {
-  try {
-    const res = await axios.get('/api/config/one', { key: 'SITE_INFO' })
-    
-    if (res?.code === 200 && res.data?.json) {
-      siteInfo.value = res.data.json
-      // console.log('站点信息加载成功')
-    }
-  } catch (error) {
-    // console.error('站点信息加载失败:', error)
-  }
-}
-
 const fetchSystemVersion = async () => {
   try {
     const res = await axios.get('/dev/info/version')
     
     if (res?.code === 200 && res.data?.inis) {
       systemVersion.value = res.data.inis
-      // console.log('系统版本加载成功:', res.data.inis)
     }
   } catch (error) {
-    // console.error('系统版本加载失败:', error)
+    console.error('系统版本加载失败:', error)
   }
 }
 
 // 组件挂载
 onMounted(async () => {
-  await Promise.allSettled([fetchSiteInfo(), fetchSystemVersion()])
+  console.log('组件挂载，siteInfo:', siteInfo.value)
+  // 确保站点信息已加载
+  if (!siteInfo.value || Object.keys(siteInfo.value).length === 0) {
+    console.log('站点信息为空，调用fetchSiteInfo')
+    await commStore.fetchSiteInfo()
+    // 更新siteInfo ref的值
+    siteInfo.value = commStore.siteInfo
+    console.log('fetchSiteInfo调用完成，siteInfo:', siteInfo.value)
+  }
+  await fetchSystemVersion()
 })
 </script>
 

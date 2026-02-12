@@ -107,6 +107,7 @@
 import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '@/utils/request'
+import cache from '@/utils/cache'
 
 // 导入本地图片
 import defaultCover from '@/assets/img/fm.avif'
@@ -293,35 +294,49 @@ const getCategoryDetail = async (categoryParam) => {
   errorMsg.value = ''
   articleCount.value = 0
   try {
-    // 获取所有分类
-    let res = await request.get('/api/article-group/all', {
-      cache: false
-    })
+    // 缓存键
+    const cacheKey = 'categories_list'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取分类列表
+    let categories = cache.get(cacheKey)
+    
+    // 如果缓存不存在，从API获取
+    if (!categories) {
+      let res = await request.get('/api/article-group/all', {
+        cache: false
+      })
 
-    if (res.code === 200 && res.data && res.data.data && res.data.data.length > 0) {
-      // 根据key或id匹配分类
-      const categories = res.data.data
-      let matchedCategory = null
-      
-      // 优先根据key匹配
-      matchedCategory = categories.find(category => category.key === categoryParam)
-      
-      // 如果key匹配失败，尝试根据id匹配
-      if (!matchedCategory) {
-        matchedCategory = categories.find(category => category.id == categoryParam)
-      }
-      
-      if (matchedCategory) {
-        categoryInfo.value = matchedCategory
-        // 获取分类文章总数
-        await getCategoryArticleCount(matchedCategory.id)
+      if (res.code === 200 && res.data && res.data.data && res.data.data.length > 0) {
+        categories = res.data.data
+        // 缓存分类列表
+        cache.set(cacheKey, categories, cacheExpire)
       } else {
         error.value = true
-        errorMsg.value = '未找到该分类，可能已被删除或参数错误'
+        errorMsg.value = '获取分类列表失败'
+        loading.value = false
+        return
       }
+    }
+
+    // 根据key或id匹配分类
+    let matchedCategory = null
+    
+    // 优先根据key匹配
+    matchedCategory = categories.find(category => category.key === categoryParam)
+    
+    // 如果key匹配失败，尝试根据id匹配
+    if (!matchedCategory) {
+      matchedCategory = categories.find(category => category.id == categoryParam)
+    }
+    
+    if (matchedCategory) {
+      categoryInfo.value = matchedCategory
+      // 获取分类文章总数
+      await getCategoryArticleCount(matchedCategory.id)
     } else {
       error.value = true
-      errorMsg.value = '获取分类列表失败'
+      errorMsg.value = '未找到该分类，可能已被删除或参数错误'
     }
   } catch (err) {
     error.value = true

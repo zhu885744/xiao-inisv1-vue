@@ -85,28 +85,33 @@
             </div>
             <div class="mb-4">
               <span class="text-gray-600 d-block mb-1">更新内容</span>
-              <div class="bg-white p-3 rounded-2 border border-gray-200">
+              <div class="p-3 rounded-2 border border-gray-200">
                 <p v-for="(line, index) in latestVersion.content.split('\n')" :key="index" class="mb-1 text-sm">
                   {{ line }}
                 </p>
               </div>
             </div>
-            <div v-if="hasUpdate" class="d-flex gap-2">
-              <button 
-                @click="upgradeTheme" 
-                class="btn btn-success flex-grow-1"
-                :disabled="upgrading"
+            <div v-if="hasUpdate" class="d-flex flex-column gap-3">
+              <!-- 下载按钮 -->
+              <a 
+                :href="latestVersion.url" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="btn btn-success"
               >
-                <i class="bi" :class="upgrading ? 'bi-arrow-clockwise spin' : 'bi-download'">
-                  {{ upgrading ? ' 更新中...' : ' 立即更新' }}
-                </i>
-              </button>
-              <button 
-                @click="ignoreUpdate"
-                class="btn btn-outline-secondary"
-              >
-                <i class="bi bi-x"></i> 忽略
-              </button>
+                <i class="bi bi-download">下载最新版本</i>
+              </a>
+              
+              <!-- 更新步骤提示 -->
+              <div class="bg-light p-4 rounded-2 border border-info/20">
+                <h6 class="fw-bold mb-2 text-info">更新步骤：</h6>
+                <ol class="list-decimal pl-4 mb-0">
+                  <li class="mb-1">删除主题目录内的 <code>static</code> 文件夹和 <code>index.html</code> 文件</li>
+                  <li class="mb-1">上传下载的压缩包到主题目录</li>
+                  <li class="mb-1">解压压缩包到主题目录</li>
+                  <li class="mb-1">打开你的主题域名，同时按住快捷键 <kbd>Ctrl+Shift+R</kbd> 强制刷新网页缓存即可！</li>
+                </ol>
+              </div>
             </div>
             <div v-else class="text-center">
               <span class="text-muted">您的主题已是最新版本</span>
@@ -165,7 +170,6 @@ const store = useCommStore()
 
 // 响应式数据
 const loading = ref(false)
-const upgrading = ref(false)
 const error = ref('')
 const currentVersion = ref('')
 const latestVersion = ref(null)
@@ -176,12 +180,17 @@ const checkInterval = ref(null)
 // 计算属性
 // 当前版本
 const currentVersionComputed = computed(() => {
-  return '1.0.0-beta'
+  // 优先从环境变量中读取版本号
+  if (import.meta.env.VITE_VERSION) {
+    return import.meta.env.VITE_VERSION
+  }
+  // 默认版本
+  return '1.0.1'
 })
 
 // 主题名称
 const themeName = computed(() => {
-  return 'xiao-inis'
+  return 'xiao'
 })
 
 // 是否有更新
@@ -247,14 +256,10 @@ const checkForUpdates = async () => {
         
         // 检查是否有新版本
         if (hasUpdate.value) {
-          // 检查是否已忽略此版本
-          const ignoredVersion = localStorage.getItem('ignoredThemeVersion')
-          if (ignoredVersion !== latestVersion.value.version) {
-            // 可以在这里显示通知
-            toast.info(`发现新版本 ${latestVersion.value.version}，点击查看详情`, {
-              duration: 5000
-            })
-          }
+          // 显示新版本通知
+          toast.info(`发现新版本 xiao ${latestVersion.value.version} 版本`, {
+            duration: 5000
+          })
         }
       } else {
         // 列表为空，重置版本信息
@@ -272,53 +277,6 @@ const checkForUpdates = async () => {
     error.value = '网络错误，请稍后重试'
   } finally {
     loading.value = false
-  }
-}
-
-// 忽略更新
-const ignoreUpdate = () => {
-  if (latestVersion.value) {
-    localStorage.setItem('ignoredThemeVersion', latestVersion.value.version)
-    toast.success('已忽略此版本')
-  }
-}
-
-// 升级主题
-const upgradeTheme = async () => {
-  if (!latestVersion.value || upgrading.value) return
-  
-  upgrading.value = true
-  
-  try {
-    // 调用升级API
-    const res = await request.post('/api/upgrade/theme', {
-      id: latestVersion.value.id,
-      files: ['static'] // 需要删除的文件或目录
-    })
-    
-    if (res.code === 200) {
-      toast.success(`
-        <div class="d-flex flex-column align-items-start">
-          <h6 class="fw-bold mb-1">主题更新成功！</h6>
-          <p class="mb-2">刷新页面体验新功能？</p>
-          <button onclick="location.reload()" type="button" class="btn btn-outline-info btn-sm rounded-pill py-0 w-100">刷 新</button>
-        </div>
-      `, {
-        autohide: false,
-        delay: 0,
-        showClose: false
-      })
-      
-      // 清除忽略的版本
-      localStorage.removeItem('ignoredThemeVersion')
-    } else {
-      toast.error(res.msg || '主题更新失败')
-    }
-  } catch (err) {
-    console.error('升级主题失败:', err)
-    toast.error('网络错误，请稍后重试')
-  } finally {
-    upgrading.value = false
   }
 }
 

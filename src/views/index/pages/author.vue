@@ -120,7 +120,7 @@
             <!-- 性别标签 -->
             <span class="badge rounded-full bg-primary-subtle text-primary px-4 py-2 text-sm font-medium transition-all hover:bg-primary hover:text-white cursor-pointer">
               <i class="bi" :class="userInfo.gender === 'boy' ? 'bi-gender-male' : 'bi-gender-female'"></i>
-              {{ userInfo.gender === 'boy' ? '男孩' : userInfo.gender === 'girl' ? '女孩' : '未知' }}
+              {{ userInfo.gender === 'boy' ? '男' : userInfo.gender === 'girl' ? '女' : '未知' }}
             </span>
             <!-- 等级标签 -->
             <span class="badge rounded-full bg-success-subtle text-success px-4 py-2 text-sm font-medium transition-all hover:bg-success hover:text-white cursor-pointer">
@@ -177,8 +177,6 @@
         </div>
       </div>
 
-
-
       <!-- 用户权限信息 -->
       <div v-if="userAuthInfo" class="user-auth mb-5">
         <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
@@ -200,7 +198,6 @@
           </div>
         </div>
       </div>
-
 
       <!-- 交互按钮 -->
       <div class="user-actions d-flex gap-2 flex-wrap">
@@ -238,8 +235,6 @@ const store = useCommStore()
 const loading = ref(false)
 const error = ref('')
 const userInfo = ref(null)
-
-
 
 // 定时器引用
 const refreshInterval = ref(null)
