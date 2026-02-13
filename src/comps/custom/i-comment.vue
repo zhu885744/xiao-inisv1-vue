@@ -265,6 +265,29 @@
       <div v-else class="text-center py-5 text-muted">
         <p class="mb-0 h6">暂无评论，快来抢沙发吧～</p>
       </div>
+
+      <!-- 分页控件 -->
+      <div v-if="totalComments > pageSize" class="mt-4">
+        <nav aria-label="评论分页">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+              <button class="page-link" @click="handlePageChange(currentPage - 1)" :disabled="currentPage === 1">
+                <span aria-hidden="true">&laquo;</span>
+              </button>
+            </li>
+            <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+              <button class="page-link" @click="handlePageChange(page)">
+                {{ page }}
+              </button>
+            </li>
+            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+              <button class="page-link" @click="handlePageChange(currentPage + 1)" :disabled="currentPage === totalPages">
+                <span aria-hidden="true">&raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </div>
   </div>
 </template>
@@ -305,6 +328,19 @@ const props = defineProps({
   isDarkMode: {
     type: Boolean,
     default: false
+  },
+  // 新增：分页相关属性
+  currentPage: {
+    type: Number,
+    default: 1
+  },
+  pageSize: {
+    type: Number,
+    default: 10
+  },
+  totalComments: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -312,7 +348,7 @@ const props = defineProps({
 const store = useCommStore()
 
 // 🌟 2. 定义组件向外触发的事件
-const emit = defineEmits(['publishComment', 'replyComment', 'toLogin', 'toRegister'])
+const emit = defineEmits(['publishComment', 'replyComment', 'toLogin', 'toRegister', 'pageChange'])
 
 // 🌟 3. 组件内部响应式状态
 const commentInput = ref('')
@@ -328,6 +364,33 @@ const isSystemDark = ref(false)
 // 评论点赞状态
 const commentLikes = ref(new Map())
 const commentLikeCounts = ref(new Map())
+
+// 🌟 4. 分页相关计算属性和方法
+// 总页数
+const totalPages = computed(() => {
+  return Math.ceil(props.totalComments / props.pageSize)
+})
+
+// 当前页码
+const currentPage = computed(() => {
+  return props.currentPage
+})
+
+// 每页大小
+const pageSize = computed(() => {
+  return props.pageSize
+})
+
+// 总评论数
+const totalComments = computed(() => {
+  return props.totalComments
+})
+
+// 处理页码变化
+const handlePageChange = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  emit('pageChange', page)
+}
 
 // 获取评论点赞数的辅助函数
 const getLikeCount = (commentId) => {

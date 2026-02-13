@@ -95,14 +95,18 @@
       <!-- 评论组件：优化间距，自然衔接 -->
       <section class="article-comment mt-2 mb-8">
         <CommentList
-          :articleId="getCurrentArticleId()"
+          :articleId="articleInfo.id"
           :commentCount="commentCount"
           :commentList="staticCommentList"
           :isLogin="isLogin"
           :isDarkMode="isDarkMode"
           :articleAuthor="articleInfo.result?.author || {}"
+          :currentPage="currentPage"
+          :pageSize="pageSize"
+          :totalComments="totalComments"
           @publishComment="handlePublishComment"
           @replyComment="handleReplyComment"
+          @pageChange="handleCommentPageChange"
         />
       </section>
     </div>
@@ -147,6 +151,10 @@ const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
 const staticCommentList = ref([])
 const commentCount = ref(0)
 const isDarkMode = ref(false)
+// 评论分页相关
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalComments = ref(0)
 
 // 文章操作相关状态
 const isLiked = ref(false)
@@ -226,7 +234,7 @@ const getArticleDetail = async (id) => {
             // 初始化文章操作状态（获取点赞数、收藏数等）
             await initArticleActions()
             // 获取文章评论
-            getComments(articleInfo.value.id)
+            getComments(articleInfo.value.id, currentPage.value)
           }
       } else {
         error.value = true
@@ -241,7 +249,7 @@ const getArticleDetail = async (id) => {
       // 初始化文章操作状态（获取点赞数、收藏数等）
       await initArticleActions()
       // 获取文章评论
-      getComments(articleInfo.value.id)
+      getComments(articleInfo.value.id, currentPage.value)
     }
   } catch (err) {
     error.value = true
@@ -257,18 +265,19 @@ const getArticleDetail = async (id) => {
 const isLogin = computed(() => store.comm.login.finish && Object.keys(store.comm.login.user).length > 0)
 
 // 获取文章评论
-const getComments = async (articleId) => {
+const getComments = async (articleId, page = 1) => {
   try {
     const res = await request.get('/api/comment/flat', {
       bind_id: articleId,
       bind_type: 'article',
-      page: 1,
-      limit: 50,
+      page: page,
+      limit: pageSize.value,
       order: 'create_time desc'
     })
     
     if (res.code === 200) {
       commentCount.value = res.data?.count || 0
+      totalComments.value = res.data?.count || 0
       staticCommentList.value = res.data?.data || []
     }
   } catch (error) {
@@ -287,7 +296,7 @@ const handlePublishComment = async (data) => {
     
     if (res.code === 200) {
       // 重新获取评论列表
-      await getComments(articleInfo.value.id)
+await getComments(articleInfo.value.id, currentPage.value)
       // 显示成功提示
       if (window.Toast) {
         window.Toast.success('评论发布成功！')
@@ -318,7 +327,7 @@ const handleReplyComment = async (data) => {
     
     if (res.code === 200) {
       // 重新获取评论列表
-      await getComments(articleInfo.value.id)
+      await getComments(articleInfo.value.id, currentPage.value)
       // 显示成功提示
       if (window.Toast) {
         window.Toast.success('回复发布成功！')
@@ -343,6 +352,12 @@ const handleReplyComment = async (data) => {
 const detectDarkMode = () => {
   isDarkMode.value = document.documentElement.classList.contains('dark') || 
     window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
+// 处理评论分页变化
+const handleCommentPageChange = async (page) => {
+  currentPage.value = page
+  await getComments(articleInfo.value.id, page)
 }
 
 /**

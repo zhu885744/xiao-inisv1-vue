@@ -283,7 +283,7 @@
             class="sidebar-list-item sidebar-comment-item"
             v-for="comment in commentList"
             :key="comment.id"
-            @click="goToArticle(comment.articleId)"
+            @click="goToArticle(comment.articleId, comment.commentType)"
           >
             <!-- 评论头部 -->
             <div class="d-flex align-items-center gap-2 mb-2">
@@ -310,10 +310,10 @@
               <a
                 href="#"
                 class="text-decoration-none text-primary fs-7 fw-medium d-flex align-items-center gap-1 comment-article-link"
-                @click.stop="goToArticle(comment.articleId)"
+                @click.stop="goToArticle(comment.articleId, comment.commentType)"
               >
                 <i class="bi bi-link-45deg"></i>
-                查看原文
+                {{ comment.commentType === 'article' ? '查看文章' : comment.commentType === 'page' ? '查看页面' : '查看原文' }}
               </a>
             </div>
           </div>
@@ -472,17 +472,27 @@ const calculateLevel = (exp) => {
 }
 
 // 导航方法
-const goToArticle = (articleId) => {
-  // 检查 articleId 是否为正整数
-  const numArticleId = Number(articleId);
-  const isPositiveNumber = !isNaN(numArticleId) && numArticleId > 0;
-  
-  if (isPositiveNumber) {
-    // 如果是正整数，跳转到文章详情页
+const goToArticle = (articleId, commentType = 'unknown') => {
+  // 根据评论类型决定跳转路径
+  if (commentType === 'article') {
+    // 文章评论：跳转到文章详情页
     router.push(`/archives/${articleId}`);
-  } else if (articleId && articleId !== '0') {
-    // 如果是字符串或 0，跳转到独立页面
+  } else if (commentType === 'page') {
+    // 页面评论：跳转到页面
     router.push(`/${articleId}`);
+  } else {
+    // 未知类型：使用原有逻辑
+    // 检查 articleId 是否为正整数
+    const numArticleId = Number(articleId);
+    const isPositiveNumber = !isNaN(numArticleId) && numArticleId > 0;
+    
+    if (isPositiveNumber) {
+      // 如果是正整数，跳转到文章详情页
+      router.push(`/archives/${articleId}`);
+    } else if (articleId && articleId !== '0') {
+      // 如果是字符串或 0，跳转到独立页面
+      router.push(`/${articleId}`);
+    }
   }
 }
 const goToAuthor = (authorId) => router.push(`/author/${authorId}`)
@@ -591,15 +601,45 @@ const getLatestComments = async () => {
     })
 
     if (response.code === 200) {
-      commentList.value = (response.data.data || []).map(item => ({
-        id: item.id,
-        avatar: item.result?.author?.avatar || '',
-        author: item.result?.author?.nickname || '匿名用户',
-        content: item.content || '',
-        time: formatTime(item.create_time),
-        articleId: item.bind_id,
-        articleTitle: item.result?.article?.title || '未知文章'
-      }))
+      commentList.value = (response.data.data || []).map(item => {
+        // 检查评论类型（文章还是页面）
+        const isArticle = item.result?.article || false
+        const isPage = item.result?.page || false
+        
+        // 确定评论类型
+        let commentType = 'unknown'
+        if (isArticle) {
+          commentType = 'article'
+        } else if (isPage) {
+          commentType = 'page'
+        }
+        
+        // 确定文章标题
+        let title = '未知文章'
+        if (isArticle && item.result.article.title) {
+          title = item.result.article.title
+        } else if (isPage && item.result.page.title) {
+          title = item.result.page.title
+        }
+        
+        // 确定跳转ID
+        let jumpId = item.bind_id
+        // 对于页面评论，使用页面的 key 而不是 id
+        if (isPage && item.result.page.key) {
+          jumpId = item.result.page.key
+        }
+        
+        return {
+          id: item.id,
+          avatar: item.result?.author?.avatar || '',
+          author: item.result?.author?.nickname || '匿名用户',
+          content: item.content || '',
+          time: formatTime(item.create_time),
+          articleId: jumpId, // 使用正确的跳转ID
+          articleTitle: title,
+          commentType: commentType // 添加评论类型
+        }
+      })
     }
   } catch (error) {
     // console.error('获取最新评论失败：', error)

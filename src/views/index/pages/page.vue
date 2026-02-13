@@ -230,8 +230,12 @@
               :commentList="commentList" 
               :isLogin="isLogin" 
               :isDarkMode="isDarkMode"
+              :currentPage="currentPage"
+              :pageSize="pageSize"
+              :totalComments="totalComments"
               @publishComment="handlePublishComment"
               @replyComment="handleReplyComment"
+              @pageChange="handleCommentPageChange"
             />
         </div>
       </div>
@@ -279,8 +283,12 @@
             :isLogin="isLogin" 
             :isDarkMode="isDarkMode"
             :articleAuthor="authorInfo"
+            :currentPage="currentPage"
+            :pageSize="pageSize"
+            :totalComments="totalComments"
             @publishComment="handlePublishComment"
             @replyComment="handleReplyComment"
+            @pageChange="handleCommentPageChange"
           />
         </section>
       </div>
@@ -335,6 +343,10 @@ const commentList = ref([])
 const isDarkMode = ref(false)
 const authorInfo = ref({})
 const viewCount = ref(0) // 浏览量
+// 评论分页相关
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalComments = ref(0)
 
 // 归档页面相关数据
 const archiveStats = ref({
@@ -500,7 +512,7 @@ const initPage = async () => {
     pageTitle.value = `加载中... - ${getSiteTitle()}`
     await getLinksPageData()
     await fetchLinks()
-    await getLinksComments()
+    await getLinksComments(currentPage.value, pageSize.value)
   } else if (checkPageKey(currentKey)) {
     // 普通独立页面
     getPageData(currentKey)
@@ -531,19 +543,22 @@ watch(
 )
 
 // 获取页面评论
-const getComments = async (pageId) => {
+const getComments = async (pageId, page = 1, limit = 10) => {
   try {
     const res = await request.get('/api/comment/flat', {
       bind_id: pageId,
       bind_type: 'page',
-      page: 1,
-      limit: 50,
+      page: page,
+      limit: limit,
       order: 'create_time desc'
     })
     
     if (res.code === 200) {
       commentCount.value = res.data?.count || 0
       commentList.value = res.data?.data || []
+      totalComments.value = res.data?.count || 0
+      currentPage.value = page
+      pageSize.value = limit
     }
   } catch (error) {
     // console.error('获取评论失败：', error)
@@ -583,9 +598,9 @@ const handlePublishComment = async (data) => {
     if (res.code === 200) {
       // 重新获取评论列表
       if (isLinksPage) {
-        await getLinksComments()
+        await getLinksComments(currentPage.value, pageSize.value)
       } else {
-        await getComments(pageInfo.value.id)
+        await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
       }
       // 显示成功提示
       if (window.Toast) {
@@ -624,9 +639,9 @@ const handleReplyComment = async (data) => {
     if (res.code === 200) {
       // 重新获取评论列表
       if (isLinksPage) {
-        await getLinksComments()
+        await getLinksComments(currentPage.value, pageSize.value)
       } else {
-        await getComments(pageInfo.value.id)
+        await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
       }
       // 显示成功提示
       if (window.Toast) {
@@ -646,7 +661,22 @@ const handleReplyComment = async (data) => {
   }
 }
 
-
+// 处理评论分页
+const handleCommentPageChange = async (page) => {
+  try {
+    // 检查当前是否为友链页面
+    const currentKey = (props.pageKey || route.params.key || '').trim()
+    const isLinksPage = currentKey === 'links'
+    
+    if (isLinksPage) {
+      await getLinksComments(page, pageSize.value)
+    } else if (pageInfo.value.id) {
+      await getComments(pageInfo.value.id, page, pageSize.value)
+    }
+  } catch (error) {
+    // console.error('评论分页切换失败：', error)
+  }
+}
 
 // 获取文章总数
 const getArticleCount = async () => {
@@ -889,19 +919,22 @@ const fetchLinks = async () => {
 }
 
 // 获取友链页面评论
-const getLinksComments = async () => {
+const getLinksComments = async (page = 1, limit = 10) => {
   try {
     const res = await request.get('/api/comment/flat', {
       bind_id: 'links',
       bind_type: 'links',
-      page: 1,
-      limit: 50,
+      page: page,
+      limit: limit,
       order: 'create_time desc'
     })
     
     if (res.code === 200) {
       commentCount.value = res.data?.count || 0
       commentList.value = res.data?.data || []
+      totalComments.value = res.data?.count || 0
+      currentPage.value = page
+      pageSize.value = limit
     }
   } catch (error) {
     console.error('获取评论失败：', error)
@@ -945,7 +978,7 @@ watch(
   () => pageInfo.value.id,
   (newId) => {
     if (newId) {
-      getComments(newId)
+      getComments(newId, currentPage.value, pageSize.value)
       // 获取作者信息
       const authorId = pageInfo.value.uid
       if (authorId) {
