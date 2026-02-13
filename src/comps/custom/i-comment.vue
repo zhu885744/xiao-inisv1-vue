@@ -99,7 +99,7 @@
               <small class="text-muted">{{ item.time || '未知时间' }}</small>
             </div>
           </div>
-          <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary">{{ item.content }}</p>
+          <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary" v-html="item.content"></p>
           
           <!-- 回复和点赞按钮组：优化交互 -->
           <div class="d-flex gap-2">
@@ -216,7 +216,7 @@
                 <small class="text-muted">{{ reply.time || '未知时间' }}</small>
               </div>
             </div>
-            <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary">{{ reply.content }}</p>
+            <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary" v-html="reply.content"></p>
             
             <!-- 回复和点赞按钮组 -->
             <div class="d-flex gap-2">
@@ -405,6 +405,13 @@ const processedCommentList = computed(() => {
         // 判断是否为文章作者
         const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
         
+        // 处理@提及的函数，添加颜色效果
+        const handleAtMentions = (content) => {
+          if (!content) return ''
+          // 匹配@用户名格式，替换为带颜色的HTML
+          return content.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
+        }
+        
         return {
           id: reply.id,
           authorId: commentAuthorId,
@@ -413,7 +420,7 @@ const processedCommentList = computed(() => {
           level: reply.result?.author?.result?.level?.current?.value || reply.result?.author?.level?.current?.value || reply.author?.result?.level?.current?.value || reply.level?.current?.value || reply.level || null,
           levelName: levelName,
           time: formatTime(reply.create_time || reply.time || reply.update_time),
-          content: reply.content || '',
+          content: handleAtMentions(reply.content || ''),
           isAuthor: isCommentAuthor || reply.result?.author?.result?.isAuthor || reply.result?.author?.isAuthor || reply.author?.result?.isAuthor || reply.isAuthor || false
         }
       })
@@ -462,6 +469,13 @@ const processedCommentList = computed(() => {
     // 判断是否为文章作者
     const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
     
+    // 处理@提及的函数，添加颜色效果
+    const handleAtMentions = (content) => {
+      if (!content) return ''
+      // 匹配@用户名格式，替换为带颜色的HTML
+      return content.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
+    }
+    
     return {
       id: item.id,
       authorId: commentAuthorId,
@@ -470,7 +484,7 @@ const processedCommentList = computed(() => {
       level: item.result?.author?.result?.level?.current?.value || item.result?.author?.level?.current?.value || item.author?.result?.level?.current?.value || item.level?.current?.value || item.level || null,
       levelName: levelName,
       time: formatTime(item.create_time || item.time || item.update_time),
-      content: item.content || '',
+      content: handleAtMentions(item.content || ''),
       isAuthor: isCommentAuthor || item.result?.author?.result?.isAuthor || item.result?.author?.isAuthor || item.author?.result?.isAuthor || item.isAuthor || false,
       replies: processReplies(item.replies)
     }
@@ -1013,6 +1027,13 @@ watch(
 .reply-item:hover {
   border-left-color: rgba(var(--bs-primary-rgb), 0.4);
   margin-left: 1.25rem;
+}
+
+/* @提及样式 */
+:deep(.at-mention) {
+  color: var(--bs-primary);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 /* 发布评论按钮样式优化 */

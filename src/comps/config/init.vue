@@ -133,7 +133,7 @@ const showConfigModal = ref(false)
 const configForm = ref({
   api_uri: 'https://cs.zhuxu.asia',
   socket_uri: '',
-  router_mode: 'history',
+  router_mode: 'hash',
   api_key: '',
   base_url: '/',
   token_name: 'INIS_LOGIN_TOKEN',
@@ -161,9 +161,11 @@ const checkConfigFileExists = async () => {
     // 检查响应状态码
     if (response.ok) {
       const content = await response.text()
-      // 检查内容是否不为空，且包含TOML配置项
+      // 检查内容是否不为空，且包含TOML配置项，且不是HTML页面
       return content.trim() !== '' && 
-             (content.includes('title =') || content.includes('api_uri ='))
+             (content.includes('title =') || content.includes('api_uri =')) &&
+             !content.includes('<!DOCTYPE html>') &&
+             !content.includes('<html')
     }
     return false
   } catch (error) {
@@ -185,12 +187,6 @@ const generateTomlContent = (config) => {
   content += `api_key = "${config.api_key || ''}"\n`
   content += `base_url = "${config.base_url}"\n`
   content += `token_name = "${config.token_name}"\n\n`
-  
-  // 版本检测配置
-  content += '# 版本检测配置\n'
-  content += `enable_version_check = ${config.enable_version_check !== undefined ? config.enable_version_check : true}\n`
-  content += `auto_check_update = ${config.auto_check_update !== undefined ? config.auto_check_update : true}\n`
-  content += `check_interval = ${config.check_interval || 86400000}  # 24小时，单位毫秒\n\n`
   
   // 功能配置
   content += '# 功能配置\n'
@@ -261,7 +257,16 @@ const skipConfig = () => {
 
 // 组件挂载时检查配置
 onMounted(async () => {
-  // 检查配置文件是否存在
+  // 检查是否为开发环境
+  const isDev = import.meta.env.DEV
+  
+  if (isDev) {
+    // 开发环境：跳过配置模态框
+    console.log('开发环境：跳过配置模态框')
+    return
+  }
+  
+  // 生产环境：检查配置文件是否存在
   const fileExists = await checkConfigFileExists()
   
   // 检查配置是否已初始化

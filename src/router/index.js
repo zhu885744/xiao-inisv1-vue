@@ -10,6 +10,8 @@ const ROUTER_BASE = config.getSync('base_url') || '/'
 // 从配置文件同步获取路由模式
 const ROUTER_MODE = config.getSync('router_mode') || 'hash'
 
+console.log('路由模式:', ROUTER_MODE)
+
 // 从store获取站点标题
 
 // 1. 定义完整路由规则：新增/links专属路由
@@ -28,7 +30,7 @@ const routes = [
     path: '/user',
     name: '用户',
     component: () => import('@/views/index/pages/user.vue'),
-    meta: { title: '个人设置', requiresAuth: true },
+    meta: { title: '用户设置', requiresAuth: true },
     beforeEnter: (to, from, next) => {
       const commStore = useCommStore()
       const isLogin = !utils.is.empty(commStore.getLogin.user)
@@ -44,9 +46,9 @@ const routes = [
   },
   {
     path: '/author/:id',
-    name: '作者主页',
+    name: '用户主页',
     component: () => import('@/views/index/pages/author.vue'),
-    meta: { title: '作者主页', requiresAuth: false },
+    meta: { title: '用户主页', requiresAuth: false },
     props: true
   },
   {
@@ -84,6 +86,21 @@ const routes = [
     component: () => import('@/views/index/pages/page.vue'),
     meta: { title: '友链', requiresAuth: false },
     props: { pageKey: 'links' }
+  },
+  // 标签页面路由
+  {
+    path: '/tags',
+    name: '标签页面',
+    component: () => import('@/views/index/pages/tags.vue'),
+    meta: { title: '标签', requiresAuth: false }
+  },
+  // 单个标签页面路由
+  {
+    path: '/tag/:id',
+    name: '单个标签页面',
+    component: () => import('@/views/index/pages/tags.vue'),
+    meta: { title: '单个标签页面', requiresAuth: false },
+    props: true
   },
 
   // 版本更新页面路由
@@ -127,7 +144,10 @@ const routes = [
 
 // 2. 动态创建路由历史对象（适配两种模式）
 const createRouterHistory = () => {
-  return ROUTER_MODE === 'history'
+  // 再次检查路由模式，确保使用最新的配置值
+  const currentMode = config.getSync('router_mode') || 'hash'
+  console.log('路由模式:', currentMode)
+  return currentMode === 'history'
     ? createWebHistory(ROUTER_BASE)
     : createWebHashHistory(ROUTER_BASE)
 }
@@ -145,9 +165,13 @@ const router = createRouter({
 // 全局前置守卫：统一标题 + 通用权限校验（保留原有逻辑）
 router.beforeEach((to, from, next) => {
   const commStore = useCommStore()
-  const siteTitle = commStore.siteInfo?.title || '朱某的生活印记'
-  const pageTitle = to.meta.title || to.name || '未知页面'
-  document.title = `${pageTitle} - ${siteTitle}`
+  const siteTitle = commStore.siteInfo?.title || '网站名称'
+  
+  // 只有当路由的路径发生变化时才重置页面标题，避免哈希变化导致的标题重置
+  if (to.path !== from.path) {
+    const pageTitle = to.meta.title || to.name || '未知页面'
+    document.title = `${pageTitle} - ${siteTitle}`
+  }
 
   if (to.meta.requiresAuth) {
     const userInfo = commStore.getLogin.user

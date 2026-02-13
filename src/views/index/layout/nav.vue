@@ -4,7 +4,7 @@
     <div class="container">
       <!-- 网站标题：跳首页 -->
       <router-link class="navbar-brand" to="/">
-        {{ store.comm.siteInfo?.title || '朱某的生活印记' }}
+        {{ store.comm.siteInfo?.title || '未设置网站名' }}
       </router-link>
 
       <!-- 移动端侧边栏触发按钮 -->
@@ -55,7 +55,7 @@
         <!-- 右侧功能区域 -->
         <div class="d-flex align-items-center">
           <!-- 搜索按钮 -->
-          <button class="btn btn-outline-secondary me-2" type="button">
+          <button class="btn btn-outline-secondary me-2" type="button" @click="method.showSearch()">
             <i class="bi bi-search"></i>
           </button>
           
@@ -68,8 +68,6 @@
           >
             <i :class="darkModeIcon"></i>
           </button>
-          
-
           
           <!-- 用户相关功能 -->
           <div class="d-flex align-items-center" v-if="store.comm.login.finish && store.comm.login.user">
@@ -96,7 +94,7 @@
                 </li>
                 <li>
                   <router-link class="dropdown-item" :to="`/author/${store.comm.login.user.id}`">
-                    <i class="bi bi-person me-1"></i>用户中心
+                    <i class="bi bi-person me-1"></i>用户主页
                   </router-link>
                 </li>
                 <li>
@@ -254,10 +252,10 @@
           </button>
           <div class="d-grid grid-cols-2 gap-3">
             <router-link class="btn btn-outline-secondary text-center" :to="`/author/${store.comm.login.user.id}`" @click="closeSidebar">
-              <i class="bi bi-person me-1"></i>用户中心
+              <i class="bi bi-person me-1"></i>用户主页
             </router-link>
             <router-link class="btn btn-outline-secondary text-center" to="/user" @click="closeSidebar">
-              <i class="bi bi-gear me-1"></i>用户资料
+              <i class="bi bi-gear me-1"></i>用户设置
             </router-link>
             <router-link v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning text-center" to="/admin" @click="closeSidebar">
               <i class="bi bi-shield me-1"></i>后台管理
@@ -273,7 +271,7 @@
         
         <!-- 其他功能按钮 -->
         <div class="d-flex gap-2 mt-3">
-          <button class="btn btn-outline-secondary flex-grow-1" type="button">
+          <button class="btn btn-outline-secondary flex-grow-1" type="button" @click="method.showSearch()">
             <i class="bi bi-search me-1"></i>搜索
           </button>
           <button 
@@ -292,10 +290,13 @@
   <DialogLogin ref="loginDialog" @finish="method.onLoginFinish" />
   <DialogRegister ref="registerDialog" @finish="method.onRegisterFinish" />
   <DialogResetPassword ref="resetDialog" @finish="method.onResetFinish" />
+  
+  <!-- 搜索组件 -->
+  <Search ref="searchDialog" />
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick, reactive, watch, onUpdated, defineExpose } from 'vue'
+import { ref, onMounted, computed, nextTick, reactive, watch, onUpdated } from 'vue'
 import axios from '@/utils/request'
 import utils from '@/utils/utils'
 import Toast from '@/utils/toast'
@@ -304,10 +305,11 @@ import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import { useConfigStore } from '@/store/config'
 
-// 引入三个对话框组件
+// 引入对话框组件
 import DialogLogin from '@/comps/index/dialog/login.vue'
 import DialogRegister from '@/comps/index/dialog/register.vue'
 import DialogResetPassword from '@/comps/index/dialog/reset-password.vue'
+import Search from '@/comps/index/search.vue'
 
 // 初始化router
 const router = useRouter()
@@ -333,6 +335,7 @@ const userDropdownRef = ref(null)
 const loginDialog = ref(null)
 const registerDialog = ref(null)
 const resetDialog = ref(null)
+const searchDialog = ref(null)
 
 // 存储
 const store = {
@@ -404,6 +407,38 @@ const method = {
           resetDialog.value.show()
         }
       }, 100)
+    }
+  },
+  
+  // 搜索相关方法
+  showSearch: () => {
+    // 先关闭侧边栏
+    closeSidebar()
+    
+    console.log('搜索按钮被点击，searchDialog.value:', searchDialog.value)
+    
+    // 显示搜索弹窗
+    if (searchDialog.value && searchDialog.value.show) {
+      console.log('调用searchDialog.value.show()')
+      searchDialog.value.show()
+    } else {
+      console.log('搜索对话框引用未就绪，等待100ms后重试')
+      // 延迟一下，确保对话框引用被正确初始化
+      setTimeout(() => {
+        if (searchDialog.value && searchDialog.value.show) {
+          console.log('延迟后调用searchDialog.value.show()')
+          searchDialog.value.show()
+        } else {
+          console.log('延迟后搜索对话框引用仍未就绪:', searchDialog.value)
+        }
+      }, 100)
+    }
+  },
+  
+  hideSearch: () => {
+    // 隐藏搜索弹窗
+    if (searchDialog.value && searchDialog.value.hide) {
+      searchDialog.value.hide()
     }
   },
   
@@ -917,10 +952,20 @@ watch(
   background-color: var(--bs-dropdown-link-hover-bg);
 }
 
+/* 搜索容器样式 */
+.search-container {
+  position: relative;
+}
+
 /* 响应式调整 */
 @media (max-width: 991.98px) {
   :deep(.navbar) {
     padding: 0.5rem 1rem;
+  }
+  
+  /* 移动端搜索组件宽度 */
+  .search-container {
+    width: 100%;
   }
 }
 

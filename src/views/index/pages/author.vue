@@ -4,7 +4,7 @@
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0 d-flex align-items-center gap-2 text-primary fw-semibold">
-          用户中心
+          用户主页
         </h5>
         <button 
           @click="fetchUserInfo" 
@@ -231,6 +231,14 @@ import { useCommStore } from '@/store/comm'
 const route = useRoute()
 const store = useCommStore()
 
+// 环境变量网站标题，兜底处理
+const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
+
+// 获取网站标题的方法
+const getSiteTitle = () => {
+  return store.siteInfo?.title || SITE_TITLE
+}
+
 // 响应式数据
 const loading = ref(false)
 const error = ref('')
@@ -406,17 +414,12 @@ const handleAvatarError = (event) => {
   event.target.src = defaultAvatar
 }
 
-// 存储原始页面标题（只保留基础网站标题，移除路由名称）
-const originalTitle = ref(
-  document.title.split(' - ')[document.title.split(' - ').length - 1]
-)
-
 // 设置页面标题
 const setPageTitle = (nickname) => {
   if (nickname) {
-    document.title = `${nickname} - ${originalTitle.value}`
+    document.title = `${nickname} - 用户主页 - ${getSiteTitle()}`
   } else {
-    document.title = originalTitle.value
+    document.title = `用户主页 - ${getSiteTitle()}`
   }
 }
 
@@ -436,7 +439,7 @@ onMounted(() => {
 
 // 组件卸载时恢复原始页面标题并清除定时器
 onUnmounted(() => {
-  document.title = originalTitle.value
+  document.title = getSiteTitle()
   // 清除定时器
   if (refreshInterval.value) {
     clearInterval(refreshInterval.value)
@@ -450,6 +453,8 @@ watch(
   (newUserInfo) => {
     if (newUserInfo) {
       setPageTitle(newUserInfo.nickname)
+    } else {
+      setPageTitle('')
     }
   },
   { immediate: true }

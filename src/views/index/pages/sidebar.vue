@@ -345,13 +345,14 @@
 
         <!-- 标签云 -->
         <div v-else class="tag-cloud">
-          <span
+          <router-link
             class="tag-item"
             v-for="tag in tagList"
             :key="tag.id"
+            :to="`/tag/${tag.id}`"
           >
             {{ tag.name }}
-          </span>
+          </router-link>
         </div>
       </div>
     </div>
@@ -691,7 +692,6 @@ const checkSignStatus = async () => {
   if (!store.comm.login.finish || !store.comm.login.user) return
   
   try {
-    const response = await request.get('/api/exp/check-in/status')
     if (response.code === 200) {
       hasSigned.value = response.data?.hasSigned || false
       signDays.value = response.data?.signDays || 0

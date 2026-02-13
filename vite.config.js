@@ -25,7 +25,12 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            vue: ['vue'],
+            vue: ['vue', 'vue-router', 'pinia'],
+            bootstrap: ['bootstrap', '@popperjs/core'],
+            fancybox: ['@fancyapps/ui'],
+            marked: ['marked'],
+            highlight: ['highlight.js'],
+            utils: ['axios', 'crypto-js', 'qs']
           },
           assetFileNames: 'static/[name].[hash:8].[ext]',
           chunkFileNames: 'static/js/[name].[hash:8].js',

@@ -96,7 +96,7 @@ const startYear = computed(() => {
 })
 
 const siteTitle = computed(() => {
-  return siteInfo.value?.title || '朱某的生活印记'
+  return siteInfo.value?.title || '未设置网站名'
 })
 
 // ICP备案

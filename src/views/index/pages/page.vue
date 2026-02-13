@@ -18,7 +18,8 @@
       <!-- 归档页面统计信息 -->
       <div v-if="isArchivePage">
         <!-- 统计信息卡片区域 -->
-        <main class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+          <main class="article-content-wrap card border-0 shadow-sm mt-2">
+            <div class="p-3">
           <!-- 页面标题 -->
           <header class="article-header mt-2 mb-4">
             <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title || '归档' }}</h1>
@@ -118,6 +119,7 @@
               {{ refreshingArchive ? '刷新中...' : '刷新数据' }}
             </button>
           </div>
+            </div>
         </main>
       </div>
 
@@ -237,7 +239,8 @@
       <!-- 普通独立页面 -->
       <div v-else>
         <!-- 页面内容区：核心阅读区，重写样式 -->
-        <main class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+        <main class="article-content-wrap card border-0 shadow-sm mt-2">
+          <div class="p-3">
           <!-- 页面头部：标题+元信息 -->
           <header class="article-header mt-2">
             <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title }}</h1>
@@ -264,6 +267,7 @@
           <div class="article-content mt-4">
             <i-markdown :model-value="pageInfo.content || '暂无页面内容，敬请期待～'" />
           </div>
+          </div>
         </main>
         
         <!-- 评论区域：优化间距，自然衔接 -->
@@ -285,7 +289,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineProps, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
@@ -294,8 +298,16 @@ import iComment from '@/comps/custom/i-comment.vue'
 import utils from '@/utils/utils'
 import cache from '@/utils/cache'
 
+// 状态管理
+const store = useCommStore()
+
 // 环境变量网站标题，兜底处理
 const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
+
+// 获取网站标题的方法
+const getSiteTitle = () => {
+  return store.siteInfo?.title || SITE_TITLE
+}
 
 // 接收路由传递的页面key：使用pageKey代替key，避免保留关键字冲突
 const props = defineProps({
@@ -311,14 +323,11 @@ const loading = ref(true)
 const error = ref(false)
 const errorMsg = ref('')
 const pageInfo = ref({})
-const pageTitle = ref(`加载中... - ${SITE_TITLE}`)
+const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
 
 // 路由实例
 const router = useRouter()
 const route = useRoute()
-
-// 状态管理
-const store = useCommStore()
 
 // 评论相关响应式数据
 const commentCount = ref(0)
@@ -435,41 +444,41 @@ const getPageData = async (pageKey) => {
       const res = await request.get('/api/pages/one', queryParams)
 
       if (res.code === 200) {
-        if (!res.data || Object.keys(res.data).length === 0) {
-          error.value = true
-          errorMsg.value = '未找到该独立页面，可能已被删除或访问地址错误'
-          pageTitle.value = `页面不存在 - ${SITE_TITLE}`
-        } else {
-          cachedPage = res.data
-          // 缓存页面数据
-          cache.set(cacheKey, cachedPage, cacheExpire)
-          pageInfo.value = cachedPage
-          // 更新浏览量
-          viewCount.value = res.data.views || 0
-          error.value = false
-          pageTitle.value = `${pageInfo.value.title} - ${SITE_TITLE}`
-        }
-      } else {
+      if (!res.data || Object.keys(res.data).length === 0) {
         error.value = true
-        errorMsg.value = res.msg || '获取独立页面数据失败'
-        pageTitle.value = `获取页面失败 - ${SITE_TITLE}`
+        errorMsg.value = '未找到该独立页面，可能已被删除或访问地址错误'
+        pageTitle.value = `页面不存在 - ${getSiteTitle()}`
+      } else {
+        cachedPage = res.data
+        // 缓存页面数据
+        cache.set(cacheKey, cachedPage, cacheExpire)
+        pageInfo.value = cachedPage
+        // 更新浏览量
+        viewCount.value = res.data.views || 0
+        error.value = false
+        pageTitle.value = `${pageInfo.value.title} - ${getSiteTitle()}`
       }
     } else {
-      // 使用缓存数据
-      pageInfo.value = cachedPage
-      // 更新浏览量
-      viewCount.value = cachedPage.views || 0
-      error.value = false
-      pageTitle.value = `${pageInfo.value.title} - ${SITE_TITLE}`
+      error.value = true
+      errorMsg.value = res.msg || '获取独立页面数据失败'
+      pageTitle.value = `获取页面失败 - ${getSiteTitle()}`
     }
-  } catch (err) {
-    error.value = true
-    errorMsg.value = '网络异常，请检查网络后刷新页面'
-    // console.error('[独立页面接口异常]：', err)
-    pageTitle.value = `网络异常 - ${SITE_TITLE}`
-  } finally {
-    loading.value = false
+  } else {
+    // 使用缓存数据
+    pageInfo.value = cachedPage
+    // 更新浏览量
+    viewCount.value = cachedPage.views || 0
+    error.value = false
+    pageTitle.value = `${pageInfo.value.title} - ${getSiteTitle()}`
   }
+} catch (err) {
+  error.value = true
+  errorMsg.value = '网络异常，请检查网络后刷新页面'
+  // console.error('[独立页面接口异常]：', err)
+  pageTitle.value = `网络异常 - ${getSiteTitle()}`
+} finally {
+  loading.value = false
+}
 }
 
 /**
@@ -488,7 +497,7 @@ const initPage = async () => {
   } 
   // 如果是友链页面，加载友链数据
   else if (currentKey === 'links') {
-    pageTitle.value = `加载中... - ${SITE_TITLE}`
+    pageTitle.value = `加载中... - ${getSiteTitle()}`
     await getLinksPageData()
     await fetchLinks()
     await getLinksComments()
@@ -498,7 +507,7 @@ const initPage = async () => {
   } else {
     error.value = true
     loading.value = false
-    pageTitle.value = `页面标识不合法 - ${SITE_TITLE}`
+    pageTitle.value = `页面标识不合法 - ${getSiteTitle()}`
     setTimeout(() => router.go(-1), 3000)
   }
 }
@@ -787,7 +796,7 @@ const getLinksPageData = async () => {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       // 更新浏览量
       viewCount.value = res.data.views || 0
-      pageTitle.value = `${res.data.title || '友链'} - ${SITE_TITLE}`
+      pageTitle.value = `${res.data.title || '友链'} - ${getSiteTitle()}`
       document.title = pageTitle.value
     } else {
       error.value = true
@@ -822,7 +831,7 @@ const getArchivePageData = async () => {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       // 更新浏览量
       viewCount.value = res.data.views || 0
-      pageTitle.value = `${res.data.title || '归档'} - ${SITE_TITLE}`
+      pageTitle.value = `${res.data.title || '归档'} - ${getSiteTitle()}`
       document.title = pageTitle.value
     }
   } catch (err) {
@@ -967,12 +976,13 @@ watch(
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
   font-weight: 700;
+  color: var(--bs-body-color);
 }
 
 /* 文章元信息：弱化样式、统一图标 */
 .article-meta {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--bs-secondary-color);
   flex-wrap: wrap;
 }
 .article-meta .meta-item {
@@ -980,30 +990,27 @@ watch(
 }
 .article-meta .bi {
   font-size: 1em;
-  color: #9ca3af;
+  color: var(--bs-tertiary-color);
 }
 
-/* 文章内容区：复用文章页Markdown样式 */
+/* 文章内容区：核心阅读样式优化 */
 .article-content {
   line-height: 1.8;
   font-size: 1.05rem;
+  color: var(--bs-body-color);
 }
 
-/* Markdown适配样式（和文章页完全一致） */
-.article-content :deep(p) {
-  margin-bottom: 1.2rem;
-  text-align: justify;
-}
+/* 适配Markdown渲染的内部样式（核心：保证阅读体验） */
 .article-content :deep(h2),
 .article-content :deep(h3),
 .article-content :deep(h4) {
   margin: 1.8rem 0 0.8rem;
   font-weight: 600;
   line-height: 1.4;
+  color: var(--bs-body-color);
 }
 .article-content :deep(h2) {
   font-size: 1.5rem;
-  padding-bottom: 0.5rem;
 }
 .article-content :deep(h3) {
   font-size: 1.25rem;
@@ -1013,59 +1020,43 @@ watch(
   border-radius: 0.5rem;
   margin: 1.5rem auto;
   display: block;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-.article-content :deep(pre) {
-  background-color: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1.2rem;
-  overflow-x: auto;
-  border: 1px solid #e5e7eb;
-}
-.article-content :deep(code) {
-  background-color: #f3f4f6;
-  padding: 0.15rem 0.3rem;
-  border-radius: 0.25rem;
-  font-size: 0.95em;
+  box-shadow: var(--bs-shadow-sm);
 }
 .article-content :deep(ul),
 .article-content :deep(ol) {
   margin-bottom: 1.2rem;
   padding-left: 1.8rem;
+  color: var(--bs-body-color);
 }
 .article-content :deep(li) {
   margin-bottom: 0.5rem;
+  color: var(--bs-body-color);
 }
 .article-content :deep(a) {
-  color: #2563eb;
+  color: var(--bs-link-color);
   text-decoration: none;
 }
 .article-content :deep(a:hover) {
+  color: var(--bs-link-hover-color);
   text-decoration: underline;
   text-underline-offset: 0.2rem;
-}
-.article-content :deep(blockquote) {
-  border-left: 4px solid #d1d5db;
-  padding: 0.5rem 1rem;
-  background-color: #f9fafb;
-  margin-bottom: 1.2rem;
-  color: #4b5563;
 }
 .article-content :deep(table) {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1.2rem;
+  color: var(--bs-body-color);
 }
 .article-content :deep(td),
 .article-content :deep(th) {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--bs-border-color);
   padding: 0.7rem;
   text-align: left;
 }
 .article-content :deep(th) {
-  background-color: #f9fafb;
+  background-color: var(--bs-tertiary-bg);
   font-weight: 600;
+  color: var(--bs-body-color);
 }
 
 /* 评论区容器：基础间距 */
@@ -1107,14 +1098,16 @@ watch(
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf1 100%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-border-color);
+  box-shadow: var(--bs-shadow-sm);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--bs-shadow);
+  border-color: var(--bs-border-color-translucent);
 }
 
 /* 统计图标样式 */
@@ -1163,12 +1156,12 @@ watch(
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 0.25rem 0;
-  color: #1f2937;
+  color: var(--bs-body-color);
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--bs-secondary-color);
   margin: 0;
 }
 
@@ -1179,7 +1172,7 @@ watch(
   justify-content: center;
   gap: 1rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--bs-border-color);
 }
 
 .refresh-btn {
@@ -1187,18 +1180,19 @@ watch(
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--bs-border-color);
   border-radius: 0.375rem;
-  background: white;
-  color: #374151;
+  background-color: var(--bs-button-bg);
+  color: var(--bs-button-color);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .refresh-btn:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
+  background-color: var(--bs-button-hover-bg);
+  border-color: var(--bs-button-hover-border-color);
+  color: var(--bs-button-hover-color);
 }
 
 .refresh-btn:disabled {
@@ -1208,7 +1202,7 @@ watch(
 
 .refresh-info {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--bs-tertiary-color);
   margin: 0;
 }
 
@@ -1295,7 +1289,6 @@ watch(
 .link-card {
   padding: 1.5rem;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf1 100%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   text-align: center;
@@ -1413,23 +1406,24 @@ watch(
   font-size: 1.2rem;
   font-weight: 600;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid var(--bs-border-color);
   margin-bottom: 1rem !important;
+  color: var(--bs-body-color);
 }
 
 /* 核心：长方形友链卡片样式 */
 .link-card {
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--bs-border-color);
   border-radius: 0.8rem;
   transition: all 0.3s ease;
-  background-color: #fff;
+  background-color: var(--bs-card-bg);
   min-height: 120px; /* 长方形高度 */
 }
 
 /* 卡片悬浮效果 */
 .link-card:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  border-color: #dee2e6;
+  box-shadow: var(--bs-shadow);
+  border-color: var(--bs-border-color-translucent);
   transform: translateY(-2px);
 }
 
@@ -1438,13 +1432,13 @@ watch(
   width: 60px;
   height: 60px;
   object-fit: cover;
-  border: 3px solid #f8f9fa;
+  border: 3px solid var(--bs-tertiary-bg);
 }
 
 /* 名称样式 */
 .link-name {
   font-weight: 600;
-  color: #212529;
+  color: var(--bs-body-color);
 }
 
 /* 描述样式 - 重点：补充line-clamp标准属性 + 全浏览器兼容 */
@@ -1453,6 +1447,7 @@ watch(
   font-size: 0.95rem;
   overflow: hidden;
   text-align: left;
+  color: var(--bs-secondary-color);
   /* 标准属性 + 多浏览器前缀兼容 */
   line-clamp: 2;
   -webkit-line-clamp: 2;
@@ -1474,22 +1469,24 @@ watch(
   font-size: 1.5rem;
   margin: 1.5rem 0 1rem;
   font-weight: 600;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--bs-border-color);
   padding-bottom: 0.5rem;
+  color: var(--bs-body-color);
 }
 
 .article-content a {
-  color: #0d6efd;
+  color: var(--bs-link-color);
   text-decoration: none;
 }
 
 .article-content a:hover {
-  color: #0a58ca;
+  color: var(--bs-link-hover-color);
   text-decoration: underline;
 }
 
 .article-content p {
   margin-bottom: 1rem;
+  color: var(--bs-body-color);
 }
 
 /* 加载状态 */

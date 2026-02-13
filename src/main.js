@@ -21,15 +21,12 @@ import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import Toast from './utils/toast'
 import socket from './utils/socket'
 import API from './api'
-import { loadConfigFile } from './utils/config'
 
 // ========== 初始化应用 ==========
 async function initApp() {
   try {
-    // 1. 加载配置文件
-    console.log('正在加载配置文件...')
-    await loadConfigFile()
-    console.log('配置文件加载完成')
+    // 1. 配置文件已经在模块加载时通过同步请求加载完成
+    console.log('配置文件已加载')
     
     // 2. 创建并配置应用实例
     const app = createApp(App)
@@ -82,7 +79,8 @@ async function initApp() {
     
     // 绑定 Fancybox 图片灯箱
     Fancybox.bind("[data-fancybox]", {
-      // 自定义选项
+      // 禁用哈希变化，避免影响路由和页面标题
+      hash: false
     });
   } catch (error) {
     console.error('应用初始化失败:', error)
@@ -121,7 +119,8 @@ async function initApp() {
       
       // 绑定 Fancybox 图片灯箱
       Fancybox.bind("[data-fancybox]", {
-        // 自定义选项
+        // 禁用哈希变化，避免影响路由和页面标题
+        hash: false
       });
     } catch (innerError) {
       console.error('启动应用失败:', innerError)

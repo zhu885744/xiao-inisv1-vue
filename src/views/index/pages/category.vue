@@ -112,6 +112,23 @@ import cache from '@/utils/cache'
 // 导入本地图片
 import defaultCover from '@/assets/img/fm.avif'
 import loadingGif from '@/assets/img/ljz.gif'
+import { useCommStore } from '@/store/comm'
+
+// 存储
+const store = {
+  comm: useCommStore()
+};
+
+// 环境变量网站标题，兜底处理
+const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
+
+// 获取网站标题的方法
+const getSiteTitle = () => {
+  return store.comm.siteInfo?.title || SITE_TITLE
+}
+
+// 页面标题
+const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
 
 const router = useRouter()
 const route = useRoute()
@@ -134,6 +151,15 @@ let observer = null
 const pageCount = computed(() => {
   return Math.ceil(total.value / limit.value)
 })
+
+// 监听页面标题，更新浏览器标签
+watch(
+  pageTitle,
+  (newTitle) => {
+    document.title = newTitle
+  },
+  { immediate: true }
+)
 
 // 从路由参数获取分类ID
 const getCurrentCategoryId = () => {
@@ -334,14 +360,20 @@ const getCategoryDetail = async (categoryParam) => {
       categoryInfo.value = matchedCategory
       // 获取分类文章总数
       await getCategoryArticleCount(matchedCategory.id)
+      // 更新页面标题
+      pageTitle.value = `${matchedCategory.name} - ${getSiteTitle()}`
     } else {
       error.value = true
       errorMsg.value = '未找到该分类，可能已被删除或参数错误'
+      // 更新页面标题
+      pageTitle.value = `分类不存在 - ${getSiteTitle()}`
     }
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
     // console.error('获取分类详情失败:', err)
+    // 更新页面标题
+    pageTitle.value = `网络异常 - ${getSiteTitle()}`
   } finally {
     loading.value = false
   }

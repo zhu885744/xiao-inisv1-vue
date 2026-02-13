@@ -1,12 +1,15 @@
 <!-- src\comps\custom\i-markdown.vue 文章markdown内容渲染组件 -->
 <template>
-  <span v-html="renderedMd"></span>
+  <div class="markdown-content" v-html="renderedMd"></div>
 </template>
 
 <script setup>
-import { ref, watch, defineProps } from 'vue'
-// 导入marked核心渲染方法（v17+ 直接导入marked即可）
+import { ref, watch } from 'vue'
+// 导入marked核心渲染方法
 import { marked } from 'marked'
+// 导入highlight.js库和样式
+import hljs from 'highlight.js'
+import 'highlight.js/styles/agate.css'
 
 // props规范
 const props = defineProps({
@@ -25,15 +28,43 @@ const renderMarkdown = (content) => {
     renderedMd.value = ''
     return
   }
-  // marked直接渲染Markdown为HTML，开启HTML解析（适配文章中的HTML标签）
-  let html = marked.parse(content, {
-    gfm: true, // 开启GitHub风格的Markdown
-    breaks: true, // 换行符转换为<br>
-    html: true, // 允许解析内容中的HTML标签（关键，和你原有需求一致）
+  
+  // 简单处理：直接使用highlight.js处理所有代码
+  let processedContent = content
+  
+  // 匹配并处理代码块
+  processedContent = processedContent.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+    try {
+      const highlighted = hljs.highlight(code, { language: lang || 'plaintext' }).value
+      return `<pre class="hljs"><code class="language-${lang || 'plaintext'}">${highlighted}</code></pre>`
+    } catch (error) {
+      console.error('代码高亮处理失败:', error)
+      return `<pre class="hljs"><code>${code}</code></pre>`
+    }
   })
   
-  // 为所有图片添加 data-fancybox 属性，实现图片灯箱功能
+  // 渲染Markdown
+  let html = marked.parse(processedContent, {
+    gfm: true,
+    breaks: true,
+    html: true
+  })
+  
+  // 为所有图片添加 data-fancybox 属性
   html = html.replace(/<img\s+src="([^"]+)"\s+alt="([^"]*)"\s*(.*?)\s*>/g, '<a href="$1" data-fancybox="gallery" data-caption="$2"><img src="$1" alt="$2" $3></a>')
+  
+  // 安全处理超链接
+  html = html.replace(/<a\s+([^>]*)>/g, (match, attributes) => {
+    let safeAttributes = attributes.replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+    safeAttributes = safeAttributes.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, '')
+    if (!safeAttributes.match(/target\s*=/i)) {
+      safeAttributes += ' target="_blank"'
+    }
+    if (!safeAttributes.match(/rel\s*=/i)) {
+      safeAttributes += ' rel="noopener noreferrer"'
+    }
+    return `<a ${safeAttributes}>`
+  })
   
   renderedMd.value = html
 }
@@ -41,10 +72,37 @@ const renderMarkdown = (content) => {
 // 首次加载立即渲染
 renderMarkdown(props.modelValue)
 
-// 监听内容变化，重新渲染（适配文章数据加载后的更新）
+// 监听内容变化，重新渲染
 watch(
   () => props.modelValue,
   (newVal) => renderMarkdown(newVal),
   { immediate: true, deep: false }
 )
 </script>
+
+<style>
+/* 代码块样式 */
+pre {
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.2rem;
+  overflow-x: auto;
+  border: 1px solid var(--bs-border-color);
+  background-color: #282c34;
+}
+
+/* 行内代码样式 */
+code:not(pre code) {
+  background-color: var(--bs-tertiary-bg);
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.95em;
+  color: var(--bs-body-color);
+}
+
+/* 适配深色模式下行内代码 */
+.dark code:not(pre code) {
+  background-color: #334155;
+  color: #f8fafc;
+}
+</style>

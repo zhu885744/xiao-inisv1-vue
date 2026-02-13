@@ -131,42 +131,34 @@
           let configExists = false
           try {
             const response = await fetch('/config/app.toml')
-            // 检查响应状态码
+            // 检查响应状态码和内容类型
             if (response.ok) {
+              const contentType = response.headers.get('content-type')
               const content = await response.text()
-              // 检查内容是否不为空，且包含TOML配置项
+              // 检查内容是否不为空，且包含TOML配置项，且不是HTML页面
               configExists = content.trim() !== '' && 
-                           (content.includes('title =') || content.includes('api_uri ='))
+                           (content.includes('title =') || content.includes('api_uri =')) &&
+                           !content.includes('<!DOCTYPE html>') &&
+                           !content.includes('<html')
             }
           } catch (error) {
             configExists = false
           }
           
-          // 检查本地存储中的配置
-          const localConfig = localStorage.getItem('themeConfig')
-          const localConfigExists = !!localConfig
-          
-          // 检查Cookie中的配置
-          const cookieConfig = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('THEME_CONFIG='))
-          const cookieConfigExists = !!cookieConfig
+          // 清除本地存储中的配置
+          localStorage.removeItem('themeConfig')
+          // 清除Cookie中的配置
+          document.cookie = 'THEME_CONFIG=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
           
           // 确定配置来源
           let configSource = '默认配置'
           if (configExists) {
             configSource = '配置文件 (app.toml)'
-          } else if (localConfigExists) {
-            configSource = '本地存储 (LocalStorage)'
-          } else if (cookieConfigExists) {
-            configSource = 'Cookie存储'
           }
           
           // 输出配置状态到控制台
-          console.log('=== 配置状态 ===')
-          console.log('配置文件存在:', configExists)
-          console.log('本地存储存在:', localConfigExists)
-          console.log('Cookie存储存在:', cookieConfigExists)
+          console.log('=== 配置文件状态 ===')
+          console.log('配置文件是否存在:', configExists)
           console.log('当前使用的配置来源:', configSource)
           console.log('================')
           
@@ -177,8 +169,16 @@
         }
       }
       
-      // 执行配置检测
-      checkConfigStatus()
+      // 检查是否为开发环境
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      
+      if (!isDev) {
+        // 生产环境：执行配置检测
+        checkConfigStatus()
+      } else {
+        // 开发环境：跳过配置文件检测
+        console.log('开发环境：跳过配置文件检测')
+      }
       
       // 加载页面处理
       const loadingPage = document.getElementById('loadingPage')

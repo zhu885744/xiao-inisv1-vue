@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import BasicInfoSettings from '@/comps/user/settings/basic-info.vue'
 import AccountSecuritySettings from '@/comps/user/settings/account-security.vue'
 import ContactInfoSettings from '@/comps/user/settings/contact-info.vue'
@@ -108,6 +108,17 @@ import toast from '@/utils/toast'
 import { useCommStore } from '@/store/comm'
 
 const store = useCommStore()
+
+// 环境变量网站标题，兜底处理
+const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
+
+// 获取网站标题的方法
+const getSiteTitle = () => {
+  return store.siteInfo?.title || SITE_TITLE
+}
+
+// 页面标题
+const pageTitle = ref(`用户设置 - ${getSiteTitle()}`)
 
 // 加载状态
 const loading = ref(false)
@@ -117,6 +128,15 @@ const isLogin = computed(() => {
   const loginState = store.getLogin
   return loginState.finish && Object.keys(loginState.user).length > 0
 })
+
+// 监听页面标题更新浏览器标签
+watch(
+  pageTitle,
+  (newTitle) => {
+    document.title = newTitle
+  },
+  { immediate: true }
+)
 
 // 获取用户信息
 const fetchUserInfo = async () => {

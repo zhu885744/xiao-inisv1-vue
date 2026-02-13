@@ -16,7 +16,8 @@
     <!-- 文章主体 -->
     <div v-else class="article-main">
       <!-- 文章内容区：核心阅读区，重写样式 -->
-      <main class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+      <main class="article-content-wrap card border-0 shadow-sm mt-2">
+        <div class="p-3">
         <!-- 文章头部：标题+元信息 -->
         <header class="article-header mt-2">
           <h1 class="article-title text-center fw-bold mb-3">{{ articleInfo.title }}</h1>
@@ -50,13 +51,14 @@
         
         <!-- 文章标签显示 -->
         <div v-if="articleInfo.result?.tags && articleInfo.result.tags.length > 0" class="article-tags mt-4 d-flex flex-wrap justify-content-center gap-3">
-          <span 
+          <router-link 
             v-for="tag in articleInfo.result.tags" 
             :key="tag.id"
-            class="badge rounded-pill bg-primary bg-opacity-10 text-primary py-1.5 px-4 transition-all duration-300 hover:bg-opacity-20 hover:scale-105 cursor-pointer"
+            :to="`/tag/${tag.id}`"
+            class="badge rounded-pill bg-primary bg-opacity-10 text-primary py-1.5 px-4 transition-all duration-300 hover:bg-opacity-20 hover:scale-105 cursor-pointer text-decoration-none"
           >
             <i class="bi bi-tag me-1"></i> {{ tag.name }}
-          </span>
+          </router-link>
         </div>
         
         <!-- 文章操作按钮：点赞、分享、收藏 -->
@@ -87,6 +89,7 @@
             </button>
           </div>
         </div>
+        </div>
       </main>
 
       <!-- 评论组件：优化间距，自然衔接 -->
@@ -107,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '@/utils/request'
 import iMarkdown from '@/comps/custom/i-markdown.vue'
@@ -124,6 +127,11 @@ const store = {
 // 环境变量网站标题，兜底处理
 const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
 
+// 获取网站标题的方法
+const getSiteTitle = () => {
+  return store.comm.siteInfo?.title || SITE_TITLE
+}
+
 // 路由参数获取文章ID
 const getCurrentArticleId = () => {
   return route.params.id
@@ -134,7 +142,7 @@ const loading = ref(true)
 const error = ref(false)
 const errorMsg = ref('')
 const articleInfo = ref({})
-const pageTitle = ref(`加载中... - ${SITE_TITLE}`)
+const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
 // 评论相关响应式数据
 const staticCommentList = ref([])
 const commentCount = ref(0)
@@ -207,14 +215,14 @@ const getArticleDetail = async (id) => {
         if (!res.data || Object.keys(res.data).length === 0) {
             error.value = true
             errorMsg.value = '未找到该文章，可能已被删除或ID错误'
-            pageTitle.value = `文章不存在 - ${SITE_TITLE}`
+            pageTitle.value = `文章不存在 - ${getSiteTitle()}`
           } else {
             cachedArticle = res.data
             // 缓存文章详情
             cache.set(cacheKey, cachedArticle, cacheExpire)
             articleInfo.value = cachedArticle
             error.value = false
-            pageTitle.value = `${articleInfo.value.title} - ${SITE_TITLE}`
+            pageTitle.value = `${articleInfo.value.title} - ${getSiteTitle()}`
             // 初始化文章操作状态（获取点赞数、收藏数等）
             await initArticleActions()
             // 获取文章评论
@@ -223,13 +231,13 @@ const getArticleDetail = async (id) => {
       } else {
         error.value = true
         errorMsg.value = res.msg || '获取文章详情失败'
-        pageTitle.value = `获取文章失败 - ${SITE_TITLE}`
+        pageTitle.value = `获取文章失败 - ${getSiteTitle()}`
       }
     } else {
       // 使用缓存数据
       articleInfo.value = cachedArticle
       error.value = false
-      pageTitle.value = `${articleInfo.value.title} - ${SITE_TITLE}`
+      pageTitle.value = `${articleInfo.value.title} - ${getSiteTitle()}`
       // 初始化文章操作状态（获取点赞数、收藏数等）
       await initArticleActions()
       // 获取文章评论
@@ -239,7 +247,7 @@ const getArticleDetail = async (id) => {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
     // console.error('[文章详情接口异常]：', err)
-    pageTitle.value = `网络异常 - ${SITE_TITLE}`
+    pageTitle.value = `网络异常 - ${getSiteTitle()}`
   } finally {
     loading.value = false
   }
@@ -603,7 +611,7 @@ onMounted(() => {
   } else {
     error.value = true
     loading.value = false
-    pageTitle.value = `文章ID不合法 - ${SITE_TITLE}`
+    pageTitle.value = `文章ID不合法 - ${getSiteTitle()}`
     setTimeout(() => router.go(-1), 3000)
   }
   
@@ -681,20 +689,6 @@ watch(
   margin: 1.5rem auto;
   display: block;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-.article-content :deep(pre) {
-  background-color: #f9fafb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1.2rem;
-  overflow-x: auto;
-  border: 1px solid #e5e7eb;
-}
-.article-content :deep(code) {
-  background-color: #f3f4f6;
-  padding: 0.15rem 0.3rem;
-  border-radius: 0.25rem;
-  font-size: 0.95em;
 }
 .article-content :deep(ul),
 .article-content :deep(ol) {

@@ -6,11 +6,11 @@
   <!-- 主内容区 -->
   <div class="container">
     <div class="row">
-      <div class="col">
+      <div class="col-lg-9">
         <router-view></router-view>
       </div>
       <!-- 全局侧边栏 -->
-      <div class="col-3 d-none d-lg-block">
+      <div class="col-lg-3 d-none d-lg-block">
         <ISidebar @showLogin="handleShowLogin" @showRegister="handleShowRegister"></ISidebar>
       </div>
     </div>
