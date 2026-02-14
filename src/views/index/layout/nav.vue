@@ -1,21 +1,28 @@
 <template>
   <!-- 顶部导航栏 -->
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container">
-      <!-- 网站标题：跳首页 -->
-      <router-link class="navbar-brand" to="/">
-        {{ store.comm.siteInfo?.title || '未设置网站名' }}
-      </router-link>
-
+    <div class="container d-flex align-items-center">
       <!-- 移动端侧边栏触发按钮 -->
       <button 
-        class="navbar-toggler d-lg-none" 
+        class="navbar-toggler d-lg-none me-3 border-0" 
         type="button" 
         @click="toggleSidebar"
         aria-label="Toggle navigation"
       >
         <span class="navbar-toggler-icon"></span>
       </button>
+
+      <!-- 网站标题：跳首页 -->
+      <router-link class="navbar-brand flex-grow-1 text-center d-lg-block d-flex justify-content-start" to="/">
+        {{ store.comm.siteInfo?.title || '未设置网站名' }}
+      </router-link>
+
+      <!-- 移动端右侧搜索按钮 -->
+      <div class="d-flex align-items-center ms-3">
+        <button class="btn d-lg-none border-0 bg-transparent" type="button" @click="method.showSearch()">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
 
       <!-- PC端导航内容 -->
       <div class="collapse navbar-collapse d-none d-lg-flex" id="navbarSupportedContent">
@@ -963,9 +970,24 @@ watch(
     padding: 0.5rem 1rem;
   }
   
+  /* 移动端标题居中 */
+  :deep(.navbar-brand) {
+    text-align: center !important;
+    justify-content: center !important;
+  }
+  
   /* 移动端搜索组件宽度 */
   .search-container {
     width: 100%;
+  }
+}
+
+@media (min-width: 992px) {
+  /* PC端标题在左侧 */
+  :deep(.navbar-brand) {
+    text-align: left !important;
+    justify-content: flex-start !important;
+    flex-grow: 0 !important;
   }
 }
 

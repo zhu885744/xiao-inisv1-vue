@@ -199,7 +199,6 @@ const props = defineProps({
 
 // 导入本地图片
 import defaultCover from '@/assets/img/fm.avif'
-import loadingGif from '@/assets/img/ljz.gif'
 import { useCommStore } from '@/store/comm'
 
 // 存储

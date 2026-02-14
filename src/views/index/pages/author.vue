@@ -64,18 +64,17 @@
               <h3 class="mb-0 fw-bold text-lg">
                 {{ userInfo.nickname }}
               </h3>
+              <!-- 头衔 -->
+              <span v-if="userInfo.title" class="badge text-bg-success rounded-full px-3 py-1 text-sm font-medium">
+                {{ userInfo.title }}
+              </span>
               <!-- 等级标识 -->
               <span v-if="userLevelInfo" class="badge bg-primary rounded-full px-3 py-1 text-sm font-medium">
                 Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
               </span>
             </div>
-            <!-- 头衔 -->
-            <p class="text-muted mb-3">
-              <i class="bi bi-briefcase me-2"></i>
-              {{ userInfo.title || '普通用户' }}
-            </p>
             <!-- 个人网站 -->
-            <div v-if="userInfo.json?.website?.url" class="text-sm mb-3">
+            <div v-if="userInfo.json?.website?.url" class="text-sm mb-3 mt-3">
               <a 
                 :href="userInfo.json.website.url" 
                 target="_blank" 
@@ -370,27 +369,15 @@ const copyUserInfo = () => {
 
 // 分享用户信息
 const shareUserInfo = () => {
-  if (!userInfo.value) return
-  
-  const user = userInfo.value
-  const shareText = `分享 ${user.nickname} 的个人资料：${user.title || '普通用户'}，快来认识一下吧！`
-  
-  if (navigator.share) {
-    navigator.share({
-      title: `${user.nickname} 的个人资料`,
-      text: shareText,
-      url: window.location.href
+  // 复制"页面标题 - 链接"到剪贴板
+  const shareContent = `${document.title} - ${window.location.href}`
+  navigator.clipboard.writeText(shareContent)
+    .then(() => {
+      toast.success('链接已复制到剪贴板')
     })
-  } else {
-    // 复制到剪贴板
-    navigator.clipboard.writeText(shareText)
-      .then(() => {
-        toast.success('个人资料已复制到剪贴板')
-      })
-      .catch(() => {
-        toast.error('复制失败')
-      })
-  }
+    .catch(() => {
+      toast.error('复制失败')
+    })
 }
 
 // 格式化日期
@@ -407,8 +394,6 @@ const formatDate = (timestamp) => {
   })
 }
 
-
-
 // 处理头像错误
 const handleAvatarError = (event) => {
   event.target.src = defaultAvatar
@@ -417,7 +402,7 @@ const handleAvatarError = (event) => {
 // 设置页面标题
 const setPageTitle = (nickname) => {
   if (nickname) {
-    document.title = `${nickname} - 用户主页 - ${getSiteTitle()}`
+    document.title = `${nickname} - ${getSiteTitle()}`
   } else {
     document.title = `用户主页 - ${getSiteTitle()}`
   }

@@ -24,10 +24,6 @@
           <!-- 文章元信息：居中布局、弱化样式 -->
           <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
             <span class="meta-item d-flex align-items-center">
-              <i class="bi bi-person-fill me-2"></i>
-              {{ articleInfo.result?.author?.nickname || '匿名' }}
-            </span>
-            <span class="meta-item d-flex align-items-center">
               <i class="bi bi-folder-fill me-2"></i>
               {{ articleInfo.result?.group[0]?.name || '未分类' }}
             </span>
@@ -60,9 +56,32 @@
             <i class="bi bi-tag me-1"></i> {{ tag.name }}
           </router-link>
         </div>
+
+        <!-- 版权归属信息 -->
+        <div class="card border rounded-3 mt-4 overflow-hidden shadow-sm">
+          <div class="card-body">
+            <!-- 版权归属信息 -->
+            <div class="mb-1">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-shield-check me-2"></i>
+                <span class="text-muted">版权属于：{{ articleInfo.result?.author?.nickname || '匿名' }}</span>
+              </div>
+            </div>
+            <!-- 许可协议信息 -->
+            <div class="mb-1">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-cc-circle me-2"></i>
+                <span class="text-muted">文章采用：<a class="bg-opacity-10 me-2" href="//creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener noreferrer nofollow" title="知识共享 署名-非商业性使用-相同方式共享 4.0 国际许可协议">
+                    CC BY-NC-SA 4.0
+                  </a>
+                  <span class="text-muted text-sm">知识共享许可协议授权</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
         
         <!-- 文章操作按钮：点赞、分享、收藏 -->
-        <div class="mt-5 mb-5 d-flex justify-content-center">
+        <div class="mt-4 mb-4 d-flex justify-content-center">
           <div class="btn-group gap-2" role="group" aria-label="文章操作">
             <button 
               @click="handleLike" 

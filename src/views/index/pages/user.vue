@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import BasicInfoSettings from '@/comps/user/settings/basic-info.vue'
 import AccountSecuritySettings from '@/comps/user/settings/account-security.vue'
 import ContactInfoSettings from '@/comps/user/settings/contact-info.vue'
@@ -117,8 +117,30 @@ const getSiteTitle = () => {
   return store.siteInfo?.title || SITE_TITLE
 }
 
-// 页面标题
-const pageTitle = ref(`用户设置 - ${getSiteTitle()}`)
+// 设置页面标题
+const setPageTitle = () => {
+  document.title = `用户设置 - ${getSiteTitle()}`
+}
+
+// 组件挂载时设置页面标题
+onMounted(async () => {
+  // 设置页面标题
+  setPageTitle()
+  
+  // 手动触发登录态校验
+  await store.checkLoginState()
+  
+  if (!isLogin.value) {
+    toast.error('请先登录')
+    // 跳转到首页
+    window.location.href = '/'
+  }
+})
+
+// 组件卸载时恢复原始页面标题
+onUnmounted(() => {
+  document.title = getSiteTitle()
+})
 
 // 加载状态
 const loading = ref(false)
@@ -128,15 +150,6 @@ const isLogin = computed(() => {
   const loginState = store.getLogin
   return loginState.finish && Object.keys(loginState.user).length > 0
 })
-
-// 监听页面标题更新浏览器标签
-watch(
-  pageTitle,
-  (newTitle) => {
-    document.title = newTitle
-  },
-  { immediate: true }
-)
 
 // 获取用户信息
 const fetchUserInfo = async () => {

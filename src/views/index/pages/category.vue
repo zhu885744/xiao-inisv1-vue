@@ -16,12 +16,24 @@
     <div v-else class="category-main">
       <!-- 分类信息卡片 -->
       <div class="category-info card border-0 shadow-sm p-4 mt-2">
-        <header class="category-header">
-          <h1 class="category-title text-center fw-bold mb-3">{{ categoryInfo.name }} <span class="text-sm text-muted">({{ articleCount }})</span></h1>
-          <p v-if="categoryInfo.description" class="category-description text-center text-muted mb-4">
-            {{ categoryInfo.description }}
-          </p>
-        </header>
+        <div class="category-info-inner">
+          <!-- 分类头像 -->
+          <div class="category-info-avatar">
+            <img 
+              :src="categoryInfo.avatar || defaultCover" 
+              :alt="categoryInfo.name"
+              class="category-info-avatar-img"
+              @error="handleImageError"
+            >
+          </div>
+          <!-- 分类信息 -->
+          <div class="category-info-content">
+            <h1 class="category-title fw-bold mb-3">{{ categoryInfo.name }} <span class="text-sm text-muted">({{ articleCount }})</span></h1>
+            <p v-if="categoryInfo.description" class="category-description text-muted mb-4">
+              {{ categoryInfo.description }}
+            </p>
+          </div>
+        </div>
       </div>
       
       <!-- 文章列表 -->
@@ -485,17 +497,68 @@ onMounted(async () => {
   min-height: 60vh;
 }
 
+/* 分类信息卡片 */
+.category-info-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* 分类头像 */
+.category-info-avatar {
+  flex-shrink: 0;
+}
+
+.category-info-avatar-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 分类信息内容 */
+.category-info-content {
+  flex-grow: 1;
+  min-width: 0;
+}
+
 /* 分类标题 */
 .category-title {
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
   font-weight: 700;
+  margin-bottom: 0.75rem !important;
 }
 
 /* 分类描述 */
 .category-description {
   font-size: 1.1rem;
   line-height: 1.5;
+  margin-bottom: 0 !important;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .category-info-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .category-info-avatar-img {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .category-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+  
+  .category-description {
+    font-size: 1rem;
+  }
 }
 
 /* 文章列表Grid布局 */

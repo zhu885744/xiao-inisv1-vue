@@ -93,7 +93,7 @@
                   {{ item.nickname || '匿名用户' }}
                 </router-link>
                 <span v-else>{{ item.nickname || '匿名用户' }}</span>
-                <span v-if="item.levelName" class="badge bg-secondary text-white ms-2 rounded-pill">{{ item.levelName }}</span>
+                <span v-if="item.level" class="badge bg-secondary text-white ms-2 rounded-pill">Lv.{{ item.level }} {{ item.levelName }}</span>
                 <span v-if="item.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
               </h6>
               <small class="text-muted">{{ item.time || '未知时间' }}</small>
@@ -210,7 +210,7 @@
                     {{ reply.nickname || '匿名用户' }}
                   </router-link>
                   <span v-else>{{ reply.nickname || '匿名用户' }}</span>
-                  <span v-if="reply.levelName" class="badge bg-secondary text-white ms-2 rounded-pill">{{ reply.levelName }}</span>
+                  <span v-if="reply.level" class="badge bg-secondary text-white ms-2 rounded-pill">Lv.{{ reply.level }} {{ reply.levelName }}</span>
                   <span v-if="reply.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
                 </h6>
                 <small class="text-muted">{{ reply.time || '未知时间' }}</small>

@@ -103,7 +103,7 @@
               </a>
               
               <!-- 更新步骤提示 -->
-              <div class="bg-light p-4 rounded-2 border border-info/20">
+              <div class="p-4 rounded-2 border border-info/20">
                 <h6 class="fw-bold mb-2 text-info">更新步骤：</h6>
                 <ol class="list-decimal pl-4 mb-0">
                   <li class="mb-1">删除主题目录内的 <code>static</code> 文件夹和 <code>index.html</code> 文件</li>
@@ -195,6 +195,15 @@ watch(
     document.title = newTitle
   },
   { immediate: true }
+)
+
+// 监听站点信息变化，重新设置页面标题
+watch(
+  () => store.siteInfo,
+  () => {
+    pageTitle.value = `主题版本更新 - ${getSiteTitle()}`
+  },
+  { deep: true }
 )
 
 // 计算属性
@@ -351,6 +360,9 @@ onUnmounted(() => {
     clearInterval(checkInterval.value)
     checkInterval.value = null
   }
+  
+  // 恢复原始页面标题
+  document.title = getSiteTitle()
 })
 </script>
 
