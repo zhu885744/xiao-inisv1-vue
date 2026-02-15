@@ -58,18 +58,10 @@ const routes = [
     meta: { title: '分类页面', requiresAuth: false },
     props: true
   },
-  {
-    path: '/functions',
+  { path: '/functions',
     name: '主题设置',
     component: () => import('@/views/index/pages/functions.vue'),
-    meta: { title: '主题设置', requiresAuth: true, isAdmin: true },
-    beforeEnter: (to, from, next) => {
-      const commStore = useCommStore()
-      const user = commStore.getLogin.user
-      const isLogin = !utils.is.empty(user)
-      const isAdmin = user.isAdmin || false 
-      (isLogin && isAdmin) ? next() : next('/')
-    }
+    meta: { title: '主题设置', requiresAuth: true, isAdmin: true }
   },
   // 🌟 归档页面路由，指向独立页面组件
   {
@@ -183,7 +175,10 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.meta.isAdmin) {
-      const isAdmin = userInfo.isAdmin || false
+      // 检查不同可能的用户信息结构
+      const userAuth = userInfo.result?.auth || userInfo?.auth
+      const userGroups = userAuth?.group?.list || userInfo?.group?.list || []
+      const isAdmin = userAuth?.all || userGroups.some(group => group.key === 'admin')
       if (!isAdmin) {
         next('/')
         return

@@ -19,7 +19,7 @@
         <!-- 标签总数统计 -->
         <div class="tags-count card border-0 shadow-sm p-4 mt-2">
           <div class="tags-count-header">
-            <h2 class="tags-count-title fw-bold">标签 <span class="text-sm text-muted">(共 {{ totalTags }} 个)</span></h2>
+            <h2 class="tags-count-title fw-bold">标签 <span class="text-sm text-muted">({{ totalTags }})</span></h2>
           </div>
         </div>
         <!-- 标签卡片网格 -->
@@ -97,7 +97,7 @@
             </div>
             <!-- 标签信息 -->
             <div class="tag-info-content">
-              <h1 class="tag-title fw-bold mb-3">{{ currentTag.name }} <span class="text-sm text-muted">({{ currentTag.articleCount || 0 }} 篇文章)</span></h1>
+              <h1 class="tag-title fw-bold mb-3">{{ currentTag.name }} <span class="text-sm text-muted">({{ currentTag.articleCount || 0 }})</span></h1>
               <p v-if="currentTag.description" class="tag-description text-muted mb-4">
                 {{ currentTag.description }}
               </p>
@@ -663,12 +663,14 @@ onMounted(async () => {
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
   font-weight: 700;
+  margin-bottom: 0.75rem !important;
 }
 
 /* 标签描述 */
 .tag-description {
   font-size: 1.1rem;
   line-height: 1.5;
+  margin-bottom: 0 !important;
 }
 
 /* 标签总数统计 */
@@ -763,29 +765,20 @@ onMounted(async () => {
 .tag-info-inner {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .tag-info-avatar {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 1.5rem;
-  border-radius: 50%;
-  overflow: hidden;
-  background-color: #f8f9fa;
+  flex-shrink: 0;
 }
 
 .tag-info-avatar-img {
-  width: 100%;
-  height: 100%;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
   object-fit: cover;
-  transition: all 0.3s ease;
-}
-
-.tag-info-avatar-img:hover {
-  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* 文章列表Grid布局 */

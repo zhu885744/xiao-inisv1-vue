@@ -109,12 +109,12 @@
                     <i class="bi bi-gear me-1"></i>用户设置
                   </router-link>
                 </li>
-                <li v-if="store.comm.login.user.role === 'admin'">
-                  <router-link class="dropdown-item" to="/admin">
-                    <i class="bi bi-gear-fill me-1"></i>后台管理
+                <li v-if="isAdmin">
+                  <router-link class="dropdown-item" to="/functions">
+                    <i class="bi bi-palette me-1"></i>主题设置
                   </router-link>
                 </li>
-                <li>
+                <li v-if="isAdmin">
                   <router-link class="dropdown-item" to="/upgrade/theme">
                     <i class="bi bi-arrow-down-circle me-1"></i>版本更新
                   </router-link>
@@ -264,8 +264,8 @@
             <router-link class="btn btn-outline-secondary text-center" to="/user" @click="closeSidebar">
               <i class="bi bi-gear me-1"></i>用户设置
             </router-link>
-            <router-link v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning text-center" to="/admin" @click="closeSidebar">
-              <i class="bi bi-shield me-1"></i>后台管理
+            <router-link v-if="isAdmin" class="btn btn-outline-secondary text-center" to="/functions" @click="closeSidebar">
+              <i class="bi bi-palette me-1"></i>主题设置
             </router-link>
             <button class="btn btn-outline-success text-center" type="button" @click="method.showPublishNotification()">
               <i class="bi bi-plus-circle me-1"></i>发布文章
@@ -588,6 +588,19 @@ const initDropdowns = () => {
 // 计算属性
 const darkModeIcon = computed(() => {
   return isDarkMode.value ? 'bi bi-brightness-high-fill' : 'bi bi-brightness-high'
+})
+
+// 判断用户是否为管理员
+const isAdmin = computed(() => {
+  const user = store.comm.login.user
+  if (!user || !user.result || !user.result.auth) return false
+  
+  // 检查是否有all权限
+  if (user.result.auth.all) return true
+  
+  // 检查权限组中是否有admin
+  const groups = user.result.auth.group?.list || []
+  return groups.some(group => group.key === 'admin')
 })
 
 // 切换深色/浅色模式

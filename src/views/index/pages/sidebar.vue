@@ -97,20 +97,20 @@
       </div>
     </div>
 
-    <!-- 活跃度排行卡片 -->
+    <!-- 等级排行卡片 -->
     <div class="card sidebar-card">
       <div class="card-header sidebar-card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0 sidebar-card-title">
           <i class="bi bi-trophy-fill text-warning"></i>
-          <span>活跃度排行</span>
+          <span>等级排行</span>
         </h6>
         <button 
           class="btn sidebar-btn-icon"
-          @click="getActiveRank"
-          :disabled="activeLoading"
+          @click="getLevelRank"
+          :disabled="levelLoading"
           title="刷新"
         >
-          <i class="bi bi-arrow-clockwise" :class="{ 'spin': activeLoading }"></i>
+          <i class="bi bi-arrow-clockwise" :class="{ 'spin': levelLoading }"></i>
         </button>
       </div>
       <div class="card-body sidebar-card-body">
@@ -128,23 +128,23 @@
         </div>
         
         <!-- 加载状态 -->
-        <div v-if="activeLoading" class="text-center py-4">
+        <div v-if="levelLoading" class="text-center py-4">
           <div class="spinner-border text-primary spinner-sm" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
 
         <!-- 无数据 -->
-        <div v-else-if="activeRankList.length === 0" class="text-center py-4 empty-state">
+        <div v-else-if="levelRankList.length === 0" class="text-center py-4 empty-state">
           <i class="bi bi-emoji-frown fs-5 text-muted mb-2 d-block"></i>
-          <p class="text-muted mb-0">暂无活跃度数据</p>
+          <p class="text-muted mb-0">暂无等级数据</p>
         </div>
 
-        <!-- 活跃度排行列表 -->
+        <!-- 等级排行列表 -->
         <div v-else class="sidebar-list">
           <div
             class="sidebar-list-item d-flex align-items-center gap-3 mb-2"
-            v-for="(user, index) in activeRankList"
+            v-for="(user, index) in levelRankList"
             :key="user.id"
             @click="goToAuthor(user.id)"
             :class="{
@@ -178,7 +178,7 @@
               </div>
               <div class="d-flex justify-content-between align-items-center mt-1">
                 <span class="text-primary fs-7 fw-medium">
-                  Lv.{{ calculateLevel(user.exp || 0) }}
+                  Lv.{{ user.result?.level?.current?.value || calculateLevel(user.exp || 0) }}
                 </span>
                 <span class="text-muted fs-7">
                   {{ user.exp || 0 }} 经验
@@ -388,8 +388,9 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
-import defaultAvatar from '@/assets/img/avatar.png'
 import utils from '@/utils/utils'
+import Toast from '@/utils/toast'
+import defaultAvatar from '@/assets/img/avatar.png'
 
 const router = useRouter()
 
@@ -405,8 +406,8 @@ const tagList = ref([])
 const isDarkMode = ref(false)
 const commentList = ref([])
 const commentLoading = ref(false)
-const activeLoading = ref(false)
-const activeRankList = ref([])
+const levelLoading = ref(false)
+const levelRankList = ref([])
 const tagLoading = ref(false)
 const signLoading = ref(false)
 const hasSigned = ref(false)
@@ -422,8 +423,8 @@ const statsLoading = ref(false)
 
 // 快速导航数据
 const quickNavs = ref([
-  { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archives' },
-  { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/categories' },
+  { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
+  { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
   { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
   { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
   { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
@@ -444,13 +445,13 @@ const levelInfo = ref(null)
 // 现在使用后端返回的等级数据来动态计算
 const calculateLevel = (exp) => {
   // 如果没有等级数据，使用默认逻辑
-  if (!levelInfo.value || !levelInfo.value.data) {
+  if (!levelInfo.value || !levelInfo.value.data || !levelInfo.value.data.data) {
     // 默认每100经验值一级
     return Math.floor(exp / 100)
   }
   
   // 从后端返回的等级数据中获取等级阈值
-  const levelData = levelInfo.value.data
+  const levelData = levelInfo.value.data.data
   
   // 检查levelData是否是数组
   if (!Array.isArray(levelData)) {
@@ -468,7 +469,9 @@ const calculateLevel = (exp) => {
     }
   }
   
-  return 0 // 默认返回Lv.0
+  // 如果没有找到匹配的等级，使用默认逻辑计算等级
+  // 这样即使后端返回的数据不完整，也能够正确计算等级
+  return Math.floor(exp / 100)
 }
 
 // 导航方法
@@ -516,13 +519,13 @@ const formatTime = (time) => {
   else return utils.timeToDate(timestamp, 'Y-m-d')
 }
 
-// 导入Toast
-import Toast from '@/utils/toast'
-
 // 获取等级数据
 const getLevelInfo = async () => {
   try {
-    const res = await request.get('/api/exp/all')
+    const res = await request.get('/api/level/all', {
+      page: 1,
+      limit: 20
+    })
     if (res.code === 200) {
       levelInfo.value = res
     }
@@ -552,21 +555,41 @@ const getHotArticles = async () => {
   }
 }
 
-const getActiveRank = async () => {
+const getLevelRank = async () => {
   try {
-    activeLoading.value = true
-    const response = await request.get('/api/exp/active', { 
-      limit: 5, 
+    levelLoading.value = true
+    // 优先获取有经验值的用户，按经验值降序排序
+    const response = await request.get('/api/users/all', { 
+      page: 1, 
+      limit: 9999, // 减少获取的数据量，提高性能
+      order: 'exp desc', // 优先按经验值排序，确保获取有经验值的用户
       cache: false 
     })
     if (response.code === 200) {
-      activeRankList.value = response.data || []
+      // 按等级值排序，等级值基于用户当前经验值计算
+      const users = response.data.data || []
+      levelRankList.value = users
+        // 过滤掉经验值为0或null的用户，优先显示有经验值的用户
+        .filter(user => (user.exp || 0) > 0)
+        .sort((a, b) => {
+          // 根据用户当前经验值计算等级
+          const levelA = calculateLevel(a.exp || 0)
+          const levelB = calculateLevel(b.exp || 0)
+          
+          // 先按等级值排序
+          if (levelB !== levelA) {
+            return levelB - levelA // 降序排序
+          }
+          // 等级相同则按经验值排序
+          return (b.exp || 0) - (a.exp || 0)
+        })
+        .slice(0, 5) // 取前5名
     }
   } catch (error) {
-    // console.error('获取活跃度排行失败：', error)
-    activeRankList.value = []
+    // console.error('获取等级排行失败：', error)
+    levelRankList.value = []
   } finally {
-    activeLoading.value = false
+    levelLoading.value = false
   }
 }
 
@@ -729,9 +752,17 @@ const initUserStats = async () => {
 
 // 签到相关方法
 const checkSignStatus = async () => {
-  if (!store.comm.login.finish || !store.comm.login.user) return
+  // 等待用户登录状态完全初始化
+  if (!store.comm.login.finish) {
+    // 如果登录状态未初始化，延迟重试
+    setTimeout(checkSignStatus, 100)
+    return
+  }
+  
+  if (!store.comm.login.user) return
   
   try {
+    const response = await request.get('/api/exp/sign-status')
     if (response.code === 200) {
       hasSigned.value = response.data?.hasSigned || false
       signDays.value = response.data?.signDays || 0
@@ -760,8 +791,8 @@ const doSign = async () => {
       hasSigned.value = true
       signDays.value += 1
       Toast.success(`签到成功！获得 ${response.data?.exp || 10} 点经验`)
-      // 刷新活跃度排行
-      getActiveRank()
+      // 刷新等级排行
+      getLevelRank()
     } else {
       Toast.error(response.msg || '签到失败')
     }
@@ -781,7 +812,7 @@ onMounted(() => {
   detectDarkMode()
   Promise.all([
     getHotArticles(),
-    getActiveRank(),
+    getLevelRank(),
     getTagList(),
     getLatestComments(),
     checkSignStatus(),

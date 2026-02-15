@@ -8,7 +8,12 @@ import { push } from '@/utils/route'
 const TOKEN_NAME = globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
 
 // 校验token（完善版）
+let checkingToken = false // 防止并发调用的标志位
 const checkToken = async (state = {}) => {
+    // 防止并发调用
+    if (checkingToken) return
+    checkingToken = true
+    
     const cacheName = 'user-info'
     state.login.finish = false // 先置为未完成，避免缓存欺骗
 
@@ -53,6 +58,9 @@ const checkToken = async (state = {}) => {
         if (cacheUser) {
             state.login.finish = true
         }
+    } finally {
+        // 重置标志位
+        checkingToken = false
     }
 }
 

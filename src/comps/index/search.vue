@@ -25,13 +25,51 @@
             <div class="modal-body">
               <!-- 搜索输入框 -->
               <div class="mb-4">
+                <!-- 搜索范围选择 -->
+                <div class="mb-3">
+                  <div class="btn-group w-100" role="group" aria-label="搜索范围">
+                    <button
+                      type="button"
+                      class="btn" 
+                      :class="searchScope === 'all' ? 'btn-primary' : 'btn-outline-primary'"
+                      @click="searchScope = 'all'"
+                    >
+                      <i class="bi bi-search"></i> 全部
+                    </button>
+                    <button
+                      type="button"
+                      class="btn" 
+                      :class="searchScope === 'article' ? 'btn-primary' : 'btn-outline-primary'"
+                      @click="searchScope = 'article'"
+                    >
+                      <i class="bi bi-file-earmark-text"></i> 文章
+                    </button>
+                    <button
+                      type="button"
+                      class="btn" 
+                      :class="searchScope === 'page' ? 'btn-primary' : 'btn-outline-primary'"
+                      @click="searchScope = 'page'"
+                    >
+                      <i class="bi bi-file-earmark"></i> 页面
+                    </button>
+                    <button
+                      type="button"
+                      class="btn" 
+                      :class="searchScope === 'tag' ? 'btn-primary' : 'btn-outline-primary'"
+                      @click="searchScope = 'tag'"
+                    >
+                      <i class="bi bi-tag"></i> 标签
+                    </button>
+                  </div>
+                </div>
+                <!-- 搜索输入框 -->
                 <div class="input-group">
                   <input
                     ref="searchInput"
                     type="text"
                     v-model="searchQuery"
                     class="form-control form-control-lg"
-                    placeholder="搜索文章、页面或标签..."
+                    :placeholder="getSearchPlaceholder()"
                     @input="handleInput"
                     @keyup.enter="performSearch"
                   >
@@ -165,6 +203,7 @@ const searchResults = ref([])
 const searchHistory = ref([])
 const debounceTimer = ref(null)
 const searchInput = ref(null)
+const searchScope = ref('all') // 搜索范围：all, article, page, tag
 
 // 方法定义
 const method = {
@@ -275,65 +314,86 @@ const performSearch = async () => {
   searchResults.value = []
   
   try {
-    // 并行搜索文章、页面和标签
-    const [articleResults, pageResults, tagResults] = await Promise.all([
-      searchArticles(query),
-      searchPages(query),
-      searchTags(query)
-    ])
+    let results = []
     
-    // 优化搜索结果
-    const optimizedResults = []
-    const seenIds = new Set() // 用于去重
-    
-    // 1. 首先添加文章结果，按相关性排序
-    if (articleResults.length > 0) {
-      // 按创建时间降序排序
-      const sortedArticles = articleResults.sort((a, b) => {
-        return new Date(b.create_time || 0) - new Date(a.create_time || 0)
-      })
-      
-      // 去重并添加文章结果
-      sortedArticles.forEach(article => {
-        if (!seenIds.has(article.id)) {
-          seenIds.add(article.id)
-          optimizedResults.push(article)
+    // 根据搜索范围执行不同的搜索
+    switch (searchScope.value) {
+      case 'article':
+        // 只搜索文章
+        results = await searchArticles(query)
+        break
+      case 'page':
+        // 只搜索页面
+        results = await searchPages(query)
+        break
+      case 'tag':
+        // 只搜索标签
+        results = await searchTags(query)
+        break
+      default:
+        // 全局搜索：搜索文章、页面和标签
+        const [articleResults, pageResults, tagResults] = await Promise.all([
+          searchArticles(query),
+          searchPages(query),
+          searchTags(query)
+        ])
+        
+        // 合并并优化搜索结果
+        const optimizedResults = []
+        const seenIds = new Set() // 用于去重
+        
+        // 1. 首先添加文章结果，按相关性排序
+        if (articleResults.length > 0) {
+          // 按创建时间降序排序
+          const sortedArticles = articleResults.sort((a, b) => {
+            return new Date(b.create_time || 0) - new Date(a.create_time || 0)
+          })
+          
+          // 去重并添加文章结果
+          sortedArticles.forEach(article => {
+            if (!seenIds.has(article.id)) {
+              seenIds.add(article.id)
+              optimizedResults.push(article)
+            }
+          })
         }
-      })
+        
+        // 2. 然后添加页面结果
+        if (pageResults.length > 0) {
+          // 按创建时间降序排序
+          const sortedPages = pageResults.sort((a, b) => {
+            return new Date(b.create_time || 0) - new Date(a.create_time || 0)
+          })
+          
+          // 去重并添加页面结果
+          sortedPages.forEach(page => {
+            if (!seenIds.has(page.id)) {
+              seenIds.add(page.id)
+              optimizedResults.push(page)
+            }
+          })
+        }
+        
+        // 3. 最后添加标签结果，限制数量
+        if (tagResults.length > 0) {
+          // 限制标签数量
+          const relevantTags = tagResults.slice(0, 3)
+          
+          // 去重并添加标签结果
+          relevantTags.forEach(tag => {
+            if (!seenIds.has(tag.id)) {
+              seenIds.add(tag.id)
+              optimizedResults.push(tag)
+            }
+          })
+        }
+        
+        results = optimizedResults
+        break
     }
     
-    // 2. 然后添加页面结果
-    if (pageResults.length > 0) {
-      // 按创建时间降序排序
-      const sortedPages = pageResults.sort((a, b) => {
-        return new Date(b.create_time || 0) - new Date(a.create_time || 0)
-      })
-      
-      // 去重并添加页面结果
-      sortedPages.forEach(page => {
-        if (!seenIds.has(page.id)) {
-          seenIds.add(page.id)
-          optimizedResults.push(page)
-        }
-      })
-    }
-    
-    // 3. 最后添加标签结果，限制数量
-    if (tagResults.length > 0) {
-      // 限制标签数量
-      const relevantTags = tagResults.slice(0, 3)
-      
-      // 去重并添加标签结果
-      relevantTags.forEach(tag => {
-        if (!seenIds.has(tag.id)) {
-          seenIds.add(tag.id)
-          optimizedResults.push(tag)
-        }
-      })
-    }
-    
-    // 设置优化后的结果
-    searchResults.value = optimizedResults
+    // 设置搜索结果
+    searchResults.value = results
     
     // 保存搜索历史
     saveSearchHistory(query)
@@ -463,6 +523,20 @@ const getResultTypeName = (type) => {
   }
 }
 
+// 获取搜索占位符
+const getSearchPlaceholder = () => {
+  switch (searchScope.value) {
+    case 'article':
+      return '搜索文章...'
+    case 'page':
+      return '搜索页面...'
+    case 'tag':
+      return '搜索标签...'
+    default:
+      return '搜索文章、页面或标签...'
+  }
+}
+
 // 格式化日期
 const formatDate = (timestamp) => {
   if (!timestamp) return ''
@@ -485,14 +559,22 @@ const formatDate = (timestamp) => {
 const navigateToResult = (result) => {
   switch (result.type) {
     case 'article':
-      router.push(`/archives/${result.id}`)
+      if (result.id) {
+        router.push(`/archives/${result.id}`)
+      }
       break
     case 'page':
-      router.push(`/${result.key}`)
+      if (result.key) {
+        router.push(`/${result.key}`)
+      } else {
+        Toast.error('页面路径无效，无法跳转')
+      }
       break
     case 'tag':
       // 假设标签页面的路由是 /tag/:id
-      router.push(`/tag/${result.id}`)
+      if (result.id) {
+        router.push(`/tag/${result.id}`)
+      }
       break
     default:
       break

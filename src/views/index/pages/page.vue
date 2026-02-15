@@ -20,48 +20,48 @@
         <!-- 统计信息卡片区域 -->
           <main class="article-content-wrap card border-0 shadow-sm mt-2">
             <div class="p-3">
-          <!-- 页面标题 -->
-          <header class="article-header mt-2 mb-4">
-            <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title || '归档' }}</h1>
-            <!-- 文章元信息：居中布局、弱化样式 -->
-            <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-person-fill me-2"></i>
-                {{ authorInfo.nickname || '匿名' }}
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-calendar-fill me-2"></i>
-                {{ formatTime(pageInfo.last_update || Date.now() / 1000) }}
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-eye-fill me-2"></i>
-                {{ viewCount || 0 }} 浏览
-              </span>
-            </div>
-          </header>
-          <!-- 统计信息网格 -->
-          <div class="stats-grid">
-            <!-- 文章总数 -->
-            <div class="stat-card">
-              <div class="stat-icon article-icon">
-                <i class="bi bi-file-earmark-text"></i>
-              </div>
-              <div class="stat-content">
-                <h3 class="stat-value">{{ archiveStats.articleCount || 0 }}</h3>
-                <p class="stat-label">文章总数</p>
-              </div>
-            </div>
+              <!-- 页面标题 -->
+              <header class="article-header mt-2 mb-4">
+                <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title || '归档' }}</h1>
+                <!-- 文章元信息：居中布局、弱化样式 -->
+                <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
+                  <span class="meta-item d-flex align-items-center">
+                    <i class="bi bi-person-fill me-2"></i>
+                    {{ authorInfo.nickname || '匿名' }}
+                  </span>
+                  <span class="meta-item d-flex align-items-center">
+                    <i class="bi bi-calendar-fill me-2"></i>
+                    {{ formatTime(pageInfo.last_update || Date.now() / 1000) }}
+                  </span>
+                  <span class="meta-item d-flex align-items-center">
+                    <i class="bi bi-eye-fill me-2"></i>
+                    {{ viewCount || 0 }} 浏览
+                  </span>
+                </div>
+              </header>
+              <!-- 统计信息网格 -->
+              <div class="stats-grid">
+                <!-- 文章总数 -->
+                <div class="stat-card">
+                  <div class="stat-icon article-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                  </div>
+                  <div class="stat-content">
+                    <h3 class="stat-value">{{ archiveStats.articleCount || 0 }}</h3>
+                    <p class="stat-label">文章总数</p>
+                  </div>
+                </div>
 
-            <!-- 文章分类总数 -->
-            <div class="stat-card">
-              <div class="stat-icon category-icon">
-                <i class="bi bi-tags"></i>
-              </div>
-              <div class="stat-content">
-                <h3 class="stat-value">{{ archiveStats.categoryCount || 0 }}</h3>
-                <p class="stat-label">文章分类总数</p>
-              </div>
-            </div>
+                <!-- 文章分类总数 -->
+                <div class="stat-card">
+                  <div class="stat-icon category-icon">
+                    <i class="bi bi-tags"></i>
+                  </div>
+                  <div class="stat-content">
+                    <h3 class="stat-value">{{ archiveStats.categoryCount || 0 }}</h3>
+                    <p class="stat-label">文章分类总数</p>
+                  </div>
+                </div>
 
             <!-- 独立页面总数 -->
             <div class="stat-card">
@@ -138,9 +138,10 @@
         </div>
 
         <!-- 友链页面主体 -->
-        <div v-else class="card shadow-sm border-0 rounded-3 mt-2">
+        <main v-else class="card shadow-sm border-0 rounded-3 mt-2">
+          <div class="p-3">
           <!-- 页面标题 -->
-          <header class="article-header mt-3 mb-2">
+          <header class="article-header mt-2 mb-2">
             <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title || '友链页面' }}</h1>
             <!-- 文章元信息：居中布局、弱化样式 -->
             <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
@@ -220,7 +221,8 @@
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </main>
         
         <!-- 评论区域 -->
         <div class="mt-4">

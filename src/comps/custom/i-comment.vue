@@ -46,9 +46,10 @@
           <button 
               @click="handlePublish"
               class="btn btn-primary px-4 rounded-3 publish-btn flex-grow-1"
-              :disabled="!commentInput.trim()"
+              :disabled="!commentInput.trim() || isCommenting"
             >
-              <i class="bi bi-paper-plane-fill me-1"></i> 发布评论
+              <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
+              {{ isCommenting ? ' 发布中...' : ' 发布评论' }}
             </button>
         </div>
       </div>
@@ -178,9 +179,10 @@
               <button 
                 @click="handleSubmitReply()"
                 class="btn btn-sm btn-primary px-3 rounded-3 flex-grow-1"
-                :disabled="!replyInput.trim()"
+                :disabled="!replyInput.trim() || isCommenting"
               >
-                发送回复
+                <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : ''"></i>
+                {{ isCommenting ? ' 发送中...' : ' 发送回复' }}
               </button>
               <button 
                 @click="cancelReply"
@@ -365,6 +367,12 @@ const isSystemDark = ref(false)
 const commentLikes = ref(new Map())
 const commentLikeCounts = ref(new Map())
 
+// 评论配置
+const commentConfig = ref({})
+// 速率限制相关
+const lastCommentTime = ref(0)
+const isCommenting = ref(false)
+
 // 🌟 4. 分页相关计算属性和方法
 // 总页数
 const totalPages = computed(() => {
@@ -411,6 +419,114 @@ const emojis = [
   '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😙', '😚',
   '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩'
 ]
+
+// 获取评论配置
+async function getCommentConfig() {
+  try {
+    const response = await request.get('/api/config/one', {
+      key: 'COMMENT'
+    })
+    if (response.code === 200 && response.data) {
+      return response.data.json || {}
+    }
+    return {}
+  } catch (error) {
+    console.error('获取评论配置失败:', error)
+    return {}
+  }
+}
+
+// 应用评论配置
+function applyCommentConfig() {
+  // 速率限制
+  applyRateLimit()
+  // 评论长度限制
+  applyMaxLength()
+  // 要求包含中文
+  applyChineseRequirement()
+  // 敏感词过滤
+  applySensitiveFilter()
+}
+
+// 应用速率限制
+function applyRateLimit() {
+  const rateLimit = commentConfig.value.rate_limit || {}
+  if (rateLimit.enabled === 1) {
+    // 速率限制已在发布评论时处理
+  }
+}
+
+// 应用评论长度限制
+function applyMaxLength() {
+  const maxLength = commentConfig.value.max_length || 500
+  // 设置输入框的最大长度
+  const textarea = document.querySelector('textarea[placeholder="请输入你的评论..."]')
+  if (textarea) {
+    textarea.maxLength = maxLength
+  }
+}
+
+// 应用要求包含中文
+function applyChineseRequirement() {
+  // 中文要求已在发布评论时处理
+}
+
+// 应用敏感词过滤
+function applySensitiveFilter() {
+  // 敏感词过滤已在发布评论时处理
+}
+
+// 检查评论内容
+function validateCommentContent(content) {
+  const config = commentConfig.value
+  
+  // 检查评论长度
+  const maxLength = config.max_length || 500
+  if (content.length > maxLength) {
+    Toast.error(`评论长度不能超过 ${maxLength} 字`)
+    return false
+  }
+  
+  // 检查是否要求包含中文
+  if (config.require_chinese === 1) {
+    const hasChinese = /[\u4e00-\u9fa5]/.test(content)
+    if (!hasChinese) {
+      Toast.error('评论内容必须包含中文')
+      return false
+    }
+  }
+  
+  // 检查敏感词
+  if (config.sensitive_filter === 1 && config.sensitive_words) {
+    const sensitiveWords = config.sensitive_words
+    for (const word of sensitiveWords) {
+      if (content.includes(word)) {
+        Toast.error('评论内容包含敏感词，请修改后重试')
+        return false
+      }
+    }
+  }
+  
+  return true
+}
+
+// 检查速率限制
+function checkRateLimit() {
+  const rateLimit = commentConfig.value.rate_limit || {}
+  if (rateLimit.enabled === 1) {
+    const maxCount = rateLimit.max_count || 5
+    const timeWindow = rateLimit.time_window || 60
+    
+    const now = Date.now() / 1000 // 转换为秒
+    const timeSinceLastComment = now - lastCommentTime.value
+    
+    if (timeSinceLastComment < timeWindow) {
+      Toast.error(`评论过于频繁，请等待 ${Math.ceil(timeWindow - timeSinceLastComment)} 秒后再试`)
+      return false
+    }
+  }
+  return true
+}
 
 // 🌟 4. 处理评论数据，适配 API 返回格式
 const processedCommentList = computed(() => {
@@ -555,18 +671,45 @@ const processedCommentList = computed(() => {
 })
 
 // 🌟 4. 发布评论处理
-const handlePublish = () => {
+const handlePublish = async () => {
   const content = commentInput.value.trim()
   if (!content) return
-  // console.log('发布评论:', {
-  //   articleId: props.articleId,
-  //   content
-  // })
-  emit('publishComment', {
-    articleId: props.articleId,
-    content
-  })
-  commentInput.value = ''
+  
+  // 检查速率限制
+  if (!checkRateLimit()) {
+    return
+  }
+  
+  // 验证评论内容
+  if (!validateCommentContent(content)) {
+    return
+  }
+  
+  isCommenting.value = true
+  
+  try {
+    // 记录评论时间
+    const currentTime = Date.now() / 1000
+    lastCommentTime.value = currentTime
+    try {
+      localStorage.setItem('lastCommentTime', currentTime.toString())
+    } catch (error) {
+      console.error('存储评论时间失败:', error)
+    }
+    
+    // 发布评论
+    emit('publishComment', {
+      articleId: props.articleId,
+      content
+    })
+    
+    commentInput.value = ''
+  } catch (error) {
+    console.error('发布评论失败:', error)
+    Toast.error('发布评论失败，请稍后重试')
+  } finally {
+    isCommenting.value = false
+  }
 }
 
 // 🌟 5. 切换回复输入框
@@ -610,27 +753,52 @@ const toggleReplyForm = (index, replyIndex = null) => {
 }
 
 // 🌟 6. 提交回复
-const handleSubmitReply = () => {
+const handleSubmitReply = async () => {
   const content = replyInput.value.trim()
   if (!content) return
+  
+  // 检查速率限制
+  if (!checkRateLimit()) {
+    return
+  }
+  
+  // 验证评论内容
+  if (!validateCommentContent(content)) {
+    return
+  }
   
   // 使用 replyTarget.value.id 作为目标评论的 ID
   const commentId = replyTarget.value?.id
   if (!commentId) return
   
-  // console.log('提交回复:', {
-  //   articleId: props.articleId,
-  //   commentId,
-  //   content
-  // })
-  emit('replyComment', {
-    articleId: props.articleId,
-    commentId,
-    content
-  })
-  showReplyIndex.value = null
-  replyInput.value = ''
-  replyTarget.value = null
+  isCommenting.value = true
+  
+  try {
+    // 记录评论时间
+    const currentTime = Date.now() / 1000
+    lastCommentTime.value = currentTime
+    try {
+      localStorage.setItem('lastCommentTime', currentTime.toString())
+    } catch (error) {
+      console.error('存储评论时间失败:', error)
+    }
+    
+    // 提交回复
+    emit('replyComment', {
+      articleId: props.articleId,
+      commentId,
+      content
+    })
+    
+    showReplyIndex.value = null
+    replyInput.value = ''
+    replyTarget.value = null
+  } catch (error) {
+    console.error('提交回复失败:', error)
+    Toast.error('提交回复失败，请稍后重试')
+  } finally {
+    isCommenting.value = false
+  }
 }
 
 // 🌟 7. 取消回复
@@ -872,7 +1040,7 @@ const initCommentLikeData = async () => {
 }
 
 // 🌟 9. 初始化Bootstrap tooltip + 检测系统深色模式
-onMounted(() => {
+onMounted(async () => {
   // 初始化tooltip
   if (window.bootstrap) {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -884,6 +1052,22 @@ onMounted(() => {
   // 检测系统深色模式（兜底）
   if (!props.isDarkMode) {
     isSystemDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+
+  // 获取评论配置
+  const config = await getCommentConfig()
+  commentConfig.value = config
+  // 应用评论配置
+  applyCommentConfig()
+  
+  // 从localStorage读取上次评论时间
+  try {
+    const storedTime = localStorage.getItem('lastCommentTime')
+    if (storedTime) {
+      lastCommentTime.value = parseFloat(storedTime) || 0
+    }
+  } catch (error) {
+    console.error('读取评论时间失败:', error)
   }
 
   // 初始化评论点赞数据
@@ -1197,6 +1381,20 @@ watch(
   .emoji-button {
     bottom: 1rem !important;
     end: 1rem !important;
+  }
+}
+
+/* 加载动画 */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 </style>
