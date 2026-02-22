@@ -356,9 +356,9 @@
                       id="sensitive_words"
                       v-model="commentConfig.sensitive_words"
                       rows="4"
-                      placeholder="输入敏感词，用逗号分隔"
+                      placeholder="在这里输入敏感词，多个敏感词用「,」分隔"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">评论中包含这些词将被拒绝</div>
+                    <div class="form-text text-muted mt-1">评论中包含这些词将被拒绝，多个敏感词用「,」分隔</div>
                   </div>
                 </div>
 

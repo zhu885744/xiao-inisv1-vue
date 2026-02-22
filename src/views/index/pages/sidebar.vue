@@ -368,14 +368,14 @@
       <div class="card-body sidebar-card-body">
         <div class="row g-2">
           <div class="col-6" v-for="nav in quickNavs" :key="nav.id">
-            <a 
-              :href="nav.url"
-              class="nav-item"
+            <div 
+              @click="router.push(nav.url)"
+              class="nav-item cursor-pointer"
               :style="{ '--nav-color': nav.color }"
             >
               <i :class="nav.icon" class="nav-item-icon"></i>
               <span class="nav-item-name">{{ nav.name }}</span>
-            </a>
+            </div>
           </div>
         </div>
       </div>
@@ -1074,6 +1074,17 @@ onMounted(() => {
   text-decoration: none;
   color: var(--bs-body-color);
   min-height: 80px;
+  transition: all 0.3s ease;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .nav-item-icon {

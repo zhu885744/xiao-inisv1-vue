@@ -165,7 +165,7 @@
           </header>
           
           <!-- 核心内容区 -->
-          <div class="card-body pb-2">
+          <div class="pb-2">
             <!-- 友链介绍 -->
             <div class="article-content text-secondary mb-5">
               <i-markdown :model-value="pageInfo.content || '暂无友链介绍，敬请期待～'" />

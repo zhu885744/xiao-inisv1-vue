@@ -99,7 +99,7 @@
             <div class="tag-info-content">
               <h1 class="tag-title fw-bold mb-3">{{ currentTag.name }} <span class="text-sm text-muted">({{ currentTag.articleCount || 0 }})</span></h1>
               <p v-if="currentTag.description" class="tag-description text-muted mb-4">
-                {{ currentTag.description }}
+                {{ currentTag.description || '暂无描述' }}
               </p>
             </div>
           </div>
@@ -386,44 +386,41 @@ const getTagsList = async () => {
     const cacheKey = `tags_list_page_${tagCurrentPage.value}_${tagPageSize.value}`
     const cacheExpire = 60 // 缓存60分钟
     
-    // 暂时禁用缓存，确保每次都从API获取新的标签列表
-    // let tagsList = cache.get(cacheKey)
-    let tagsList = null
+    // 尝试从缓存获取标签列表
+    let tagsList = cache.get(cacheKey)
     
-    // 参考分类页面的实现方式，从API获取标签列表
-    // 使用URL参数的形式直接请求API，确保分页参数被正确处理
-    const apiUrl = `/api/tags/all?page=${tagCurrentPage.value}&limit=${tagPageSize.value}&order=create_time+desc&cache=false`
-    // console.log('请求标签列表的URL:', apiUrl)
-    let res = await request.get(apiUrl)
+    // 如果缓存不存在，从API获取
+    if (!tagsList) {
+      // 参考分类页面的实现方式，从API获取标签列表
+      // 使用URL参数的形式直接请求API，确保分页参数被正确处理
+      const apiUrl = `/api/tags/all?page=${tagCurrentPage.value}&limit=${tagPageSize.value}&order=create_time+desc&cache=false`
+      let res = await request.get(apiUrl)
 
-    // console.log('获取标签列表API响应:', res)
-    // console.log('当前页码:', tagCurrentPage.value)
-    // console.log('每页数量:', tagPageSize.value)
-    // console.log('API返回的完整数据:', JSON.stringify(res))
-
-    if (res.code === 200 && res.data) {
-      if (res.data.data && res.data.data.length > 0) {
-        tagsList = res.data.data
-        // console.log('标签列表数据:', tagsList)
-        // console.log('标签数量:', tagsList.length)
-      } else if (Array.isArray(res.data)) {
-        tagsList = res.data
-        // console.log('标签列表数据:', tagsList)
-        // console.log('标签数量:', tagsList.length)
+      if (res.code === 200 && res.data) {
+        if (res.data.data && res.data.data.length > 0) {
+          tagsList = res.data.data
+        } else if (Array.isArray(res.data)) {
+          tagsList = res.data
+        } else {
+          tagsList = []
+        }
+        // 更新标签总数
+        totalTags.value = res.data.count || tagsList.length
+        tagsCount.value = tagsList.length
+        // 缓存标签列表
+        cache.set(cacheKey, tagsList, cacheExpire)
+        // 缓存标签总数
+        cache.set('tags_total_count', totalTags.value, cacheExpire)
       } else {
         tagsList = []
+        totalTags.value = 0
+        tagsCount.value = 0
+        console.error('获取标签列表失败:', res.msg || '未知错误')
       }
-      // 更新标签总数
-      totalTags.value = res.data.count || tagsList.length
-      tagsCount.value = tagsList.length
-      // 缓存标签列表
-      // cache.set(cacheKey, tagsList, cacheExpire)
     } else {
-      tagsList = []
-      totalTags.value = 0
-      tagsCount.value = 0
-      console.error('获取标签列表失败:', res.msg || '未知错误')
-      console.error('API响应:', res)
+      // 从缓存获取时，更新标签总数
+      totalTags.value = cache.get('tags_total_count') || tagsList.length
+      tagsCount.value = tagsList.length
     }
 
     // 为每个标签获取文章数量
@@ -434,8 +431,6 @@ const getTagsList = async () => {
     tags.value = tagsList
     // 更新标签总数
     tagsCount.value = tagsList.length
-    // console.log('最终标签列表:', tags.value)
-    // console.log('标签总数:', tagsCount.value)
     
     // 移除默认选择第一个标签的逻辑，现在通过路由参数或手动导航选择标签
   } catch (err) {
@@ -448,20 +443,27 @@ const getTagsList = async () => {
 // 获取标签文章数量
 const getTagArticleCount = async (tag) => {
   try {
+    // 缓存键
+    const cacheKey = `tag_article_count_${tag.id}`
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取
+    const cachedCount = cache.get(cacheKey)
+    if (cachedCount !== null) {
+      tag.articleCount = cachedCount
+      return
+    }
+    
     // 参考分类页面的实现方式，使用like参数
     const like = `tags|%7C${tag.id}%7C`;
     const apiUrl = `/api/article/count?like=${like}`;
     
-    // console.log('获取标签文章数量请求URL:', apiUrl);
-    // console.log('当前标签ID:', tag.id);
-    // console.log('like参数:', like);
-    
     const response = await request.get(apiUrl);
-    
-    // console.log('获取标签文章数量响应:', tag.id, response);
     
     if (response.code === 200) {
       tag.articleCount = response.data || 0
+      // 缓存文章数量
+      cache.set(cacheKey, tag.articleCount, cacheExpire)
     } else {
       tag.articleCount = 0
       console.error('获取标签文章数量失败:', response.msg)
@@ -475,32 +477,50 @@ const getTagArticleCount = async (tag) => {
 // 获取标签下的文章列表
 const getTagArticles = async (tagId, page = 1) => {
   try {
-    // console.log('获取标签文章列表，标签ID:', tagId, '页码:', page)
+    // 缓存键
+    const cacheKey = `tag_articles_${tagId}_page_${page}_limit_${limit.value}`
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取文章列表
+    const cachedArticles = cache.get(cacheKey)
+    if (cachedArticles) {
+      articles.value = cachedArticles.data || []
+      total.value = cachedArticles.total || 0
+      // 数据更新后，观察新图片
+      observeLazyImages()
+      return
+    }
+    
     // 参考分类页面的实现方式，使用like参数
     const like = `tags|%7C${tagId}%7C`;
     const apiUrl = `/api/article/all?like=${like}&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
     
-    // console.log('获取标签文章列表请求URL:', apiUrl);
-    
     const res = await request.get(apiUrl);
-
-    // console.log('获取标签文章列表API响应:', res)
 
     if (res.code === 200) {
       // 处理不同的数据结构
+      let articlesData = []
+      let totalCount = 0
+      
       if (res.data && res.data.data) {
         // 文章数组在data.data中
-        articles.value = res.data.data;
-        total.value = res.data.count || 0;
+        articlesData = res.data.data;
+        totalCount = res.data.count || 0;
       } else if (res.data && Array.isArray(res.data)) {
         // 直接是文章数组
-        articles.value = res.data;
-        total.value = res.count || 0;
-      } else {
-        articles.value = [];
-        total.value = 0;
+        articlesData = res.data;
+        totalCount = res.count || 0;
       }
-      // console.log('标签文章列表数据:', articles.value)
+      
+      articles.value = articlesData
+      total.value = totalCount
+      
+      // 缓存文章列表
+      cache.set(cacheKey, {
+        data: articlesData,
+        total: totalCount
+      }, cacheExpire)
+      
       // 数据更新后，观察新图片
       observeLazyImages();
     } else {
@@ -542,19 +562,29 @@ const changeTagPage = (page) => {
 const loadTagFromProps = async (tagId) => {
   if (!tagId) return
   
-  // console.log('加载标签，ID:', tagId)
-  
   // 重置标签状态
   currentTag.value = null
   currentTagId.value = null
   
   try {
+    // 缓存键
+    const cacheKey = `tag_detail_${tagId}`
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取标签详情
+    const cachedTag = cache.get(cacheKey)
+    if (cachedTag) {
+      currentTagId.value = cachedTag.id
+      currentTag.value = cachedTag
+      pageTitle.value = `${cachedTag.name} - ${getSiteTitle()}`
+      // 获取标签文章列表
+      await getTagArticles(tagId, 1)
+      return
+    }
+    
     // 直接从API获取标签详情
     const apiUrl = `/api/tags/all?where=${encodeURIComponent(JSON.stringify({ id: tagId }))}&cache=false`
-    // console.log('请求标签详情URL:', apiUrl)
     const response = await request.get(apiUrl)
-    
-    // console.log('API响应:', response)
     
     if (response.code === 200 && response.data) {
       // 处理不同的数据结构
@@ -566,29 +596,27 @@ const loadTagFromProps = async (tagId) => {
       }
       
       if (tag) {
-        // console.log('找到标签:', tag)
         currentTagId.value = tag.id
         currentTag.value = tag
         pageTitle.value = `${tag.name} - ${getSiteTitle()}`
+        // 缓存标签详情
+        cache.set(cacheKey, tag, cacheExpire)
         // 获取标签文章数量
         await getTagArticleCount(tag)
         // 获取标签文章列表
         await getTagArticles(tag.id, 1)
       } else {
         // 如果标签不存在，显示错误信息
-        // console.log('标签不存在:', tagId)
         error.value = true
         errorMsg.value = '未找到该标签，可能已被删除或参数错误'
         pageTitle.value = `标签不存在 - ${getSiteTitle()}`
       }
     } else {
-      // console.log('API返回错误:', response.msg)
       error.value = true
       errorMsg.value = '获取标签信息失败'
       pageTitle.value = `标签不存在 - ${getSiteTitle()}`
     }
   } catch (err) {
-    // console.error('获取标签详情失败:', err)
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
     pageTitle.value = `网络异常 - ${getSiteTitle()}`
@@ -779,6 +807,34 @@ onMounted(async () => {
   border-radius: 8px;
   object-fit: cover;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 标签信息内容 */
+.tag-info-content {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .tag-info-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .tag-info-avatar-img {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .tag-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+  
+  .tag-description {
+    font-size: 1rem;
+  }
 }
 
 /* 文章列表Grid布局 */

@@ -7,8 +7,15 @@ import { push } from '@/utils/route'
 // 定义Token名称（和后端配置一致）
 const TOKEN_NAME = globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
 
-// 校验token（完善版）
-let checkingToken = false // 防止并发调用的标志位
+// 防止并发调用的标志位
+let checkingToken = false
+let fetchingSiteInfo = false
+
+/**
+ * 校验token（完善版）
+ * @param {Object} state - 状态对象
+ * @returns {Promise<void>}
+ */
 const checkToken = async (state = {}) => {
     // 防止并发调用
     if (checkingToken) return
@@ -17,14 +24,14 @@ const checkToken = async (state = {}) => {
     const cacheName = 'user-info'
     state.login.finish = false // 先置为未完成，避免缓存欺骗
 
-    // 1. 优先从缓存取用户信息（提升体验）
-    const cacheUser = cache.get(cacheName)
-    if (cacheUser) {
-        state.login.user = cacheUser
-        state.login.finish = true // 先设置为完成，提升用户体验
-    }
-
     try {
+        // 1. 优先从缓存取用户信息（提升体验）
+        const cacheUser = cache.get(cacheName)
+        if (cacheUser) {
+            state.login.user = cacheUser
+            state.login.finish = true // 先设置为完成，提升用户体验
+        }
+
         // 2. 强制校验后端Token有效性（异步）
         const { code, msg, data } = await axios.post('/api/comm/check-token', {}, {
             // 携带Cookie（适配后端从Cookie取Token）
@@ -55,7 +62,7 @@ const checkToken = async (state = {}) => {
         // 网络错误/接口异常 → 保持缓存中的用户信息
         console.error('Token校验失败：', err)
         // 不登出，保持缓存中的用户信息
-        if (cacheUser) {
+        if (cache.get('user-info')) {
             state.login.finish = true
         }
     } finally {
@@ -64,7 +71,12 @@ const checkToken = async (state = {}) => {
     }
 }
 
-// 登出（完善版）
+/**
+ * 登出（完善版）
+ * @param {Object} state - 状态对象
+ * @param {string|null} path - 跳转路径
+ * @returns {Promise<void>}
+ */
 const logout = async (state = {}, path = null) => {
     // 1. 清除前端状态
     state.login.user = {}
@@ -85,29 +97,33 @@ const logout = async (state = {}, path = null) => {
     }
 }
 
-const fetchSiteInfo = async (state = {}) => {
+/**
+ * 获取站点信息
+ * @param {Object} state - 状态对象
+ * @param {boolean} force - 是否强制刷新
+ * @returns {Promise<Object|null>}
+ */
+const fetchSiteInfo = async (state = {}, force = false) => {
     const cacheName = 'site-info'
     
-    console.log('fetchSiteInfo 开始执行')
+    // 防止并发调用
+    if (fetchingSiteInfo) return state.siteInfo
+    fetchingSiteInfo = true
     
-    // 1. 优先从缓存取站点信息
-    const cachedSiteInfo = cache.get(cacheName)
-    console.log('缓存中的站点信息:', cachedSiteInfo)
-    if (cachedSiteInfo && !utils.is.empty(cachedSiteInfo)) {
-        state.siteInfo = cachedSiteInfo
-        console.log('从缓存获取站点信息:', cachedSiteInfo)
-        return cachedSiteInfo
-    }
-
     try {
-        // 2. 从API获取站点信息
-        console.log('从API获取站点信息')
-        const response = await axios.get('/api/config/one', {
-            key: 'SITE_INFO'
-        })
+        // 1. 优先从缓存取站点信息（非强制刷新时）
+        if (!force) {
+            const cachedSiteInfo = cache.get(cacheName)
+            if (cachedSiteInfo && !utils.is.empty(cachedSiteInfo)) {
+                state.siteInfo = cachedSiteInfo
+                return cachedSiteInfo
+            }
+        }
 
-        console.log('API响应:', response)
-        
+        // 2. 从API获取站点信息
+        // 尝试直接在URL中拼接参数，确保key参数能够正确传递
+        const response = await axios.get(`/api/config/one?key=SITE_INFO`)
+
         // 检查响应结构
         if (response.code === 200 && response.data) {
             let siteInfo
@@ -121,30 +137,34 @@ const fetchSiteInfo = async (state = {}) => {
                 siteInfo = response.data
             }
             
-            console.log('解析后的站点信息:', siteInfo)
-            
-            // 处理反引号问题
+            // 处理反引号问题和XSS防护
             if (siteInfo && typeof siteInfo === 'object') {
-                Object.keys(siteInfo).forEach(key => {
-                    if (typeof siteInfo[key] === 'string') {
-                        siteInfo[key] = siteInfo[key].replace(/`/g, '')
-                    } else if (typeof siteInfo[key] === 'object' && siteInfo[key] !== null) {
-                        Object.keys(siteInfo[key]).forEach(subKey => {
-                            if (typeof siteInfo[key][subKey] === 'string') {
-                                siteInfo[key][subKey] = siteInfo[key][subKey].replace(/`/g, '')
-                            }
-                        })
-                    }
-                })
+                // 递归处理对象中的字符串
+                const sanitizeObject = (obj) => {
+                    if (!obj || typeof obj !== 'object') return obj
+                    
+                    Object.keys(obj).forEach(key => {
+                        if (typeof obj[key] === 'string') {
+                            // 移除反引号并进行基本的XSS防护
+                            obj[key] = obj[key].replace(/`/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            sanitizeObject(obj[key])
+                        }
+                    })
+                    return obj
+                }
                 
+                siteInfo = sanitizeObject(siteInfo)
                 state.siteInfo = siteInfo
+                
                 // 缓存站点信息（24小时）
                 cache.set(cacheName, siteInfo, 86400)
+                
                 // 更新页面标题
                 if (siteInfo.title) {
                     document.title = siteInfo.title
                 }
-                console.log('成功获取站点信息:', siteInfo)
+                
                 return siteInfo
             } else {
                 console.error('站点信息格式错误:', siteInfo)
@@ -154,10 +174,12 @@ const fetchSiteInfo = async (state = {}) => {
         }
     } catch (error) {
         console.error('获取站点信息失败:', error)
+    } finally {
+        // 重置标志位
+        fetchingSiteInfo = false
     }
     
-    console.log('fetchSiteInfo 执行完成，siteInfo:', state.siteInfo)
-    return null
+    return state.siteInfo
 }
 
 export const useCommStore = defineStore('comm', {
@@ -165,6 +187,7 @@ export const useCommStore = defineStore('comm', {
         const cachedUser = cache.get('user-info') || {}
         const hasUser = !utils.is.empty(cachedUser)
         const cachedSiteInfo = cache.get('site-info') || {}
+        
         return {
             auth: {
                 login: false,
@@ -179,47 +202,114 @@ export const useCommStore = defineStore('comm', {
             nav: {
                 title: ''
             },
-            siteInfo: cachedSiteInfo,
-            _fetchingSiteInfo: false // 添加标志，避免无限请求
+            siteInfo: cachedSiteInfo
         }
     },
     actions: {
+        /**
+         * 切换认证状态
+         * @param {string} name - 认证类型
+         * @param {boolean} bool - 状态值
+         */
         switchAuth(name = 'login', bool = true) {
             for (const key in this.auth) {
                 this.auth[key] = key === name ? bool : false
             }
         },
+        
+        /**
+         * 登出
+         * @param {string|null} path - 跳转路径
+         * @returns {Promise<void>}
+         */
         logout(path = null) {
             return logout(this, path)
         },
-        // 手动触发登录态校验（比如登录后/页面刷新后）
+        
+        /**
+         * 手动触发登录态校验（比如登录后/页面刷新后）
+         * @returns {Promise<void>}
+         */
         async checkLoginState() {
             await checkToken(this)
         },
-        // 获取站点信息
-        async fetchSiteInfo(force = true) {
+        
+        /**
+         * 获取站点信息
+         * @param {boolean} force - 是否强制刷新
+         * @returns {Promise<Object|null>}
+         */
+        async fetchSiteInfo(force = false) {
             return await fetchSiteInfo(this, force)
         },
-        // 清除站点信息缓存
+        
+        /**
+         * 清除站点信息缓存
+         */
         clearSiteInfoCache() {
             cache.del('site-info')
             this.siteInfo = {}
+        },
+        
+        /**
+         * 设置导航标题
+         * @param {string} title - 标题
+         */
+        setNavTitle(title) {
+            this.nav.title = title
+        },
+        
+        /**
+         * 设置加载状态
+         * @param {boolean} state - 加载状态
+         */
+        setProgress(state) {
+            this.progress = state
         }
     },
     getters: {
-    getLogin: (state) => {
-        // 只在状态未完成且用户信息为空时校验Token
-        if (!state.login.finish && utils.is.empty(state.login.user)) {
-            // 使用异步方式校验，避免阻塞
-            checkToken(state).catch(err => {
-                console.error('Token校验失败：', err)
-            })
+        /**
+         * 获取登录状态
+         * @param {Object} state - 状态对象
+         * @returns {Object} 登录状态
+         */
+        getLogin: (state) => {
+            // 只在状态未完成且用户信息为空时校验Token
+            if (!state.login.finish && utils.is.empty(state.login.user)) {
+                // 使用异步方式校验，避免阻塞
+                checkToken(state).catch(err => {
+                    console.error('Token校验失败：', err)
+                })
+            }
+            return state.login
+        },
+        
+        /**
+         * 获取站点信息
+         * @param {Object} state - 状态对象
+         * @returns {Object} 站点信息
+         */
+        getSiteInfo: (state) => {
+            // 直接返回站点信息，不再自动获取
+            return state.siteInfo
+        },
+        
+        /**
+         * 获取是否已登录
+         * @param {Object} state - 状态对象
+         * @returns {boolean} 是否已登录
+         */
+        isLoggedIn: (state) => {
+            return state.login.finish && !utils.is.empty(state.login.user)
+        },
+        
+        /**
+         * 获取当前用户
+         * @param {Object} state - 状态对象
+         * @returns {Object} 当前用户
+         */
+        currentUser: (state) => {
+            return state.login.user || {}
         }
-        return state.login
-    },
-    getSiteInfo: (state) => {
-        // 直接返回站点信息，不再自动获取
-        return state.siteInfo
-    }
     }
 })

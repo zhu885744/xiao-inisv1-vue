@@ -52,7 +52,6 @@ export default defineConfig(({ mode }) => {
       extensions: ['.vue', '.js', '.jsx', '.ts', '.tsx'],
       alias: {
         '@': path.resolve(__dirname, 'src'),
-        // 【已移除】冗余的vue别名：Vite会自动适配vue.esm-bundler，手动配置易出问题
       }
     },
 
