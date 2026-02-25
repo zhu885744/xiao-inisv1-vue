@@ -4,7 +4,7 @@
       <!-- 页面头部 -->
       <div class="card-header">
         <div class="d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0 d-flex align-items-center gap-2 text-primary fw-semibold">
+          <h5 class="card-title mb-0 d-flex align-items-center gap-2  fw-semibold">
             <i class="bi bi-arrow-down-circle"></i>
             主题版本更新
           </h5>
@@ -22,7 +22,7 @@
 
       <!-- 加载状态 -->
       <div v-if="loading && !currentVersion" class="card-body text-center py-10">
-        <div class="spinner-border text-primary" role="status">
+        <div class="spinner-border " role="status">
           <span class="visually-hidden">加载中...</span>
         </div>
         <p class="mt-3 text-muted">正在检查版本信息...</p>
@@ -45,17 +45,17 @@
         <!-- 当前版本信息 -->
         <div class="current-version mb-5">
           <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
-            <i class="bi bi-info-circle text-primary fs-5"></i>
+            <i class="bi bi-info-circle  fs-5"></i>
             当前版本信息
           </h6>
-          <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3 border border-primary/20">
+          <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10  border border-primary/20">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="text-gray-600">主题名称</span>
               <span class="fw-medium">{{ themeName }}</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="text-gray-600">当前版本</span>
-              <span class="fw-bold text-primary">{{ currentVersion }}</span>
+              <span class="fw-bold ">{{ currentVersion }}</span>
             </div>
             <div class="d-flex justify-content-between align-items-center">
               <span class="text-gray-600">检测时间</span>
@@ -67,10 +67,10 @@
         <!-- 最新版本信息 -->
         <div v-if="latestVersion" class="latest-version mb-5">
           <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
-            <i class="bi bi-star text-primary fs-5"></i>
+            <i class="bi bi-star  fs-5"></i>
             最新版本信息
           </h6>
-          <div class="p-4" :class="hasUpdate ? 'bg-gradient-to-r from-success/10 to-secondary/10 rounded-3 border border-success/20' : 'bg-gradient-to-r from-info/10 to-secondary/10 rounded-3 border border-info/20'">
+          <div class="p-4" :class="hasUpdate ? 'bg-gradient-to-r from-success/10 to-secondary/10  border border-success/20' : 'bg-gradient-to-r from-info/10 to-secondary/10  border border-info/20'">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="text-gray-600">最新版本</span>
               <span class="fw-bold" :class="hasUpdate ? 'text-success' : 'text-info'">
@@ -85,7 +85,7 @@
             </div>
             <div class="mb-4">
               <span class="text-gray-600 d-block mb-1">更新内容</span>
-              <div class="p-3 rounded-2 border border-gray-200">
+              <div class="p-3 border border-gray-200">
                 <p v-for="(line, index) in latestVersion.content.split('\n')" :key="index" class="mb-1 text-sm">
                   {{ line }}
                 </p>
@@ -103,7 +103,7 @@
               </a>
               
               <!-- 更新步骤提示 -->
-              <div class="p-4 rounded-2 border border-info/20">
+              <div class="p-4  border border-info/20">
                 <h6 class="fw-bold mb-2 text-info">更新步骤：</h6>
                 <ol class="list-decimal pl-4 mb-0">
                   <li class="mb-1">删除主题目录内的 <code>static</code> 文件夹和 <code>index.html</code> 文件</li>
@@ -122,10 +122,10 @@
         <!-- 无新版本信息 -->
         <div v-else-if="!loading" class="no-update mb-5">
           <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
-            <i class="bi bi-search text-primary fs-5"></i>
+            <i class="bi bi-search  fs-5"></i>
             版本检查
           </h6>
-          <div class="p-4 bg-gradient-to-r from-info/10 to-secondary/10 rounded-3 border border-info/20 text-center">
+          <div class="p-4 bg-gradient-to-r from-info/10 to-secondary/10 border border-info/20 text-center">
             <i class="bi bi-info-circle text-info fs-1 mb-3"></i>
             <p class="text-muted">点击右上角按钮检查是否有新版本</p>
           </div>
@@ -134,14 +134,14 @@
         <!-- 版本历史 -->
         <div v-if="versionHistory.length > 0" class="version-history">
           <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
-            <i class="bi bi-clock-history text-primary fs-5"></i>
+            <i class="bi bi-clock-history  fs-5"></i>
             版本历史
           </h6>
           <div class="list-group">
             <div 
               v-for="(version, index) in versionHistory" 
               :key="version.id"
-              class="list-group-item border border-gray-200 rounded-2 mb-2"
+              class="list-group-item border border-gray-200  mb-2"
             >
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="fw-bold">{{ version.version }}</span>
@@ -450,11 +450,6 @@ onUnmounted(() => {
   /* 按钮 */
   .btn {
     font-size: 0.9rem;
-  }
-  
-  /* 版本历史 */
-  .list-group-item {
-    padding: 1rem !important;
   }
 }
 </style>

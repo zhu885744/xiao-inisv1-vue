@@ -6,7 +6,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
           <div class="header-content">
-            <h1 class="page-title d-flex align-items-center gap-3 text-primary fw-bold">
+            <h1 class="page-title d-flex align-items-center gap-3 fw-bold">
               <i class="bi bi-sliders fs-2"></i>
               站点配置
             </h1>
@@ -69,6 +69,21 @@
                 评论设置
               </button>
             </li>
+            <li class="nav-item" role="presentation">
+              <button 
+                class="nav-link" 
+                id="homepage-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#homepage" 
+                type="button" 
+                role="tab" 
+                aria-controls="homepage" 
+                aria-selected="false"
+              >
+                <i class="bi bi-house me-2"></i>
+                首页配置
+              </button>
+            </li>
           </ul>
         </div>
       </div>
@@ -94,7 +109,7 @@
                       <label for="site-title" class="form-label">网站标题</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="site-title"
                         v-model="globalConfig.title"
                         placeholder="输入您的网站标题"
@@ -105,7 +120,7 @@
                       <label for="site-description" class="form-label">网站描述</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="site-description"
                         v-model="globalConfig.description"
                         placeholder="输入您的网站描述"
@@ -116,7 +131,7 @@
                       <label for="site-keyword" class="form-label">网站关键词</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="site-keyword"
                         v-model="globalConfig.keyword"
                         placeholder="输入关键词，用逗号分隔"
@@ -127,7 +142,7 @@
                       <label for="site-avatar" class="form-label">网站LOGO</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="site-avatar"
                         v-model="globalConfig.avatar"
                         placeholder="输入LOGO URL"
@@ -138,7 +153,7 @@
                       <label for="site-favicon" class="form-label">网站图标</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="site-favicon"
                         v-model="globalConfig.favicon"
                         placeholder="输入favicon URL"
@@ -149,12 +164,31 @@
                       <label for="site-date" class="form-label">建站日期</label>
                       <input 
                         type="date" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="site-date"
                         :value="formatDate(globalConfig.date)"
                         @change="handleDateChange"
                       >
                       <div class="form-text text-muted mt-1">网站的建立日期</div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <label class="form-label">启用定制主题</label>
+                          <p class="form-text text-muted mt-1">启用后将加载 bootstrap-custom.css 定制样式</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="enable_custom_style_switch"
+                            v-model="globalConfig.enable_custom_style"
+                          >
+                          <label class="form-check-label" for="enable_custom_style_switch">
+                            {{ globalConfig.enable_custom_style ? '已启用' : '已禁用' }}
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -167,7 +201,7 @@
                       <label for="copy-code" class="form-label">ICP备案号</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="copy-code"
                         v-model="globalConfig.copy.code"
                         placeholder="输入ICP备案号"
@@ -178,7 +212,7 @@
                       <label for="copy-link" class="form-label">ICP备案链接</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="copy-link"
                         v-model="globalConfig.copy.link"
                         placeholder="输入备案链接"
@@ -189,7 +223,7 @@
                       <label for="police-code" class="form-label">公安备案号</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="police-code"
                         v-model="globalConfig.police.code"
                         placeholder="输入公安备案号"
@@ -200,7 +234,7 @@
                       <label for="police-link" class="form-label">公安备案链接</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control rounded-1 border-gray-300 shadow-sm"
                         id="police-link"
                         v-model="globalConfig.police.link"
                         placeholder="输入公安备案链接"
@@ -269,13 +303,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control rounded-1 border-gray-300 shadow-sm"
                           id="rate_limit_max_count"
                           v-model.number="commentConfig.rate_limit.max_count"
                           min="1"
                           max="100"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">条</span>
+                        <span class="input-group-text rounded-1 border-gray-300">条</span>
                       </div>
                       <div class="form-text text-muted mt-1">时间窗口内允许的最大评论数</div>
                     </div>
@@ -284,13 +318,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control rounded-1 border-gray-300 shadow-sm"
                           id="rate_limit_time_window"
                           v-model.number="commentConfig.rate_limit.time_window"
                           min="1"
                           max="3600"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">秒</span>
+                        <span class="input-group-text rounded-1 border-gray-300">秒</span>
                       </div>
                       <div class="form-text text-muted mt-1">速率限制的时间窗口</div>
                     </div>
@@ -306,13 +340,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control rounded-1 border-gray-300 shadow-sm"
                           id="max_length"
                           v-model.number="commentConfig.max_length"
                           min="1"
                           max="10000"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">字</span>
+                        <span class="input-group-text rounded-1 border-gray-300">字</span>
                       </div>
                       <div class="form-text text-muted mt-1">单条评论的最大长度</div>
                     </div>
@@ -352,13 +386,61 @@
                   <div class="mb-3">
                     <label for="sensitive_words" class="form-label">敏感词列表</label>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control rounded-1 border-gray-300 shadow-sm"
                       id="sensitive_words"
                       v-model="commentConfig.sensitive_words"
                       rows="4"
                       placeholder="在这里输入敏感词，多个敏感词用「,」分隔"
                     ></textarea>
                     <div class="form-text text-muted mt-1">评论中包含这些词将被拒绝，多个敏感词用「,」分隔</div>
+                  </div>
+                </div>
+
+                <!-- 邮件通知 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">邮件通知</h3>
+                  <div class="form-check mb-4">
+                    <input 
+                      class="form-check-input rounded border-gray-300"
+                      type="checkbox" 
+                      id="email_notify_enabled"
+                      v-model="commentConfig.email_notify.enabled"
+                    >
+                    <label class="form-check-label" for="email_notify_enabled">
+                      启用邮件通知
+                    </label>
+                  </div>
+                  <div class="row g-4" v-if="commentConfig.email_notify.enabled">
+                    <div class="col-md-4">
+                      <label for="email_notify_retry_count" class="form-label">重试次数</label>
+                      <div class="input-group">
+                        <input 
+                          type="number" 
+                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          id="email_notify_retry_count"
+                          v-model.number="commentConfig.email_notify.retry_count"
+                          min="1"
+                          max="10"
+                        >
+                        <span class="input-group-text rounded-1 border-gray-300">次</span>
+                      </div>
+                      <div class="form-text text-muted mt-1">发送失败时的重试次数</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="email_notify_retry_interval" class="form-label">重试间隔</label>
+                      <div class="input-group">
+                        <input 
+                          type="number" 
+                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          id="email_notify_retry_interval"
+                          v-model.number="commentConfig.email_notify.retry_interval"
+                          min="1"
+                          max="60"
+                        >
+                        <span class="input-group-text rounded-1 border-gray-300">秒</span>
+                      </div>
+                      <div class="form-text text-muted mt-1">每次重试的时间间隔</div>
+                    </div>
                   </div>
                 </div>
 
@@ -377,6 +459,71 @@
                     type="button" 
                     class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
                     @click="resetCommentConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    重置
+                  </button>
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 首页配置 -->
+        <div 
+          class="tab-pane fade" 
+          id="homepage" 
+          role="tabpanel" 
+          aria-labelledby="homepage-tab"
+        >
+          <div class="config-section">
+            <!-- 首页配置表单 -->
+            <div class="card shadow-sm">
+              <div class="card-body p-3">
+              <form class="homepage-config-form">
+                <!-- 显示模式设置 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">显示模式</h3>
+                  <div class="row g-4">
+                    <div class="col-md-6">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <label class="form-label fw-medium">文章列表布局</label>
+                          <p class="form-text text-muted mt-1">选择首页文章卡片的显示模式</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="display_mode_switch"
+                            v-model="homepageConfig.display_mode"
+                          >
+                          <label class="form-check-label" for="display_mode_switch">
+                            {{ homepageConfig.display_mode ? '有图模式' : '无图模式' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 保存按钮 -->
+                <div class="form-actions mt-8">
+                  <button 
+                    type="button" 
+                    class="btn btn-primary rounded-full px-6 py-2.5 shadow-sm"
+                    @click="saveHomepageConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存首页设置' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
+                    @click="resetHomepageConfig"
                     :disabled="saving"
                   >
                     <i class="bi bi-arrow-counterclockwise me-2"></i>
@@ -411,7 +558,12 @@ const commentConfig = ref({
   max_length: 500,
   require_chinese: true,
   sensitive_filter: true,
-  sensitive_words: '敏感词1,敏感词2,敏感词3'
+  sensitive_words: '广告,开盘,开户',
+  email_notify: {
+    enabled: true,
+    retry_count: 3,
+    retry_interval: 5
+  }
 })
 
 const globalConfig = ref({
@@ -421,6 +573,8 @@ const globalConfig = ref({
   avatar: '',
   favicon: '',
   date: Math.floor(Date.now() / 1000).toString(),
+  display_mode: true, // true为有图模式，false为无图模式
+  enable_custom_style: false, // false为默认不加载定制主题
   copy: {
     code: '',
     link: 'http://beian.miit.gov.cn/'
@@ -429,6 +583,10 @@ const globalConfig = ref({
     code: '',
     link: 'https://beian.mps.gov.cn/#/query/webSearch'
   }
+})
+
+const homepageConfig = ref({
+  display_mode: true // true为有图模式，false为无图模式
 })
 
 const saving = ref(false)
@@ -464,7 +622,12 @@ async function getCommentConfig() {
         max_length: config.max_length || 500,
         require_chinese: config.require_chinese === 1,
         sensitive_filter: config.sensitive_filter === 1,
-        sensitive_words: config.sensitive_words?.join(',') || '敏感词1,敏感词2,敏感词3'
+        sensitive_words: config.sensitive_words?.join(',') || '广告,开盘,开户',
+        email_notify: {
+          enabled: config.email_notify?.enabled === 1,
+          retry_count: config.email_notify?.retry_count || 3,
+          retry_interval: config.email_notify?.retry_interval || 5
+        }
       }
     }
   } catch (error) {
@@ -477,7 +640,7 @@ async function getCommentConfig() {
 async function getGlobalConfig() {
   try {
     const response = await request.get('/api/config/one', {
-      key: 'SITE_INFO'
+      key: 'xiao_functions'
     })
     if (response.code === 200 && response.data) {
       const config = response.data.json || {}
@@ -489,15 +652,19 @@ async function getGlobalConfig() {
         avatar: config.avatar || '',
         favicon: config.favicon || '',
         date: config.date || Math.floor(Date.now() / 1000).toString(),
+        display_mode: config.display_mode !== false, // 默认值为true
+        enable_custom_style: config.enable_custom_style === true, // 默认值为false
         copy: {
           code: config.copy?.code || '',
-          link: config.copy?.link || 'http://beian.miit.gov.cn/'
+          link: config.copy?.link || 'http://beian.mps.gov.cn/'
         },
         police: {
           code: config.police?.code || '',
           link: config.police?.link || 'https://beian.mps.gov.cn/#/query/webSearch'
         }
       }
+      // 同时更新首页配置
+      homepageConfig.value.display_mode = globalConfig.value.display_mode
     }
   } catch (error) {
     console.error('获取全局配置失败:', error)
@@ -525,7 +692,12 @@ async function saveCommentConfig() {
       sensitive_words: commentConfig.value.sensitive_words
         .split(',')
         .map(word => word.trim())
-        .filter(word => word)
+        .filter(word => word),
+      email_notify: {
+        enabled: commentConfig.value.email_notify.enabled ? 1 : 0,
+        retry_count: commentConfig.value.email_notify.retry_count || 3,
+        retry_interval: commentConfig.value.email_notify.retry_interval || 5
+      }
     }
 
     const response = await request.post('/api/config/save', {
@@ -534,19 +706,19 @@ async function saveCommentConfig() {
     })
 
     if (response.code === 200) {
-      message.value = '评论配置保存成功！'
+      message.value = '评论设置保存成功！'
       messageType.value = 'success'
-      toast.success('评论配置保存成功')
+      toast.success('评论设置保存成功')
     } else {
-      message.value = '评论配置保存失败：' + (response.msg || '未知错误')
+      message.value = '评论设置保存失败：' + (response.msg || '未知错误')
       messageType.value = 'error'
-      toast.error('评论配置保存失败')
+      toast.error('评论设置保存失败')
     }
   } catch (error) {
-    console.error('保存评论配置失败:', error)
-    message.value = '保存失败：网络错误'
+    console.error('保存评论设置失败:', error)
+    message.value = '评论设置保存失败：网络错误'
     messageType.value = 'error'
-    toast.error('保存失败：网络错误')
+    toast.error('评论设置保存失败：网络错误')
   } finally {
     saving.value = false
   }
@@ -560,7 +732,7 @@ async function saveGlobalConfig() {
   
   try {
     const response = await request.post('/api/config/save', {
-      key: 'SITE_INFO',
+      key: 'xiao_functions',
       json: globalConfig.value
     })
 
@@ -568,6 +740,8 @@ async function saveGlobalConfig() {
       message.value = '全局配置保存成功！'
       messageType.value = 'success'
       toast.success('全局配置保存成功')
+      // 保存成功后强制刷新站点信息，更新缓存
+      await store.fetchSiteInfo(true)
     } else {
       message.value = '全局配置保存失败：' + (response.msg || '未知错误')
       messageType.value = 'error'
@@ -600,6 +774,68 @@ function handleDateChange(event) {
   }
 }
 
+// 获取首页配置
+async function getHomepageConfig() {
+  try {
+    // 从后端API获取配置
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      const config = response.data.json || {}
+      homepageConfig.value.display_mode = config.display_mode !== false // 默认值为true
+    }
+  } catch (error) {
+    console.error('获取首页配置失败:', error)
+    toast.error('获取首页配置失败')
+  }
+}
+
+// 保存首页配置
+async function saveHomepageConfig() {
+  saving.value = true
+  message.value = ''
+  messageType.value = ''
+  
+  try {
+    // 先获取当前全局配置，避免覆盖其他配置项
+    const configResponse = await request.get('/api/config/one', { key: 'xiao_functions' })
+    let currentConfig = {}
+    if (configResponse.code === 200 && configResponse.data) {
+      currentConfig = configResponse.data.json || {}
+    }
+    
+    // 只更新display_mode字段
+    const updatedConfig = {
+      ...currentConfig,
+      display_mode: homepageConfig.value.display_mode
+    }
+    
+    // 保存到后端API
+    const response = await request.post('/api/config/save', {
+      key: 'xiao_functions',
+      json: updatedConfig
+    })
+    
+    if (response.code === 200) {
+      message.value = '首页配置保存成功！'
+      messageType.value = 'success'
+      toast.success('首页配置保存成功')
+      // 保存成功后强制刷新站点信息，更新缓存
+      await store.fetchSiteInfo(true)
+    } else {
+      message.value = '首页配置保存失败：' + (response.msg || '未知错误')
+      messageType.value = 'error'
+      toast.error('首页配置保存失败')
+    }
+  } catch (error) {
+    console.error('保存首页配置失败:', error)
+    message.value = '保存失败：网络错误'
+    messageType.value = 'error'
+    toast.error('保存失败：网络错误')
+  } finally {
+    saving.value = false
+  }
+}
+
 // 重置配置
 function resetCommentConfig() {
   commentConfig.value = {
@@ -611,7 +847,12 @@ function resetCommentConfig() {
     max_length: 500,
     require_chinese: true,
     sensitive_filter: true,
-    sensitive_words: '敏感词1,敏感词2,敏感词3'
+    sensitive_words: '敏感词1,敏感词2,敏感词3',
+    email_notify: {
+      enabled: true,
+      retry_count: 3,
+      retry_interval: 5
+    }
   }
 }
 
@@ -634,6 +875,12 @@ function resetGlobalConfig() {
   }
 }
 
+function resetHomepageConfig() {
+  homepageConfig.value = {
+    display_mode: true // 默认为有图模式
+  }
+}
+
 // 组件挂载
 onMounted(async () => {
   // 检查登录状态
@@ -643,7 +890,8 @@ onMounted(async () => {
   if (isAdmin.value) {
     await Promise.all([
       getCommentConfig(),
-      getGlobalConfig()
+      getGlobalConfig(),
+      getHomepageConfig()
     ])
   }
 })
@@ -653,7 +901,6 @@ onMounted(async () => {
 .page-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--bs-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -709,12 +956,10 @@ onMounted(async () => {
 }
 
 .config-nav-tabs .nav-link:hover {
-  color: var(--bs-primary);
   background-color: rgba(var(--bs-primary-rgb), 0.05);
 }
 
 .config-nav-tabs .nav-link.active {
-  color: var(--bs-primary);
   background-color: rgba(var(--bs-primary-rgb), 0.1);
   font-weight: 600;
 }
@@ -783,25 +1028,6 @@ onMounted(async () => {
   outline: none;
 }
 
-/* 复选框样式 */
-.form-check-input {
-  border-radius: 0.25rem;
-  border: 1px solid var(--bs-border-color);
-  width: 1.1rem;
-  height: 1.1rem;
-  transition: all 0.3s ease;
-}
-
-.form-check-input:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.form-check-input:checked {
-  background-color: var(--bs-primary);
-  border-color: var(--bs-primary);
-}
-
 /* 按钮样式 */
 .btn {
   border-radius: 0.75rem;
@@ -818,18 +1044,6 @@ onMounted(async () => {
 
 .btn:active {
   transform: translateY(0);
-}
-
-.btn-primary {
-  background-color: var(--bs-primary);
-  border-color: var(--bs-primary);
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
 }
 
 .btn-outline-secondary {

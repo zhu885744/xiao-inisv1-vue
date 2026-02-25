@@ -3,15 +3,7 @@
   <div class="card mt-2">
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0 d-flex align-items-center gap-2 text-primary fw-semibold">用户设置</h5>
-        <button 
-          @click="fetchUserInfo" 
-          class="btn btn-sm btn-outline-primary rounded-full px-4 py-1.5 transition-all hover:bg-primary hover:text-white"
-          :disabled="loading"
-        >
-          <i class="bi" :class="loading ? 'bi-arrow-clockwise spin' : 'bi-arrow-clockwise'"></i>
-          刷新
-        </button>
+        <h5 class="card-title mb-0 d-flex align-items-center gap-2 fw-semibold">用户设置</h5>
       </div>
     </div>
     <div class="card-body">
@@ -220,7 +212,6 @@ onMounted(async () => {
 .user-nav-tabs .nav-link.active {
   background-color: var(--bs-body-bg);
   border-color: var(--bs-border-color) var(--bs-border-color) transparent;
-  color: var(--bs-primary);
   font-weight: 600;
 }
 

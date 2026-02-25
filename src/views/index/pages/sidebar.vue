@@ -1,14 +1,14 @@
 <template>
   <div class="sidebar-container position-sticky top-0" :class="{ 'dark-mode': isDarkMode }">
     <!-- 个人信息卡片 -->
-    <div class="card sidebar-card">
-      <div class="card-header sidebar-card-header">
-        <h6 class="mb-0 sidebar-card-title">
-          <i class="bi bi-person-circle text-primary"></i>
+    <div class="card mt-2">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="bi bi-person-circle"></i>
           <span>个人信息</span>
         </h6>
       </div>
-      <div class="card-body sidebar-card-body text-center">
+      <div class="card-body text-center">
         <!-- 已登录用户信息 -->
         <div v-if="store.comm.login.finish && store.comm.login.user" class="user-info-container">
           <div class="position-relative d-inline-block mb-3">
@@ -98,9 +98,9 @@
     </div>
 
     <!-- 等级排行卡片 -->
-    <div class="card sidebar-card">
-      <div class="card-header sidebar-card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 sidebar-card-title">
+    <div class="card mt-2">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
           <i class="bi bi-trophy-fill text-warning"></i>
           <span>等级排行</span>
         </h6>
@@ -113,23 +113,23 @@
           <i class="bi bi-arrow-clockwise" :class="{ 'spin': levelLoading }"></i>
         </button>
       </div>
-      <div class="card-body sidebar-card-body">
+      <div class="card-body">
         <div class="d-grid mb-3">
           <button 
-            class="btn btn-warning btn-sm rounded-3 fw-medium py-2 sidebar-btn sign-btn"
+            class="btn btn-danger btn-sm rounded-3 fw-medium py-2 sidebar-btn sign-btn"
             @click="doSign"
             :disabled="signLoading || hasSigned"
           >
             <i v-if="!signLoading" :class="hasSigned ? 'bi bi-check-circle' : 'bi bi-calendar-check'" class="me-1"></i>
             <i v-else class="bi bi-arrow-clockwise spin me-1"></i>
             {{ hasSigned ? '今日已签到' : '每日签到' }}
-            <span v-if="signDays > 0" class="ms-1 text-muted sign-days">({{ signDays }}天)</span>
+            <span v-if="signDays > 0" class="ms-1 sign-days">({{ signDays }}天)</span>
           </button>
         </div>
         
         <!-- 加载状态 -->
         <div v-if="levelLoading" class="text-center py-4">
-          <div class="spinner-border text-primary spinner-sm" role="status">
+          <div class="spinner-border spinner-sm" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -177,7 +177,7 @@
                 ></div>
               </div>
               <div class="d-flex justify-content-between align-items-center mt-1">
-                <span class="text-primary fs-7 fw-medium">
+                <span class=" fs-7 fw-medium">
                   Lv.{{ user.result?.level?.current?.value || calculateLevel(user.exp || 0) }}
                 </span>
                 <span class="text-muted fs-7">
@@ -191,17 +191,17 @@
     </div>
 
     <!-- 热门文章卡片 -->
-    <div class="card sidebar-card">
-      <div class="card-header sidebar-card-header">
-        <h6 class="mb-0 sidebar-card-title">
+    <div class="card mt-2">
+      <div class="card-header">
+        <h6 class="mb-0">
           <i class="bi bi-fire text-danger"></i>
           <span>热门文章</span>
         </h6>
       </div>
-      <div class="card-body sidebar-card-body">
+      <div class="card-body">
         <!-- 加载状态 -->
         <div v-if="loading" class="text-center py-4">
-          <div class="spinner-border text-primary spinner-sm" role="status">
+          <div class="spinner-border spinner-sm" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -256,17 +256,17 @@
     </div>
 
     <!-- 最新评论卡片 -->
-    <div class="card sidebar-card">
-      <div class="card-header sidebar-card-header">
-        <h6 class="mb-0 sidebar-card-title">
+    <div class="card mt-2">
+      <div class="card-header">
+        <h6 class="mb-0">
           <i class="bi bi-chat-dots-fill text-info"></i>
           <span>最新评论</span>
         </h6>
       </div>
-      <div class="card-body sidebar-card-body">
+      <div class="card-body">
         <!-- 加载状态 -->
         <div v-if="commentLoading" class="text-center py-4">
-          <div class="spinner-border text-primary spinner-sm" role="status">
+          <div class="spinner-border spinner-sm" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -309,7 +309,7 @@
             <div class="d-flex align-items-center justify-content-between border-top border-light pt-2 mt-1">
               <a
                 href="#"
-                class="text-decoration-none text-primary fs-7 fw-medium d-flex align-items-center gap-1 comment-article-link"
+                class="text-decoration-none fs-7 fw-medium d-flex align-items-center gap-1 comment-article-link"
                 @click.stop="goToArticle(comment.articleId, comment.commentType)"
               >
                 <i class="bi bi-link-45deg"></i>
@@ -322,17 +322,17 @@
     </div>
 
     <!-- 标签云卡片 -->
-    <div class="card sidebar-card">
-      <div class="card-header sidebar-card-header">
-        <h6 class="mb-0 sidebar-card-title">
+    <div class="card mt-2">
+      <div class="card-header">
+        <h6 class="mb-0">
           <i class="bi bi-tags-fill text-success"></i>
           <span>标签云</span>
         </h6>
       </div>
-      <div class="card-body sidebar-card-body">
+      <div class="card-body">
         <!-- 加载状态 -->
         <div v-if="tagLoading" class="text-center py-4">
-          <div class="spinner-border text-primary spinner-sm" role="status">
+          <div class="spinner-border spinner-sm" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
@@ -358,14 +358,14 @@
     </div>
 
     <!-- 快速导航 -->
-    <div class="card sidebar-card mb-3">
-      <div class="card-header sidebar-card-header">
-        <h6 class="mb-0 sidebar-card-title">
+    <div class="card mt-2">
+      <div class="card-header">
+        <h6 class="mb-0">
           <i class="bi bi-compass text-purple"></i>
           <span>快捷导航</span>
         </h6>
       </div>
-      <div class="card-body sidebar-card-body">
+      <div class="card-body">
         <div class="row g-2">
           <div class="col-6" v-for="nav in quickNavs" :key="nav.id">
             <div 
@@ -829,32 +829,21 @@ onMounted(() => {
   padding: 0;
 }
 
-/* 统一卡片样式 */
-.sidebar-card {
-  margin-top: 0.5rem;
-  margin-bottom: 0;
-  border: 1px solid var(--bs-border-color);
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.sidebar-card-header {
-  background-color: var(--bs-tertiary-bg);
-  border-bottom: 1px solid var(--bs-border-color);
-  padding: 0.75rem 1rem;
-}
-
-.sidebar-card-title {
+/* 卡片标题样式 */
+.card-header h6 {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin: 0;
+  padding: 0.5rem 0;
 }
 
-.sidebar-card-body {
-  padding: 1rem;
+.card-header h6 i {
+  margin-right: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.card-header h6 span {
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 /* 按钮样式 */
@@ -898,12 +887,6 @@ onMounted(() => {
 
 .user-stats {
   margin-top: 1rem;
-}
-
-.user-stat-value {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--bs-primary);
 }
 
 .user-stat-label {
@@ -1165,14 +1148,6 @@ onMounted(() => {
     padding: 0.5rem 0;
   }
   
-  .sidebar-card {
-    margin-bottom: 0.75rem;
-  }
-  
-  .sidebar-card-body {
-    padding: 0.75rem;
-  }
-  
   .user-avatar {
     width: 64px;
     height: 64px;
@@ -1199,12 +1174,12 @@ onMounted(() => {
 }
 
 /* 深色模式适配 */
-.dark-mode .sidebar-card {
+.dark-mode {
   border-color: var(--bs-border-color-dark);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.dark-mode .sidebar-card-header {
+.dark-mode {
   background-color: var(--bs-tertiary-bg-dark);
   border-bottom-color: var(--bs-border-color-dark);
 }

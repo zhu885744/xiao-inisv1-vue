@@ -9,7 +9,7 @@
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+    <div v-else-if="error" class="article-content-wrap card shadow-sm p-3 mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
@@ -18,7 +18,7 @@
       <!-- 归档页面统计信息 -->
       <div v-if="isArchivePage">
         <!-- 统计信息卡片区域 -->
-          <main class="article-content-wrap card border-0 shadow-sm mt-2">
+          <main class="article-content-wrap card shadow-sm mt-2">
             <div class="p-3">
               <!-- 页面标题 -->
               <header class="article-header mt-2 mb-4">
@@ -133,12 +133,12 @@
         </div>
 
         <!-- 错误状态 -->
-        <div v-else-if="error" class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+        <div v-else-if="error" class="article-content-wrap card shadow-sm p-3 mt-2">
           <p class="mb-0 fw-normal">{{ errorMsg }}</p>
         </div>
 
         <!-- 友链页面主体 -->
-        <main v-else class="card shadow-sm border-0 rounded-3 mt-2">
+        <main v-else class="card shadow-sm mt-2">
           <div class="p-3">
           <!-- 页面标题 -->
           <header class="article-header mt-2 mb-2">
@@ -227,7 +227,7 @@
         <!-- 评论区域 -->
         <div class="mt-4">
           <i-comment 
-              :articleId="'links'" 
+              :articleId="pageInfo.id" 
               :commentCount="commentCount" 
               :commentList="commentList" 
               :isLogin="isLogin" 
@@ -245,7 +245,7 @@
       <!-- 普通独立页面 -->
       <div v-else>
         <!-- 页面内容区：核心阅读区，重写样式 -->
-        <main class="article-content-wrap card border-0 shadow-sm mt-2">
+        <main class="article-content-wrap card shadow-sm mt-2">
           <div class="p-3">
           <!-- 页面头部：标题+元信息 -->
           <header class="article-header mt-2">
@@ -591,8 +591,8 @@ const handlePublishComment = async (data) => {
     
     const commentData = {
       content: data.content,
-      bind_type: isLinksPage ? 'links' : 'page',
-      bind_id: isLinksPage ? 'links' : pageInfo.value.id
+      bind_type: 'page',
+      bind_id: pageInfo.value.id
     }
     
     const res = await request.post('/api/comment/create', commentData)
@@ -631,8 +631,8 @@ const handleReplyComment = async (data) => {
     
     const commentData = {
       content: data.content,
-      bind_type: isLinksPage ? 'links' : 'page',
-      bind_id: isLinksPage ? 'links' : pageInfo.value.id,
+      bind_type: 'page',
+      bind_id: pageInfo.value.id,
       pid: data.commentId
     }
     
@@ -924,8 +924,8 @@ const fetchLinks = async () => {
 const getLinksComments = async (page = 1, limit = 10) => {
   try {
     const res = await request.get('/api/comment/flat', {
-      bind_id: 'links',
-      bind_type: 'links',
+      bind_id: pageInfo.value.id,
+      bind_type: 'page',
       page: page,
       limit: limit,
       order: 'create_time desc'

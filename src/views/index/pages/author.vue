@@ -3,7 +3,7 @@
     <!-- 用户中心卡片头部 -->
     <div class="card-header">
       <div class="d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0 d-flex align-items-center gap-2 text-primary fw-semibold">
+        <h5 class="card-title mb-0 d-flex align-items-center gap-2 fw-semibold">
           用户主页
         </h5>
         <button 
@@ -19,7 +19,7 @@
 
     <!-- 加载状态 -->
     <div v-if="loading" class="card-body text-center py-10">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border" role="status">
         <span class="visually-hidden">加载中...</span>
       </div>
       <p class="mt-3 text-muted">正在加载用户信息...</p>
@@ -79,9 +79,9 @@
                 :href="userInfo.json.website.url" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                class="d-flex align-items-center gap-2 text-primary hover:text-primary-emphasis transition-colors"
+                class="d-flex align-items-center gap-2 hover:text-primary-emphasis transition-colors"
               >
-                <i class="bi bi-globe text-primary"></i>
+                <i class="bi bi-globe"></i>
                 {{ userInfo.json.website.name || userInfo.json.website.url }}
               </a>
             </div>
@@ -89,7 +89,7 @@
             <div class="d-flex align-items-center gap-4 flex-wrap text-sm mb-2">
               <!-- 注册时间 -->
               <span class="d-flex align-items-center gap-2 text-gray-600">
-                <i class="bi bi-calendar3 text-primary"></i>
+                <i class="bi bi-calendar3"></i>
                 注册于 {{ formatDate(userInfo.create_time) }}
               </span>
               <!-- 最后登录 -->
@@ -102,9 +102,9 @@
         </div>
 
         <!-- 个人简介 -->
-        <div class="user-description mb-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-3 border border-primary/10">
+        <div class="user-description mb-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
           <p class="mb-0 fs-6 leading-relaxed">
-            <i class="bi bi-quote text-primary me-3 opacity-75"></i>
+            <i class="bi bi-quote me-3 opacity-75"></i>
             {{ userInfo.description || '这个人很懒，什么都没有留下！' }}
           </p>
         </div>
@@ -113,21 +113,21 @@
         <div class="user-tags mb-4">
           <div class="d-flex align-items-center gap-3 flex-wrap">
             <!-- 用户组标识 -->
-            <span v-for="(group, index) in userGroups" :key="index" class="badge rounded-full bg-danger text-white px-4 py-2 text-sm font-medium transition-all hover:bg-primary hover:text-white cursor-pointer">
+            <span v-for="(group, index) in userGroups" :key="index" class="badge bg-warning text-dark px-4 py-2 fw-medium cursor-pointer">
               {{ group.name }}
             </span>
             <!-- 性别标签 -->
-            <span class="badge rounded-full bg-primary-subtle text-primary px-4 py-2 text-sm font-medium transition-all hover:bg-primary hover:text-white cursor-pointer">
+            <span class="badge bg-info text-white px-4 py-2 fw-medium cursor-pointer">
               <i class="bi" :class="userInfo.gender === 'boy' ? 'bi-gender-male' : 'bi-gender-female'"></i>
               {{ userInfo.gender === 'boy' ? '男' : userInfo.gender === 'girl' ? '女' : '未知' }}
             </span>
             <!-- 等级标签 -->
-            <span class="badge rounded-full bg-success-subtle text-success px-4 py-2 text-sm font-medium transition-all hover:bg-success hover:text-white cursor-pointer">
+            <span class="badge bg-success text-white px-4 py-2 fw-medium cursor-pointer">
               <i class="bi bi-activity"></i>
               Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
             </span>
             <!-- 经验值标签 -->
-            <span class="badge rounded-full bg-info-subtle text-info px-4 py-2 text-sm font-medium transition-all hover:bg-info hover:text-white cursor-pointer">
+            <span class="badge bg-danger text-white px-4 py-2 fw-medium cursor-pointer">
               <i class="bi bi-star"></i>
               {{ userInfo.exp }} 经验值
             </span>
@@ -138,13 +138,13 @@
       <!-- 用户等级信息 -->
       <div v-if="userLevelInfo" class="user-level mb-5">
         <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
-          <i class="bi bi-activity text-primary fs-5"></i>
+          <i class="bi bi-activity fs-5"></i>
           等级信息
         </h6>
-        <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3 border border-primary/20">
+        <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <span class="text-gray-600">当前等级</span>
-            <span class="fw-bold text-primary">Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}</span>
+            <span class="fw-bold">Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}</span>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-4">
             <span class="text-gray-600">下一等级</span>
@@ -179,10 +179,10 @@
       <!-- 用户权限信息 -->
       <div v-if="userAuthInfo" class="user-auth mb-5">
         <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
-          <i class="bi bi-shield-check text-primary fs-5"></i>
+          <i class="bi bi-shield-check fs-5"></i>
           权限信息
         </h6>
-        <div class="p-4 bg-gradient-to-r from-success/10 to-secondary/10 rounded-3 border border-success/20">
+        <div class="p-4 bg-gradient-to-r from-success/10 to-secondary/10 border border-success/20">
           <div class="mb-3">
             <span class="fw-medium text-gray-700">用户组：</span>
             <span v-for="(group, index) in userAuthInfo.group.list" :key="index" class="badge bg-success text-white mx-2 px-3 py-1 rounded-full">
@@ -202,14 +202,14 @@
       <div class="user-actions d-flex gap-2 flex-wrap">
         <button 
           @click="copyUserInfo" 
-          class="btn btn-outline-primary btn-sm rounded-3 px-4 py-2"
+          class="btn btn-outline-primary btn-sm px-4 py-2"
         >
           <i class="bi bi-copy"></i>
           复制信息
         </button>
         <button 
           @click="shareUserInfo" 
-          class="btn btn-outline-secondary btn-sm rounded-3 px-4 py-2"
+          class="btn btn-outline-secondary btn-sm px-4 py-2"
         >
           <i class="bi bi-share"></i>
           分享
@@ -673,6 +673,91 @@ watch(
   /* 按钮大小调整 */
   .btn {
     font-size: 0.9rem;
+  }
+}
+
+/* 暗黑模式适配 */
+[data-bs-theme=dark] {
+  /* 卡片样式 */
+  .card {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .card-header {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+  }
+  
+  /* 文本颜色 */
+  .text-gray-600,
+  .text-gray-700 {
+    color: var(--bs-secondary-color) !important;
+  }
+  
+  /* 用户描述区域 */
+  .user-description {
+    background: linear-gradient(to right, rgba(133, 133, 133, 0.05), rgba(157, 157, 157, 0.05));
+    border-color: rgba(133, 133, 133, 0.1);
+  }
+  
+  /* 等级信息区域 */
+  .user-level .p-4 {
+    background: linear-gradient(to right, rgba(133, 133, 133, 0.1), rgba(157, 157, 157, 0.1));
+    border-color: rgba(133, 133, 133, 0.2);
+  }
+  
+  /* 权限信息区域 */
+  .user-auth .p-4 {
+    background: linear-gradient(to right, rgba(110, 196, 143, 0.1), rgba(157, 157, 157, 0.1));
+    border-color: rgba(110, 196, 143, 0.2);
+  }
+  
+  /* 标签样式 */
+  .badge {
+    transition: all 0.2s ease;
+  }
+  
+  /* 头像边框 */
+  img[src*="avatar"] {
+    border-color: var(--bs-secondary-bg) !important;
+  }
+  
+  /* 链接样式 */
+  a.hover\:text-primary-emphasis {
+    color: var(--bs-link-color) !important;
+  }
+  
+  a.hover\:text-primary-emphasis:hover {
+    color: var(--bs-link-hover-color) !important;
+  }
+  
+  /* 按钮样式 */
+  .btn-outline-primary {
+    --bs-btn-color: var(--bs-link-color);
+    --bs-btn-border-color: var(--bs-link-color);
+    --bs-btn-hover-color: var(--bs-emphasis-color);
+    --bs-btn-hover-bg: var(--bs-link-color);
+    --bs-btn-hover-border-color: var(--bs-link-color);
+  }
+  
+  .btn-outline-secondary {
+    --bs-btn-color: var(--bs-secondary-color);
+    --bs-btn-border-color: var(--bs-secondary-color);
+    --bs-btn-hover-color: var(--bs-emphasis-color);
+    --bs-btn-hover-bg: var(--bs-secondary-color);
+    --bs-btn-hover-border-color: var(--bs-secondary-color);
+  }
+  
+  /* 进度条 */
+  .progress {
+    background-color: var(--bs-tertiary-bg);
+  }
+  
+  /* 加载状态 */
+  .spinner-border {
+    --bs-spinner-color: var(--bs-link-color);
   }
 }
 </style>

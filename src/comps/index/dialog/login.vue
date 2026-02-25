@@ -12,9 +12,9 @@
         >
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 450px; margin: 1.75rem auto;">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header">
                         <h5 class="modal-title" id="loginModalLabel">账号密码登录</h5>
-                        <button type="button" class="btn-close btn-close-white" @click="method.hide()" aria-label="Close"></button>
+                        <button type="button" class="btn-close" @click="method.hide()" aria-label="Close"></button>
                     </div>
                     
                     <div class="modal-body">
@@ -27,7 +27,14 @@
                                        v-model="state.struct.account"
                                        placeholder="帐号 | 邮箱 | 手机号"
                                        required
-                                       autocomplete="username">
+                                       autocomplete="username"
+                                       :class="{ 'is-invalid': state.errors.account, 'is-valid': state.valid.account }">
+                                <div v-if="state.errors.account" class="invalid-feedback">
+                                    {{ state.errors.account }}
+                                </div>
+                                <div v-if="state.valid.account" class="valid-feedback">
+                                    格式正确
+                                </div>
                             </div>
                             
                             <div class="mb-3">
@@ -40,19 +47,26 @@
                                            @keyup.enter="method.login()"
                                            placeholder="请输入密码"
                                            required
-                                           autocomplete="current-password">
+                                           autocomplete="current-password"
+                                           :class="{ 'is-invalid': state.errors.password, 'is-valid': state.valid.password }">
                                     <button class="btn btn-outline-secondary"
                                             type="button" 
                                             @click="showPassword = !showPassword">
                                         <i class="bi" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
                                     </button>
                                 </div>
+                                <div v-if="state.errors.password" class="invalid-feedback">
+                                    {{ state.errors.password }}
+                                </div>
+                                <div v-if="state.valid.password" class="valid-feedback">
+                                    密码长度符合要求
+                                </div>
                             </div>
 
                             <div class="mb-3">
                                 <button type="submit" 
                                         class="btn btn-primary w-100"
-                                        :disabled="state.item.wait">
+                                        :disabled="state.item.wait || !isFormValid">
                                     <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status"></span>
                                     {{ state.item.wait ? '登录中...' : '登录' }}
                                 </button>
@@ -92,7 +106,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, getCurrentInstance, onUnmounted } from 'vue'
+import { reactive, ref, getCurrentInstance, onUnmounted, computed, watch } from 'vue'
 import cache from '@/utils/cache.js'
 import utils from '@/utils/utils.js'
 import axios from '@/utils/request.js'
@@ -118,9 +132,68 @@ const state = reactive({
         account: '',
         password: '',
     },
+    errors: {
+        account: '',
+        password: '',
+    },
+    valid: {
+        account: false,
+        password: false,
+    },
 })
 
 const showPassword = ref(false)
+
+// 表单验证计算属性
+const isFormValid = computed(() => {
+    return state.valid.account && state.valid.password
+})
+
+// 账号验证
+const validateAccount = (account) => {
+    if (!account) {
+        state.errors.account = '请输入账号'
+        state.valid.account = false
+        return
+    }
+    
+    const accountRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$|^1[3-9]\d{9}$|^[a-zA-Z0-9_]{4,20}$/
+    if (!accountRegex.test(account)) {
+        state.errors.account = '账号格式不正确（支持邮箱、手机号、4-20位字母数字下划线）'
+        state.valid.account = false
+        return
+    }
+    
+    state.errors.account = ''
+    state.valid.account = true
+}
+
+// 密码验证
+const validatePassword = (password) => {
+    if (!password) {
+        state.errors.password = '请输入密码'
+        state.valid.password = false
+        return
+    }
+    
+    if (password.length < 6) {
+        state.errors.password = '密码长度不能少于6位'
+        state.valid.password = false
+        return
+    }
+    
+    state.errors.password = ''
+    state.valid.password = true
+}
+
+// 监听表单输入变化
+watch(() => state.struct.account, (newValue) => {
+    validateAccount(newValue)
+})
+
+watch(() => state.struct.password, (newValue) => {
+    validatePassword(newValue)
+})
 
 const cryptoUtils = {
     generateSecureKey(length = 16, salt = '') {
@@ -141,19 +214,12 @@ const cryptoUtils = {
 
 const method = {
     async login() {
-        if (!state.struct.account || !state.struct.password) {
-            method.showToast('请输入账号和密码', 'warning')
-            return
-        }
-
-        const accountRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$|^1[3-9]\d{9}$|^[a-zA-Z0-9_]{4,20}$/
-        if (!accountRegex.test(state.struct.account)) {
-            method.showToast('账号格式不正确（支持邮箱、手机号、4-20位字母数字下划线）', 'warning')
-            return
-        }
+        // 手动触发验证
+        validateAccount(state.struct.account)
+        validatePassword(state.struct.password)
         
-        if (state.struct.password.length < 6) {
-            method.showToast('密码长度不能少于6位', 'warning')
+        if (!isFormValid.value) {
+            method.showToast('请检查表单填写是否正确', 'warning')
             return
         }
         
@@ -273,6 +339,10 @@ const method = {
         state.item.dialog = true
         state.struct.account = ''
         state.struct.password = ''
+        state.errors.account = ''
+        state.errors.password = ''
+        state.valid.account = false
+        state.valid.password = false
         showPassword.value = false
         
         // 禁止页面滚动

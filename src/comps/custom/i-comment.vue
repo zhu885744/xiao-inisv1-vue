@@ -1,10 +1,10 @@
 <!-- src/comps/CommentList.vue 通用评论组件 -->
 <template>
-  <div class="card shadow-sm border-0 rounded-3 bg-body-tertiary">
+  <div class="card shadow-sm bg-body-tertiary">
     <!-- 评论区标题：接收props的评论数，动态展示 -->
-    <div class="card-header border-0 bg-transparent">
+    <div class="card-header bg-transparent">
       <h3 class="h5 fw-bold mt-2">
-        <i class="bi bi-chat-dots me-2 text-primary"></i>
+        <i class="bi bi-chat-dots me-2"></i>
         评论 ({{ commentCount || 0 }})
       </h3>
     </div>
@@ -13,14 +13,14 @@
       <div class="mb-5" v-if="isLogin">
         <textarea 
           v-model="commentInput"
-          class="form-control rounded-3 border border-secondary-subtle bg-body" 
+          class="form-control border border-secondary-subtle bg-body" 
           rows="3" 
           placeholder="请输入你的评论..."
           :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
         ></textarea>
         
         <!-- 表情选择面板 -->
-        <div v-if="showEmojiPicker" class="emoji-picker-container mt-2 p-3 border rounded-3 bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+        <div v-if="showEmojiPicker" class="emoji-picker-container mt-2 p-3 border bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
           <div class="d-flex flex-wrap gap-2">
             <button 
               v-for="(emoji, index) in emojis" 
@@ -38,14 +38,14 @@
         <div class="d-flex gap-2 mt-3">
           <button 
             @click="toggleEmojiPicker"
-            class="btn btn-outline-secondary btn-sm px-4 rounded-3 emoji-button"
+            class="btn btn-outline-secondary btn-sm px-4 emoji-button"
             :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
           >
             <i class="bi bi-emoji-smile me-1"></i> 表情
           </button>
           <button 
               @click="handlePublish"
-              class="btn btn-primary px-4 rounded-3 publish-btn flex-grow-1"
+              class="btn btn-primary px-4 publish-btn flex-grow-1"
               :disabled="!commentInput.trim() || isCommenting"
             >
               <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
@@ -55,19 +55,19 @@
       </div>
 
       <!-- 未登录引导区：Bootstrap 深色模式适配 -->
-      <div class="mb-5 p-4 bg-body rounded-3 text-center border" v-else>
-        <i class="bi bi-person-circle fs-3 text-primary mb-2"></i>
+      <div class="mb-5 p-4 bg-body text-center border" v-else>
+        <i class="bi bi-person-circle fs-3  mb-2"></i>
         <p class="mb-3 text-muted">登录后即可发表评论～</p>
         <div class="d-flex gap-2 justify-content-center">
           <button 
             @click="handleToLogin()"
-            class="btn btn-primary btn-sm px-4 rounded-3"
+            class="btn btn-primary btn-sm px-4"
           >
             登录
           </button>
           <button 
             @click="handleToRegister()"
-            class="btn btn-outline-primary btn-sm px-4 rounded-3"
+            class="btn btn-outline-primary btn-sm px-4"
           >
             注册
           </button>
@@ -90,7 +90,7 @@
             >
             <div class="flex-grow-1">
               <h6 class="fw-semibold mb-1">
-                <router-link v-if="item.authorId" :to="`/author/${item.authorId}`" class="text-decoration-none text-primary">
+                <router-link v-if="item.authorId" :to="`/author/${item.authorId}`" class="text-decoration-none ">
                   {{ item.nickname || '匿名用户' }}
                 </router-link>
                 <span v-else>{{ item.nickname || '匿名用户' }}</span>
@@ -100,19 +100,19 @@
               <small class="text-muted">{{ item.time || '未知时间' }}</small>
             </div>
           </div>
-          <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary" v-html="item.content"></p>
+          <p class="mb-3 px-2 py-1 bg-body-tertiary" v-html="item.content"></p>
           
           <!-- 回复和点赞按钮组：优化交互 -->
           <div class="d-flex gap-2">
             <button 
-              class="btn btn-sm btn-outline-primary rounded-3" 
+              class="btn btn-sm btn-outline-primary" 
               @click="toggleReplyForm(index)"
               v-if="isLogin"
             >
               <i class="bi bi-reply-fill me-1"></i> 回复
             </button>
             <button 
-              class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
+              class="btn btn-sm btn-outline-secondary disabled" 
               v-else
               data-bs-toggle="tooltip"
               data-bs-title="登录后可回复"
@@ -121,7 +121,7 @@
             </button>
             <!-- 点赞/点踩按钮 -->
             <button 
-              class="btn btn-sm rounded-3" 
+              class="btn btn-sm" 
               :class="getLikeStatus(item.id) ? 'btn-outline-danger' : 'btn-outline-success'"
               @click="handleCommentLike(item.id)"
               v-if="isLogin"
@@ -131,7 +131,7 @@
               <span class="ms-1">{{ getLikeCount(item.id) }}</span>
             </button>
             <button 
-              class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
+              class="btn btn-sm btn-outline-secondary disabled" 
               v-else
               data-bs-toggle="tooltip"
               data-bs-title="登录后可点赞"
@@ -146,14 +146,14 @@
           <div v-if="showReplyIndex === index || (typeof showReplyIndex === 'string' && showReplyIndex.startsWith(`${index}-`))" class="mt-3 reply-form">
             <textarea 
               v-model="replyInput"
-              class="form-control rounded-3 border border-secondary-subtle bg-body" 
+              class="form-control border border-secondary-subtle bg-body" 
               rows="2" 
               placeholder="请输入你的回复..."
               :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
             ></textarea>
             
             <!-- 回复表情选择面板 -->
-            <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border rounded-3 bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+            <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
               <div class="d-flex flex-wrap gap-2">
                 <button 
                   v-for="(emoji, index) in emojis" 
@@ -171,14 +171,14 @@
             <div class="d-flex gap-2 mt-2">
               <button 
                 @click="toggleReplyEmojiPicker"
-                class="btn btn-sm btn-outline-secondary px-3 rounded-3 emoji-button"
+                class="btn btn-sm btn-outline-secondary px-3 emoji-button"
                 :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
               >
                 <i class="bi bi-emoji-smile me-1"></i> 表情
               </button>
               <button 
                 @click="handleSubmitReply()"
-                class="btn btn-sm btn-primary px-3 rounded-3 flex-grow-1"
+                class="btn btn-sm btn-primary px-3 flex-grow-1"
                 :disabled="!replyInput.trim() || isCommenting"
               >
                 <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : ''"></i>
@@ -186,7 +186,7 @@
               </button>
               <button 
                 @click="cancelReply"
-                class="btn btn-sm btn-outline-secondary px-3 rounded-3"
+                class="btn btn-sm btn-outline-secondary px-3"
               >
                 取消
               </button>
@@ -208,7 +208,7 @@
               >
               <div class="flex-grow-1">
                 <h6 class="fw-semibold mb-1">
-                  <router-link v-if="reply.authorId" :to="`/author/${reply.authorId}`" class="text-decoration-none text-primary">
+                  <router-link v-if="reply.authorId" :to="`/author/${reply.authorId}`" class="text-decoration-none ">
                     {{ reply.nickname || '匿名用户' }}
                   </router-link>
                   <span v-else>{{ reply.nickname || '匿名用户' }}</span>
@@ -218,19 +218,19 @@
                 <small class="text-muted">{{ reply.time || '未知时间' }}</small>
               </div>
             </div>
-            <p class="text-secondary mb-3 px-2 py-1 rounded-3 bg-body-tertiary" v-html="reply.content"></p>
+            <p class="mb-3 px-2 py-1 bg-body-tertiary" v-html="reply.content"></p>
             
             <!-- 回复和点赞按钮组 -->
             <div class="d-flex gap-2">
               <button 
-                class="btn btn-sm btn-outline-primary rounded-3" 
+                class="btn btn-sm btn-outline-primary" 
                 @click="toggleReplyForm(index, rIndex)"
                 v-if="isLogin"
               >
                 <i class="bi bi-reply-fill me-1"></i> 回复
               </button>
               <button 
-                class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
+                class="btn btn-sm btn-outline-secondary disabled" 
                 v-else
                 data-bs-toggle="tooltip"
                 data-bs-title="登录后可回复"
@@ -239,7 +239,7 @@
               </button>
               <!-- 点赞/点踩按钮 -->
               <button 
-                class="btn btn-sm rounded-3" 
+                class="btn btn-sm" 
                 :class="getLikeStatus(reply.id) ? 'btn-outline-danger' : 'btn-outline-success'"
                 @click="handleCommentLike(reply.id)"
                 v-if="isLogin"
@@ -249,7 +249,7 @@
                 <span class="ms-1">{{ getLikeCount(reply.id) }}</span>
               </button>
               <button 
-                class="btn btn-sm btn-outline-secondary rounded-3 disabled" 
+                class="btn btn-sm btn-outline-secondary disabled" 
                 v-else
                 data-bs-toggle="tooltip"
                 data-bs-title="登录后可点赞"
@@ -584,11 +584,13 @@ const processedCommentList = computed(() => {
         // 判断是否为文章作者
         const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
         
-        // 处理@提及的函数，添加颜色效果
+        // 处理@提及的函数，添加颜色效果和换行支持
         const handleAtMentions = (content) => {
           if (!content) return ''
+          // 先将换行符转换为<br>标签
+          let processedContent = content.replace(/\n/g, '<br>')
           // 匹配@用户名格式，替换为带颜色的HTML
-          return content.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
+          return processedContent.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
         }
         
         return {
@@ -648,11 +650,13 @@ const processedCommentList = computed(() => {
     // 判断是否为文章作者
     const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
     
-    // 处理@提及的函数，添加颜色效果
+    // 处理@提及的函数，添加颜色效果和换行支持
     const handleAtMentions = (content) => {
       if (!content) return ''
+      // 先将换行符转换为<br>标签
+      let processedContent = content.replace(/\n/g, '<br>')
       // 匹配@用户名格式，替换为带颜色的HTML
-      return content.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
+      return processedContent.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
     }
     
     return {

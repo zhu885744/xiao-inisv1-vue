@@ -11,6 +11,23 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 // 自定义全局样式
 import './assets/css/buyu.style.css'
 
+// 动态加载 Bootstrap 定制化样式
+const loadBootstrapCustomStyle = () => {
+  const commStore = useCommStore()
+  const siteInfo = commStore.siteInfo
+  
+  // 检查是否启用自定义样式，默认为 false
+  const enableCustomStyle = siteInfo?.enable_custom_style === true
+  
+  if (enableCustomStyle) {
+    // 动态加载样式文件
+    import('./assets/css/bootstrap-custom.css')
+    console.log('Bootstrap 定制化样式已加载')
+  } else {
+    console.log('Bootstrap 定制化样式已禁用')
+  }
+}
+
 // ========== 工具类引入 ==========
 // Bootstrap 5 JS（建议放到最后，避免DOM未加载完成时执行）
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
@@ -71,6 +88,18 @@ async function initApp() {
     await commStore.fetchSiteInfo()
     console.log('站点信息获取完成')
     
+    // 7. 动态加载 Bootstrap 定制化样式
+    loadBootstrapCustomStyle()
+    
+    // 8. 动态设置favicon
+    if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
+      const favicon = document.querySelector('link[rel="icon"]')
+      if (favicon) {
+        favicon.href = commStore.siteInfo.favicon
+        console.log('Favicon已更新')
+      }
+    }
+    
     // 7. 挂载应用（确保所有配置完成后挂载）
     // 挂载前可等待路由就绪（可选，解决首屏路由白屏）
     await router.isReady()
@@ -79,8 +108,7 @@ async function initApp() {
     
     // 绑定 Fancybox 图片灯箱
     Fancybox.bind("[data-fancybox]", {
-      // 禁用哈希变化，避免影响路由和页面标题
-      hash: false
+      // Your custom options for a specific gallery
     });
   } catch (error) {
     console.error('应用初始化失败:', error)
@@ -110,8 +138,23 @@ async function initApp() {
       try {
         const commStore = useCommStore()
         await commStore.fetchSiteInfo()
+        
+        // 动态加载 Bootstrap 定制化样式
+        loadBootstrapCustomStyle()
+        
+        // 动态设置favicon
+        if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
+          const favicon = document.querySelector('link[rel="icon"]')
+          if (favicon) {
+            favicon.href = commStore.siteInfo.favicon
+            console.log('Favicon已更新')
+          }
+        }
       } catch (siteInfoError) {
         console.error('获取站点信息失败:', siteInfoError)
+        // 即使获取站点信息失败，也尝试加载默认样式
+        import('./assets/css/bootstrap-custom.css')
+        console.log('默认加载 Bootstrap 定制化样式')
       }
       
       await router.isReady()
@@ -119,8 +162,7 @@ async function initApp() {
       
       // 绑定 Fancybox 图片灯箱
       Fancybox.bind("[data-fancybox]", {
-        // 禁用哈希变化，避免影响路由和页面标题
-        hash: false
+        // Your custom options for a specific gallery
       });
     } catch (innerError) {
       console.error('启动应用失败:', innerError)

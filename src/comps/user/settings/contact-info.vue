@@ -74,16 +74,17 @@
                     id="emailCode" 
                     v-model="emailForm.code" 
                     class="form-control"
-                    placeholder="请输入验证码"
+                    placeholder="请输入6位数字验证码"
                     maxlength="6"
+                    pattern="^\d{6}$"
                   >
                   <button 
                     type="button" 
                     class="btn btn-outline-secondary"
                     @click="sendEmailCode"
-                    :disabled="emailSending || emailLoading"
+                    :disabled="emailSending || emailLoading || emailCountdown > 0"
                   >
-                    {{ emailSending ? `发送中...` : emailCountdown > 0 ? `${emailCountdown}秒后重发` : '发送验证码' }}
+                    {{ emailSending ? '发送中...' : emailCountdown > 0 ? emailCountdown + '秒后重试' : '发送验证码' }}
                   </button>
                 </div>
               </div>
@@ -131,16 +132,17 @@
                     id="phoneCode" 
                     v-model="phoneForm.code" 
                     class="form-control"
-                    placeholder="请输入验证码"
+                    placeholder="请输入6位数字验证码"
                     maxlength="6"
+                    pattern="^\d{6}$"
                   >
                   <button 
                     type="button" 
                     class="btn btn-outline-secondary"
                     @click="sendPhoneCode"
-                    :disabled="phoneSending || phoneLoading"
+                    :disabled="phoneSending || phoneLoading || phoneCountdown > 0"
                   >
-                    {{ phoneSending ? `发送中...` : phoneCountdown > 0 ? `${phoneCountdown}秒后重发` : '发送验证码' }}
+                    {{ phoneSending ? '发送中...' : phoneCountdown > 0 ? phoneCountdown + '秒后重试' : '发送验证码' }}
                   </button>
                 </div>
               </div>
@@ -171,7 +173,7 @@
           </li>
           <li class="list-group-item">
             <i class="bi bi-clock-history text-warning me-2"></i>
-            验证码有效期为10分钟，请及时输入
+            验证码有效期为5分钟，请及时输入
           </li>
           <li class="list-group-item">
             <i class="bi bi-exclamation-triangle text-danger me-2"></i>
@@ -230,6 +232,55 @@ const phoneCountdown = ref(0)
 let emailTimer = null
 let phoneTimer = null
 
+// 验证码防刷缓存
+const getCacheKey = (type, contact) => {
+  return `verify-code-${type}-${contact}`
+}
+
+const getDailyLimitKey = (type, contact) => {
+  return `verify-code-daily-${type}-${contact}`
+}
+
+// 检查是否可以发送验证码
+const canSendCode = (type, contact) => {
+  // 检查时间间隔
+  const cacheKey = getCacheKey(type, contact)
+  const lastSendTime = localStorage.getItem(cacheKey)
+  if (lastSendTime) {
+    const timeDiff = Date.now() - parseInt(lastSendTime)
+    if (timeDiff < 60 * 1000) {
+      return false
+    }
+  }
+  
+  // 检查每日发送上限
+  const dailyLimitKey = getDailyLimitKey(type, contact)
+  const dailyCount = localStorage.getItem(dailyLimitKey)
+  if (dailyCount && parseInt(dailyCount) >= 10) {
+    return false
+  }
+  
+  return true
+}
+
+// 记录发送验证码
+const recordSendCode = (type, contact) => {
+  // 记录发送时间
+  const cacheKey = getCacheKey(type, contact)
+  localStorage.setItem(cacheKey, Date.now().toString())
+  
+  // 记录每日发送次数
+  const dailyLimitKey = getDailyLimitKey(type, contact)
+  const currentCount = localStorage.getItem(dailyLimitKey) || '0'
+  const newCount = parseInt(currentCount) + 1
+  localStorage.setItem(dailyLimitKey, newCount.toString())
+  
+  // 设置每日计数过期时间（24小时后）
+  setTimeout(() => {
+    localStorage.removeItem(dailyLimitKey)
+  }, 24 * 60 * 60 * 1000)
+}
+
 // 发送邮箱验证码
 const sendEmailCode = async () => {
   if (emailSending.value || emailCountdown.value > 0) return
@@ -244,19 +295,54 @@ const sendEmailCode = async () => {
     return
   }
 
+  // 检查防刷
+  if (!canSendCode('email', emailForm.email)) {
+    const cacheKey = getCacheKey('email', emailForm.email)
+    const lastSendTime = localStorage.getItem(cacheKey)
+    const dailyLimitKey = getDailyLimitKey('email', emailForm.email)
+    const dailyCount = localStorage.getItem(dailyLimitKey)
+    
+    if (lastSendTime) {
+      const timeDiff = Date.now() - parseInt(lastSendTime)
+      if (timeDiff < 60 * 1000) {
+        toast.error('发送过于频繁，请60秒后再试')
+        return
+      }
+    }
+    
+    if (dailyCount && parseInt(dailyCount) >= 10) {
+      toast.error('今日发送验证码次数已达上限，请明日再试')
+      return
+    }
+  }
+
   emailSending.value = true
   try {
     const res = await request.put('/api/users/email', {
-      email: emailForm.email,
-      code: '' // 为空自动发送验证码
+      email: emailForm.email
     })
 
     if (res.code === 200) {
       toast.success('验证码已发送，请查收')
+      // 记录发送验证码
+      recordSendCode('email', emailForm.email)
       // 开始倒计时
       startEmailCountdown()
     } else {
-      toast.error(res.msg || '发送验证码失败')
+      // 处理具体错误码
+      let errorMsg = res.msg || '发送验证码失败'
+      if (res.msg && res.msg.includes('MOBILE_NUMBER_ILLEGAL')) {
+        errorMsg = '手机号码格式错误'
+      } else if (res.msg && res.msg.includes('BUSINESS_LIMIT_CONTROL')) {
+        errorMsg = '触发号码天级流控，请明日再试'
+      } else if (res.msg && res.msg.includes('FREQUENCY_FAIL')) {
+        errorMsg = '发送过于频繁，请60秒后再试'
+      } else if (res.msg && res.msg.includes('INVALID_PARAMETERS')) {
+        errorMsg = '非法参数'
+      } else if (res.msg && res.msg.includes('FUNCTION_NOT_OPENED')) {
+        errorMsg = '没有开通融合认证功能'
+      }
+      toast.error(errorMsg)
     }
   } catch (error) {
     console.error('发送邮箱验证码失败:', error)
@@ -280,19 +366,54 @@ const sendPhoneCode = async () => {
     return
   }
 
+  // 检查防刷
+  if (!canSendCode('phone', phoneForm.phone)) {
+    const cacheKey = getCacheKey('phone', phoneForm.phone)
+    const lastSendTime = localStorage.getItem(cacheKey)
+    const dailyLimitKey = getDailyLimitKey('phone', phoneForm.phone)
+    const dailyCount = localStorage.getItem(dailyLimitKey)
+    
+    if (lastSendTime) {
+      const timeDiff = Date.now() - parseInt(lastSendTime)
+      if (timeDiff < 60 * 1000) {
+        toast.error('发送过于频繁，请60秒后再试')
+        return
+      }
+    }
+    
+    if (dailyCount && parseInt(dailyCount) >= 10) {
+      toast.error('今日发送验证码次数已达上限，请明日再试')
+      return
+    }
+  }
+
   phoneSending.value = true
   try {
     const res = await request.put('/api/users/phone', {
-      phone: phoneForm.phone,
-      code: '' // 为空自动发送验证码
+      phone: phoneForm.phone
     })
 
     if (res.code === 200) {
       toast.success('验证码已发送，请查收')
+      // 记录发送验证码
+      recordSendCode('phone', phoneForm.phone)
       // 开始倒计时
       startPhoneCountdown()
     } else {
-      toast.error(res.msg || '发送验证码失败')
+      // 处理具体错误码
+      let errorMsg = res.msg || '发送验证码失败'
+      if (res.msg && res.msg.includes('MOBILE_NUMBER_ILLEGAL')) {
+        errorMsg = '手机号码格式错误'
+      } else if (res.msg && res.msg.includes('BUSINESS_LIMIT_CONTROL')) {
+        errorMsg = '触发号码天级流控，请明日再试'
+      } else if (res.msg && res.msg.includes('FREQUENCY_FAIL')) {
+        errorMsg = '发送过于频繁，请60秒后再试'
+      } else if (res.msg && res.msg.includes('INVALID_PARAMETERS')) {
+        errorMsg = '非法参数'
+      } else if (res.msg && res.msg.includes('FUNCTION_NOT_OPENED')) {
+        errorMsg = '没有开通融合认证功能'
+      }
+      toast.error(errorMsg)
     }
   } catch (error) {
     console.error('发送手机号验证码失败:', error)
@@ -356,6 +477,11 @@ const updateEmail = async () => {
     toast.error('请输入验证码')
     return
   }
+  
+  if (!/^\d{6}$/.test(emailForm.code)) {
+    toast.error('请输入6位数字验证码')
+    return
+  }
 
   emailLoading.value = true
   try {
@@ -398,6 +524,11 @@ const updatePhone = async () => {
   
   if (!phoneForm.code) {
     toast.error('请输入验证码')
+    return
+  }
+  
+  if (!/^\d{6}$/.test(phoneForm.code)) {
+    toast.error('请输入6位数字验证码')
     return
   }
 

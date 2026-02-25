@@ -13,8 +13,14 @@
       </button>
 
       <!-- 网站标题：跳首页 -->
-      <router-link class="navbar-brand flex-grow-1 text-center d-lg-block d-flex justify-content-start" to="/">
-        {{ store.comm.siteInfo?.title || '未设置网站名' }}
+      <router-link class="navbar-brand flex-grow-1 text-center d-lg-block d-flex justify-content-start align-items-center" to="/">
+        <img 
+          v-if="store.comm.siteInfo?.avatar" 
+          :src="store.comm.siteInfo.avatar" 
+          alt="网站图标" 
+          style="width: 45px;border-radius: 50%;"
+        >
+        <span v-else class="fw-bold">{{ store.comm.siteInfo?.title || '未设置网站名' }}</span>
       </router-link>
 
       <!-- 移动端右侧搜索按钮 -->
@@ -154,7 +160,15 @@
     aria-labelledby="mobileSidebarLabel"
   >
     <div class="offcanvas-header border-bottom">
-      <h5 class="offcanvas-title" id="mobileSidebarLabel">{{ store.comm.siteInfo?.title || '朱某的生活印记' }}</h5>
+      <h5 class="offcanvas-title d-flex align-items-center" id="mobileSidebarLabel">
+        <img 
+          v-if="store.comm.siteInfo?.avatar" 
+          :src="store.comm.siteInfo.avatar" 
+          alt="网站图标" 
+          class="nav-logo"
+        >
+        <span v-else class="fw-bold">{{ store.comm.siteInfo?.title || '朱某的生活印记' }}</span>
+      </h5>
       <button 
         type="button" 
         class="btn-close" 
@@ -247,7 +261,7 @@
             <small class="text-muted">{{ store.comm.login.user.email }}</small>
           </div>
           <button 
-            class="btn btn-warning w-100 mb-3" 
+            class="btn btn-danger w-100 mb-3" 
             type="button" 
             @click="doSign"
             :disabled="signLoading || hasSigned"
@@ -941,6 +955,29 @@ watch(
 :deep(.nav-link.active) {
   color: #0077ff !important;
   font-weight: 500;
+}
+
+/* 导航栏图标样式 */
+.nav-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+/* 响应式图标大小 */
+@media (max-width: 768px) {
+  .nav-logo {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav-logo {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 /* 导航项样式优化 */

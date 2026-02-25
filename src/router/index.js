@@ -190,21 +190,21 @@ const createRouterHistory = () => {
     : createWebHashHistory(ROUTER_BASE)
 }
 
-// 3. 创建路由实例（精简配置，规范写法）
+// 3. 创建路由实例
 const router = createRouter({
   history: createRouterHistory(),
   routes,
-  // 路由跳转后回到顶部（提升体验，可选）
+  // 路由跳转后回到顶部
   scrollBehavior: (to, from, savedPosition) => {
+    // 只有在真正的路由跳转时才滚动到顶部
+    // 避免Fancybox等模态框关闭时触发滚动
     if (savedPosition) {
       return savedPosition
     } else {
-      // 尝试从缓存中获取滚动位置
-      const cachedPosition = cache.get(`scroll_position_${to.path}`)
-      if (cachedPosition) {
-        return cachedPosition
+      // 只有当路由路径发生变化时才滚动到顶部
+      if (to.path !== from.path) {
+        return { top: 0, left: 0 }
       }
-      return { top: 0, left: 0 }
     }
   }
 })
@@ -254,8 +254,8 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-// 全局后置守卫：缓存路由历史和滚动位置
-router.afterEach((to, from) => {
+// 全局后置守卫：缓存路由历史
+router.afterEach((to) => {
   // 缓存路由历史，保存最近10条
   const historyKey = 'router_history'
   const history = cache.get(historyKey) || []
@@ -276,18 +276,6 @@ router.afterEach((to, from) => {
   
   // 缓存路由历史，有效期7天
   cache.set(historyKey, limitedHistory, 24 * 7)
-  
-  // 缓存页面滚动位置
-  if (from.path) {
-    window.addEventListener('scroll', () => {
-      const scrollPosition = {
-        top: window.scrollY,
-        left: window.scrollX
-      }
-      // 缓存滚动位置，有效期1天
-      cache.set(`scroll_position_${from.path}`, scrollPosition, 24)
-    }, { once: true })
-  }
 })
 
 // 全局错误处理（捕获路由加载/跳转错误）

@@ -9,14 +9,14 @@
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="article-content-wrap card border-0 shadow-sm p-3 mt-2">
+    <div v-else-if="error" class="article-content-wrap card shadow-sm p-3 mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
     <!-- 文章主体 -->
     <div v-else class="article-main">
       <!-- 文章内容区：核心阅读区，重写样式 -->
-      <main class="article-content-wrap card border-0 shadow-sm mt-2">
+      <main class="card shadow-sm mt-2">
         <div class="p-3">
         <!-- 文章头部：标题+元信息 -->
         <header class="article-header mt-2">
@@ -51,14 +51,14 @@
             v-for="tag in articleInfo.result.tags" 
             :key="tag.id"
             :to="`/tag/${tag.id}`"
-            class="badge rounded-pill bg-primary bg-opacity-10 text-primary py-1.5 px-4 transition-all duration-300 hover:bg-opacity-20 hover:scale-105 cursor-pointer text-decoration-none"
+            class="badge rounded-pill text-bg-success py-1.5 px-4 transition-all duration-300 cursor-pointer text-decoration-none"
           >
             <i class="bi bi-tag me-1"></i> {{ tag.name }}
           </router-link>
         </div>
 
         <!-- 版权归属信息 -->
-        <div class="card border rounded-3 mt-4 overflow-hidden shadow-sm">
+        <div class="card border mt-4 overflow-hidden shadow-sm">
           <div class="card-body">
             <!-- 版权归属信息 -->
             <div class="mb-1">
@@ -85,8 +85,8 @@
           <div class="btn-group gap-2" role="group" aria-label="文章操作">
             <button 
               @click="handleLike" 
-              class="btn btn-outline-primary"
-              :class="{ 'btn-primary text-white': isLiked, 'btn-outline-primary': !isLiked }"
+              class="btn btn-outline-danger"
+              :class="{ 'btn-danger text-white': isLiked, 'btn-outline-danger': !isLiked }"
             >
               <i :class="isLiked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up'" class="me-2"></i>
               <span>{{ likeCount }}</span>
@@ -364,8 +364,6 @@ const handleReplyComment = async (data) => {
     }
   }
 }
-
-
 
 // 检测深色模式
 const detectDarkMode = () => {
@@ -815,6 +813,62 @@ watch(
 
 .btn:hover i {
   transform: scale(1.1);
+}
+
+/* 暗黑模式样式 */
+[data-bs-theme=dark] {
+  /* 文章元信息 */
+  .article-meta {
+    color: var(--bs-secondary-color);
+  }
+  .article-meta .bi {
+    color: var(--bs-tertiary-color);
+  }
+  
+  /* 文章内容 */
+  .article-content :deep(h2),
+  .article-content :deep(h3),
+  .article-content :deep(h4) {
+    color: var(--bs-emphasis-color);
+  }
+  .article-content :deep(img) {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  .article-content :deep(a) {
+    color: var(--bs-link-color);
+  }
+  .article-content :deep(a:hover) {
+    color: var(--bs-link-hover-color);
+  }
+  .article-content :deep(td),
+  .article-content :deep(th) {
+    border-color: var(--bs-border-color);
+  }
+  .article-content :deep(th) {
+    background-color: var(--bs-secondary-bg);
+  }
+  
+  /* 版权信息卡片 */
+  .card.border {
+    border-color: var(--bs-border-color);
+    background-color: var(--bs-tertiary-bg);
+  }
+  
+  /* 加载状态 */
+  .spinner-border {
+    color: var(--bs-info);
+  }
+  
+  /* 错误状态 */
+  .article-content-wrap.card {
+    background-color: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color);
+  }
+  
+  /* 文章操作按钮 */
+  .btn-group .btn:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* 关键：768px及以下屏幕 文章元信息适配缩小 */

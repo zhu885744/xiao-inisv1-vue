@@ -15,13 +15,16 @@
   </div>
 
   <!-- 文章列表 -->
-  <div v-else class="article-list-container mt-2 grid-article-list">
+  <div v-else :class="['article-list-container mt-2', hasImageMode ? 'grid-article-list' : 'list-article-list']">
     <!-- 先显示置顶文章 -->
     <div 
       v-for="article in sortedArticleList.filter(article => article.top === 1)" 
       :key="`sticky-${article.id}`"
-      class="card article-item-card shadow-sm hover-shadow"
-      :class="{'sticky-article': article.top === 1}"
+      :class="[
+        'card', 
+        hasImageMode ? 'article-item-card shadow-sm hover-shadow' : 'article-item-list shadow-sm hover-shadow mt-2',
+        {'sticky-article': article.top === 1}
+      ]"
       @click="toArticleDetail(article.id)" 
       style="cursor: pointer;"
     >
@@ -29,7 +32,9 @@
       <div class="sticky-badge" v-if="article.top === 1">
         <i class="bi bi-pin-angle-fill"></i> 置顶
       </div>
-      <div class="card-body p-0 d-flex flex-column h-100">
+      
+      <!-- 有图模式布局 -->
+      <div v-if="hasImageMode" class="card-body p-0 d-flex flex-column h-100">
         <!-- 文章封面 -->
         <div class="article-cover flex-shrink-0">
           <img 
@@ -67,17 +72,47 @@
           </div>
         </div>
       </div>
+      
+      <!-- 无图模式布局 -->
+      <div v-else class="card-body p-2">
+        <!-- 文章标题 -->
+        <h3 class="article-title-list h5 fw-bold mb-2">
+          <span v-if="article.top === 1" class="me-2">
+            <i class="bi bi-pin-angle-fill text-warning"></i>
+          </span>
+          {{ article.title }}
+        </h3>
+
+        <!-- 文章摘要 -->
+        <p class="article-desc-list text-muted mb-3">
+          {{ article.abstract || '暂无摘要' }}
+        </p>
+
+        <!-- 元信息 -->
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-sm text-secondary"><i class="bi bi-folder-fill me-1"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.create_time) }}</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 再显示非置顶文章 -->
     <div 
       v-for="article in sortedArticleList.filter(article => article.top !== 1)" 
       :key="article.id"
-      class="card article-item-card shadow-sm hover-shadow"
+      :class="[
+        'card', 
+        hasImageMode ? 'article-item-card shadow-sm hover-shadow' : 'article-item-list shadow-sm hover-shadow mt-2'
+      ]"
       @click="toArticleDetail(article.id)" 
       style="cursor: pointer;"
     >
-      <div class="card-body p-0 d-flex flex-column h-100">
+      <!-- 有图模式布局 -->
+      <div v-if="hasImageMode" class="card-body p-0 d-flex flex-column h-100">
         <!-- 文章封面 -->
         <div class="article-cover flex-shrink-0">
           <img 
@@ -110,33 +145,49 @@
           </div>
         </div>
       </div>
+      
+      <!-- 无图模式布局 -->
+      <div v-else class="card-body p-2">
+        <!-- 文章标题 -->
+        <h3 class="article-title-list h5 fw-bold mb-2">{{ article.title }}</h3>
+
+        <!-- 文章摘要 -->
+        <p class="article-desc-list text-muted mb-3">
+          {{ article.abstract || '暂无摘要' }}
+        </p>
+
+        <!-- 元信息 -->
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-sm text-secondary"><i class="bi bi-folder-fill me-1"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.create_time) }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 加载更多 -->
-  <div class="d-flex justify-content-center mt-4 mb-5">
-    <button 
-      v-if="loading && articleList.length > 0" 
-      class="btn btn-info btn-lg disabled"
-      disabled
-    >
-      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-      加载中...
-    </button>
-    <button 
-      v-else-if="hasMore" 
-      class="btn btn-primary btn-lg"
-      @click="loadMore"
-    >
-      加载更多
-    </button>
-    <button 
-      v-else 
-      class="btn btn-outline-secondary btn-lg disabled"
-      disabled
-    >
-      已加载全部
-    </button>
+  <!-- 分页 -->
+  <div v-if="total > 0" class="pagination-container mt-4">
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <button class="page-link" @click="changePage(currentPage - 1)">
+            <span aria-hidden="true">&laquo;</span>
+          </button>
+        </li>
+        <li class="page-item active">
+          <span class="page-link">{{ currentPage }} / {{ pageCount }}</span>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === pageCount }">
+          <button class="page-link" @click="changePage(currentPage + 1)">
+            <span aria-hidden="true">&raquo;</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -159,9 +210,45 @@ const currentPage = ref(1)
 const limit = ref(9)
 const total = ref(0)
 const order = ref('top desc, create_time desc')
+// 显示模式：true为有图模式（网格布局），false为无图模式（列表布局）
+const hasImageMode = ref(true)
 
-const hasMore = computed(() => {
-  return articleList.value.length < total.value
+// 从后端API获取显示模式设置
+const loadDisplayMode = async () => {
+  try {
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      const config = response.data.json || {}
+      hasImageMode.value = config.display_mode !== false // 默认值为true
+    }
+  } catch (error) {
+    console.error('读取显示模式设置失败:', error)
+    // 出错时使用默认值
+    hasImageMode.value = true
+  }
+}
+
+// 保存显示模式设置到后端API
+const saveDisplayMode = async (mode) => {
+  try {
+    await request.post('/api/config/save', {
+      key: 'xiao_functions',
+      json: { display_mode: mode }
+    })
+  } catch (error) {
+    console.error('保存显示模式设置失败:', error)
+  }
+}
+
+// 监听显示模式变化
+const changeDisplayMode = async (mode) => {
+  hasImageMode.value = mode
+  await saveDisplayMode(mode)
+}
+
+// 计算总页数
+const pageCount = computed(() => {
+  return Math.ceil(total.value / limit.value)
 })
 
 // 计算排序后的文章列表：置顶文章在前
@@ -173,6 +260,13 @@ const sortedArticleList = computed(() => {
     return new Date(b.create_time * 1000) - new Date(a.create_time * 1000)
   })
 })
+
+// 切换分页
+const changePage = (page) => {
+  if (page < 1 || page > pageCount.value) return
+  currentPage.value = page
+  getArticleList(page, false)
+}
 
 const formatTime = (timestamp) => {
   if (!timestamp || timestamp === 0) return '未知时间'
@@ -280,7 +374,7 @@ const loadVisibleImages = () => {
   // 移除滚动事件的调用，避免重复加载
 }
 
-const getArticleList = async (page = 1, isLoadMore = false) => {
+const getArticleList = async (page = 1) => {
   loading.value = true
   try {
     const params = { page, limit: limit.value, order: order.value }
@@ -290,24 +384,19 @@ const getArticleList = async (page = 1, isLoadMore = false) => {
       const newData = res.data.data || []
       const totalCount = res.data.count || 0
       
-      articleList.value = isLoadMore ? [...articleList.value, ...newData] : newData
+      articleList.value = newData
       total.value = totalCount
       currentPage.value = page
       
       // 数据更新后，观察新图片
-      if (!isLoadMore) { // 只在第一次加载时重新观察
-        observeLazyImages()
-      } else {
-        // 加载更多时观察新添加的图片
-        observeLazyImages()
-      }
+      observeLazyImages()
     } else {
       // console.error('获取文章列表失败：', res.msg)
-      !isLoadMore && (articleList.value = [])
+      articleList.value = []
     }
   } catch (error) {
     // console.error('获取文章列表接口异常：', error)
-    !isLoadMore && (articleList.value = [])
+    articleList.value = []
   } finally {
     loading.value = false
   }
@@ -317,17 +406,15 @@ const toArticleDetail = (id) => {
   router.push(`/archives/${id}`) 
 }
 
-const loadMore = () => {
-  if (!hasMore.value || loading.value) return
-  getArticleList(currentPage.value + 1, true)
-}
-
-onMounted(() => {
+onMounted(async () => {
+  // 加载显示模式设置
+  await loadDisplayMode()
+  
   // 初始化Intersection Observer
   initIntersectionObserver()
   
   // 获取文章列表
-  getArticleList(1, false)
+  getArticleList(1)
 })
 
 onUnmounted(() => {
@@ -340,7 +427,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 文章列表Grid布局 */
+/* 文章列表Grid布局 - 有图模式 */
 .grid-article-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -399,8 +486,6 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
   transition: all 0.3s ease;
 }
 
@@ -451,8 +536,8 @@ img {
 
 /* 标题 */
 .article-title {
-  font-size: clamp(0.9rem, 1.2vw, 1rem);
-  line-height: 1.4;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -460,10 +545,25 @@ img {
 
 /* 摘要 */
 .article-desc {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
+  color: #6c757d;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* 无图模式标题 */
+.article-title-list {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* 无图模式摘要 */
+.article-desc-list {
+  font-size: 0.9rem;
   color: #6c757d;
   line-height: 1.5;
-  margin: 0;
+  margin: 0.5rem 0;
 }
 
 .text-truncate-1 {
@@ -538,6 +638,12 @@ img {
   }
 }
 
+/* 分页样式 */
+.pagination-container {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
 /* 动画 */
 @keyframes fadeIn {
   from {
@@ -564,5 +670,55 @@ img {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
+}
+
+/* 暗黑模式适配 */
+[data-bs-theme=dark] {
+  /* 文章卡片 */
+  .article-item-card,
+  .article-item-list {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+  }
+  
+  /* 标题 */
+  .article-title {
+    color: var(--bs-heading-color);
+  }
+  
+  /* 摘要 */
+  .article-desc {
+    color: var(--bs-secondary-color);
+  }
+  
+  /* 无图模式标题 */
+  .article-title-list {
+    color: var(--bs-heading-color);
+  }
+  
+  /* 无图模式摘要 */
+  .article-desc-list {
+    color: var(--bs-secondary-color);
+  }
+  
+  /* 元信息 */
+  .article-meta {
+    color: var(--bs-tertiary-color);
+  }
+  
+  .meta-item .bi {
+    color: var(--bs-tertiary-color);
+  }
+  
+  /* 加载动画 */
+  .article-cover-img:not([src]) {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  }
+  
+  /* 悬停效果 */
+  .article-item-card:hover,
+  .article-item-list:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
 }
 </style>

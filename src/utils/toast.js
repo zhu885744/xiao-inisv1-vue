@@ -47,9 +47,10 @@ class Toast {
     toastElement.style.borderRadius = '2px';
     toastElement.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
 
-    // 统一使用纯白背景和纯黑文字
-    const bgClass = 'bg-white';
-    const textClass = 'text-dark';
+    // 根据当前主题模式选择背景和文字颜色
+    const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const bgClass = isDarkMode ? 'bg-dark' : 'bg-white';
+    const textClass = isDarkMode ? 'text-light' : 'text-dark';
 
     toastElement.innerHTML = `
       <div class="toast-header ${bgClass} ${textClass}">

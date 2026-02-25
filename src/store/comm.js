@@ -104,7 +104,7 @@ const logout = async (state = {}, path = null) => {
  * @returns {Promise<Object|null>}
  */
 const fetchSiteInfo = async (state = {}, force = false) => {
-    const cacheName = 'site-info'
+    const cacheName = 'xiao_functions'
     
     // 防止并发调用
     if (fetchingSiteInfo) return state.siteInfo
@@ -122,7 +122,7 @@ const fetchSiteInfo = async (state = {}, force = false) => {
 
         // 2. 从API获取站点信息
         // 尝试直接在URL中拼接参数，确保key参数能够正确传递
-        const response = await axios.get(`/api/config/one?key=SITE_INFO`)
+        const response = await axios.get(`/api/config/one?key=xiao_functions`)
 
         // 检查响应结构
         if (response.code === 200 && response.data) {
@@ -186,7 +186,7 @@ export const useCommStore = defineStore('comm', {
     state: () => {
         const cachedUser = cache.get('user-info') || {}
         const hasUser = !utils.is.empty(cachedUser)
-        const cachedSiteInfo = cache.get('site-info') || {}
+        const cachedSiteInfo = cache.get('xiao_functions') || {}
         
         return {
             auth: {
@@ -247,7 +247,8 @@ export const useCommStore = defineStore('comm', {
          * 清除站点信息缓存
          */
         clearSiteInfoCache() {
-            cache.del('site-info')
+            const cacheName = 'xiao_functions'
+            cache.del(cacheName)
             this.siteInfo = {}
         },
         

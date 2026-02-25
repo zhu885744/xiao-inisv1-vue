@@ -38,7 +38,7 @@
   <!-- 公告弹窗 -->
   <div class="modal fade" id="noticeModal" tabindex="-1" aria-hidden="true" ref="noticeModal">
     <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content shadow rounded-3">
+      <div class="modal-content shadow">
         <div class="modal-header border-bottom py-3 px-4">
           <h5 class="modal-title d-flex align-items-center mb-0 text-danger-emphasis">
             <i class="bi bi-megaphone me-2"></i>
@@ -49,7 +49,7 @@
 
         <div class="modal-body p-4">
           <!-- 公告内容 -->
-          <div class="notice-content p-3 rounded-3 scrollable-content">
+          <div class="notice-content p-3 scrollable-content">
             <div v-html="formatContent(currentNotice?.content)" class="notice-text"></div>
             
             <!-- 查看详情链接 -->

@@ -8,7 +8,7 @@
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="card border-0 shadow-sm p-4 mt-2">
+    <div v-else-if="error" class="card  shadow-sm p-4 mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
@@ -17,13 +17,13 @@
       <!-- 标签列表页结构 -->
       <div v-if="!currentTag" class="tags-list-page">
         <!-- 标签总数统计 -->
-        <div class="tags-count card border-0 shadow-sm p-4 mt-2">
+        <div class="tags-count card  shadow-sm p-4 mt-2">
           <div class="tags-count-header">
             <h2 class="tags-count-title fw-bold">标签 <span class="text-sm text-muted">({{ totalTags }})</span></h2>
           </div>
         </div>
         <!-- 标签卡片网格 -->
-        <div class="tags-grid card border-0 shadow-sm p-4 mt-2">
+        <div class="tags-grid card  shadow-sm p-4 mt-2">
           <div class="tags-grid-container">
             <div 
               v-for="tag in tags" 
@@ -63,13 +63,8 @@
                   <span aria-hidden="true">&laquo;</span>
                 </button>
               </li>
-              <li 
-                v-for="page in tagPageCount" 
-                :key="page" 
-                class="page-item" 
-                :class="{ active: tagCurrentPage === page }"
-              >
-                <button class="page-link" @click="changeTagPage(page)">{{ page }}</button>
+              <li class="page-item active">
+                <span class="page-link">{{ tagCurrentPage }} / {{ tagPageCount }}</span>
               </li>
               <li class="page-item" :class="{ disabled: tagCurrentPage === tagPageCount }">
                 <button class="page-link" @click="changeTagPage(tagCurrentPage + 1)">
@@ -84,7 +79,7 @@
       <!-- 单个标签页结构 -->
       <div v-else class="single-tag-page">
         <!-- 标签详情 -->
-        <div class="tag-info card border-0 shadow-sm p-4 mt-2">
+        <div class="tag-info card  shadow-sm p-4 mt-2">
           <div class="tag-info-inner">
             <!-- 标签头像 -->
             <div class="tag-info-avatar">
@@ -98,8 +93,8 @@
             <!-- 标签信息 -->
             <div class="tag-info-content">
               <h1 class="tag-title fw-bold mb-3">{{ currentTag.name }} <span class="text-sm text-muted">({{ currentTag.articleCount || 0 }})</span></h1>
-              <p v-if="currentTag.description" class="tag-description text-muted mb-4">
-                {{ currentTag.description || '暂无描述' }}
+              <p class="tag-description text-muted mb-4">
+                {{ currentTag.description || '该标签无描述' }}
               </p>
             </div>
           </div>
@@ -107,19 +102,23 @@
       </div>
       
       <!-- 文章列表 -->
-      <div v-if="currentTag" class="article-list-container mt-2 grid-article-list">
-        <div v-if="articles.length === 0" class="card border-0 shadow-sm p-4 text-center col-12">
+      <div v-if="currentTag" :class="['article-list-container mt-2', hasImageMode ? 'grid-article-list' : 'list-article-list']">
+        <div v-if="articles.length === 0" class="card  shadow-sm p-4 text-center col-12">
           <i class="bi bi-file-earmark-text text-muted fs-3 mb-2"></i>
           <p class="mb-0 text-muted">该标签下暂无文章</p>
         </div>
         <div 
           v-for="article in articles" 
           :key="article.id" 
-          class="card article-item-card shadow-sm hover-shadow"
+          :class="[
+            'card', 
+            hasImageMode ? 'article-item-card shadow-sm hover-shadow' : 'article-item-list shadow-sm hover-shadow mt-2'
+          ]"
           @click="goToArticle(article.id)"
           style="cursor: pointer;"
         >
-          <div class="card-body p-0 d-flex flex-column h-100">
+          <!-- 有图模式布局 -->
+          <div v-if="hasImageMode" class="card-body p-0 d-flex flex-column h-100">
             <!-- 文章封面 -->
             <div class="article-cover flex-shrink-0">
               <img 
@@ -151,6 +150,27 @@
               </div>
             </div>
           </div>
+          
+          <!-- 无图模式布局 -->
+          <div v-else class="card-body p-2">
+            <!-- 文章标题 -->
+            <h3 class="article-title-list h5 fw-bold mb-2">{{ article.title }}</h3>
+
+            <!-- 文章摘要 -->
+            <p class="article-desc-list text-muted mb-3">
+              {{ article.abstract || '暂无摘要' }}
+            </p>
+
+            <!-- 元信息 -->
+            <div class="d-flex align-items-center justify-content-between w-100">
+              <div class="d-flex align-items-center gap-3">
+                <span class="text-sm text-secondary"><i class="bi bi-folder-fill me-1"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.create_time) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -163,13 +183,8 @@
                 <span aria-hidden="true">&laquo;</span>
               </button>
             </li>
-            <li 
-              v-for="page in pageCount" 
-              :key="page" 
-              class="page-item" 
-              :class="{ active: currentPage === page }"
-            >
-              <button class="page-link" @click="changePage(page)">{{ page }}</button>
+            <li class="page-item active">
+              <span class="page-link">{{ currentPage }} / {{ pageCount }}</span>
             </li>
             <li class="page-item" :class="{ disabled: currentPage === pageCount }">
               <button class="page-link" @click="changePage(currentPage + 1)">
@@ -239,6 +254,41 @@ const totalTags = ref(0)
 const tagPageCount = computed(() => {
   return Math.ceil(totalTags.value / tagPageSize.value)
 })
+// 显示模式：true为有图模式（网格布局），false为无图模式（列表布局）
+const hasImageMode = ref(true)
+
+// 从后端API获取显示模式设置
+const loadDisplayMode = async () => {
+  try {
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      const config = response.data.json || {}
+      hasImageMode.value = config.display_mode !== false // 默认值为true
+    }
+  } catch (error) {
+    console.error('读取显示模式设置失败:', error)
+    // 出错时使用默认值
+    hasImageMode.value = true
+  }
+}
+
+// 保存显示模式设置到后端API
+const saveDisplayMode = async (mode) => {
+  try {
+    await request.post('/api/config/save', {
+      key: 'xiao_functions',
+      json: { display_mode: mode }
+    })
+  } catch (error) {
+    console.error('保存显示模式设置失败:', error)
+  }
+}
+
+// 监听显示模式变化
+const changeDisplayMode = async (mode) => {
+  hasImageMode.value = mode
+  await saveDisplayMode(mode)
+}
 
 // Intersection Observer 用于懒加载
 let observer = null
@@ -669,6 +719,9 @@ watch(
 
 // 页面挂载初始化
 onMounted(async () => {
+  // 加载显示模式设置
+  await loadDisplayMode()
+  
   // 初始化Intersection Observer
   initIntersectionObserver()
   
@@ -837,11 +890,17 @@ onMounted(async () => {
   }
 }
 
-/* 文章列表Grid布局 */
+/* 文章列表Grid布局 - 有图模式 */
 .grid-article-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 文章列表List布局 - 无图模式 */
+.list-article-list {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -863,8 +922,6 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
   transition: all 0.3s ease;
 }
 
@@ -915,8 +972,8 @@ img {
 
 /* 标题 */
 .article-title {
-  font-size: clamp(0.9rem, 1.2vw, 1rem);
-  line-height: 1.4;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -924,9 +981,9 @@ img {
 
 /* 摘要 */
 .article-desc {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   color: #6c757d;
-  line-height: 1.5;
+  line-height: 1.3;
   margin: 0;
 }
 
@@ -934,6 +991,21 @@ img {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 无图模式标题 */
+.article-title-list {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* 无图模式摘要 */
+.article-desc-list {
+  font-size: 0.9rem;
+  color: #6c757d;
+  line-height: 1.5;
+  margin: 0.5rem 0;
 }
 
 /* 元信息 */
@@ -1101,6 +1173,87 @@ img {
   
   .tag-article-count {
     font-size: 0.75rem;
+  }
+}
+
+/* 暗黑模式适配 */
+[data-bs-theme=dark] {
+  /* 标签标题和描述 */
+  .tag-title {
+    color: var(--bs-heading-color);
+  }
+  
+  .tag-description {
+    color: var(--bs-secondary-color);
+  }
+  
+  /* 标签卡片 */
+  .tag-card {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+  }
+  
+  .tag-card-title {
+    color: var(--bs-heading-color);
+  }
+  
+  .tag-card-description {
+    color: var(--bs-secondary-color);
+  }
+  
+  .tag-article-count {
+    color: var(--bs-tertiary-color);
+  }
+  
+  /* 文章卡片 */
+  .article-item-card,
+  .article-item-list {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+  }
+  
+  /* 标题 */
+  .article-title {
+    color: var(--bs-heading-color);
+  }
+  
+  /* 摘要 */
+  .article-desc {
+    color: var(--bs-secondary-color);
+  }
+  
+  /* 无图模式标题 */
+  .article-title-list {
+    color: var(--bs-heading-color);
+  }
+  
+  /* 无图模式摘要 */
+  .article-desc-list {
+    color: var(--bs-secondary-color);
+  }
+  
+  /* 元信息 */
+  .article-meta {
+    color: var(--bs-tertiary-color);
+  }
+  
+  .meta-item .bi {
+    color: var(--bs-tertiary-color);
+  }
+  
+  /* 加载动画 */
+  .article-cover-img:not([src]) {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  }
+  
+  /* 悬停效果 */
+  .article-item-card:hover,
+  .article-item-list:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .tag-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }
 </style>
