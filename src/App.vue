@@ -20,10 +20,22 @@
 
   <!-- 检查客户端页面更新 -->
   <upgrade-page></upgrade-page>
+  
+  <!-- 返回顶部按钮 -->
+  <button 
+    class="btn btn-primary shadow-lg back-to-top" 
+    id="backToTop" 
+    @click="scrollToTop"
+    :class="{ 'show': showBackToTop }"
+    title="返回顶部"
+    style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;"
+  >
+    <i class="bi bi-arrow-up"></i>
+  </button>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import upgradePage from '@/comps/upgrade/page.vue'
 import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
@@ -31,6 +43,7 @@ import iFooter from '@/views/index/layout/footer.vue'
 import ConfigInit from '@/comps/config/init.vue'
 
 const navRef = ref(null)
+const showBackToTop = ref(false)
 
 const handleShowLogin = () => {
   if (navRef.value && navRef.value.method && navRef.value.method.showLogin) {
@@ -43,4 +56,65 @@ const handleShowRegister = () => {
     navRef.value.method.showRegister()
   }
 }
+
+// 滚动到顶部
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
+// 监听滚动事件
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
+
+<style>
+/* 返回顶部按钮样式 */
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  transform: translateY(-3px);
+}
+
+.back-to-top:active {
+  transform: translateY(0);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .back-to-top {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 1rem !important;
+  }
+}
+</style>

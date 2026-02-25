@@ -26,7 +26,6 @@ class Toast {
   createToast(options) {
     const id = this.generateId();
     const {
-      type = 'info',
       message,
       title = '',
       delay = 3000,
@@ -44,23 +43,31 @@ class Toast {
     
     // 设置宽度、圆角和动画效果
     toastElement.style.width = '300px';
-    toastElement.style.borderRadius = '2px';
+    toastElement.style.borderRadius = '8px';
     toastElement.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+    
+    // 为toast-header和toast-body设置具体的圆角，覆盖全局大圆角
+    toastElement.style.setProperty('--bs-border-radius', '8px');
+    toastElement.style.setProperty('--bs-border-radius-sm', '6px');
+    toastElement.style.setProperty('--bs-border-radius-lg', '10px');
 
     // 根据当前主题模式选择背景和文字颜色
     const isDarkMode = document.documentElement.getAttribute('data-bs-theme') === 'dark';
-    const bgClass = isDarkMode ? 'bg-dark' : 'bg-white';
-    const textClass = isDarkMode ? 'text-light' : 'text-dark';
+    const headerBgClass = isDarkMode ? 'bg-dark bg-opacity-90' : 'bg-white';
+    const headerTextClass = isDarkMode ? 'text-light' : 'text-dark';
+    const bodyBgClass = isDarkMode ? 'bg-dark bg-opacity-90' : 'bg-white';
+    const bodyTextClass = isDarkMode ? 'text-light' : 'text-dark';
+    const closeBtnClass = isDarkMode ? 'btn-close btn-close-white' : 'btn-close';
 
     toastElement.innerHTML = `
-      <div class="toast-header ${bgClass} ${textClass}">
+      <div class="toast-header ${headerBgClass} ${headerTextClass}">
         <strong class="me-auto">${title || '通知'}</strong>
         <small>${new Date().toLocaleString()}</small>
         ${showClose ? `
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+          <button type="button" class="${closeBtnClass}" data-bs-dismiss="toast" aria-label="Close"></button>
         ` : ''}
       </div>
-      <div class="toast-body ${bgClass} ${textClass} p-3">
+      <div class="toast-body ${bodyBgClass} ${bodyTextClass} p-3">
         ${message}
       </div>
     `;
@@ -101,22 +108,22 @@ class Toast {
 
   // 信息消息
   info(message, options = {}) {
-    return this.show({ ...options, type: 'info', message });
+    return this.show({ ...options, message });
   }
 
   // 成功消息
   success(message, options = {}) {
-    return this.show({ ...options, type: 'success', message });
+    return this.show({ ...options, message });
   }
 
   // 警告消息
   warning(message, options = {}) {
-    return this.show({ ...options, type: 'warning', message });
+    return this.show({ ...options, message });
   }
 
   // 错误消息
   error(message, options = {}) {
-    return this.show({ ...options, type: 'error', message });
+    return this.show({ ...options, message });
   }
 
   // 关闭所有消息
