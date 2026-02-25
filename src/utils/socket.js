@@ -2,14 +2,19 @@ import utils from '@/utils/utils'
 import configManager from '@/utils/config'
 
 // 从配置管理工具读取配置
+const socketUri = configManager.getSync('socket_uri');
+console.log('[Socket] 读取到的 socket_uri:', socketUri);
+
 const config = {
-  uri: configManager.getSync('socket_uri'), // Socket基础地址（.ws/.wss）
+  uri: socketUri || 'ws://cs.zhuxu.asia/socket', // Socket基础地址（.ws/.wss）
   reconnectInterval: 3000, // 重连间隔（毫秒）
   maxReconnectAttempts: 10, // 最大重连次数，0为无限重连
   debug: configManager.getSync('socket_debug') === true, // 调试模式（生产建议false）
   routerMode: configManager.getSync('router_mode') || 'hash', // 路由模式（兼容地址拼接）
   baseUrl: (configManager.getSync('base_url') || '/').replace(/\/$/, '') // 基础路径（统一去除末尾斜杠，避免拼接重复）
 }
+
+console.log('[Socket] 最终使用的配置:', config);
 
 // Socket 核心状态管理：使用let+私有化，仅通过暴露方法操作
 let socket = null // Socket实例
@@ -58,7 +63,7 @@ const formatUri = (uri, params) => {
   }
 
   // 优化3：生产环境强制WSS协议（适配HTTPS站点，避免混合内容错误）
-  if (VITE_ENV.PROD && formattedUri.startsWith('ws://')) {
+  if (import.meta.env.PROD && formattedUri.startsWith('ws://')) {
     formattedUri = formattedUri.replace('ws://', 'wss://')
     config.debug && console.log('[Socket] 生产环境强制切换为WSS协议：', formattedUri)
   }

@@ -188,6 +188,7 @@ const initConfig = () => {
     const envConfig = {
       title: import.meta.env.VITE_TITLE || defaultConfig.title,
       api_uri: import.meta.env.VITE_API_URI || defaultConfig.api_uri,
+      socket_uri: import.meta.env.VITE_SOCKET_URI || defaultConfig.socket_uri,
       router_mode: import.meta.env.VITE_ROUTER_MODE || defaultConfig.router_mode,
       base_url: import.meta.env.VITE_BASE_URL || defaultConfig.base_url
     }

@@ -1,22 +1,31 @@
 <template>
   <!-- 配置初始化组件 -->
   <ConfigInit />
-  <!-- 全局导航栏 -->
-  <i-nav ref="navRef"></i-nav>
-  <!-- 主内容区 -->
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-9">
-        <router-view></router-view>
-      </div>
-      <!-- 全局侧边栏 -->
-      <div class="col-lg-3 d-none d-lg-block">
-        <ISidebar @showLogin="handleShowLogin" @showRegister="handleShowRegister"></ISidebar>
+  
+  <!-- 基于路由的布局切换 -->
+  <template v-if="$route.path.startsWith('/admin')">
+    <!-- 使用路由视图，让 admin 路由的父组件 (base.vue) 处理布局 -->
+    <router-view></router-view>
+  </template>
+  <template v-else>
+    <!-- Index布局 -->
+    <!-- 全局导航栏 -->
+    <i-nav ref="navRef"></i-nav>
+    <!-- 主内容区 -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9">
+          <router-view></router-view>
+        </div>
+        <!-- 全局侧边栏 -->
+        <div class="col-lg-3 d-none d-lg-block">
+          <ISidebar @showLogin="handleShowLogin" @showRegister="handleShowRegister"></ISidebar>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- 全局页脚 -->
-  <i-footer></i-footer>
+    <!-- 全局页脚 -->
+    <i-footer></i-footer>
+  </template>
 
   <!-- 检查客户端页面更新 -->
   <upgrade-page></upgrade-page>
@@ -41,6 +50,7 @@ import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
 import ConfigInit from '@/comps/config/init.vue'
+import socket from '@/utils/socket'
 
 const navRef = ref(null)
 const showBackToTop = ref(false)
@@ -70,12 +80,34 @@ const handleScroll = () => {
   showBackToTop.value = window.scrollY > 300
 }
 
+// WebSocket事件处理
+const handleSocketOpen = () => {
+  console.log('WebSocket连接已建立');
+}
+
+const handleSocketClose = () => {
+  console.log('WebSocket连接已关闭');
+}
+
+const handleSocketError = (error) => {
+  console.error('WebSocket错误:', error);
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
+  
+  // 连接WebSocket
+  socket.on('open', handleSocketOpen)
+  socket.on('close', handleSocketClose)
+  socket.on('error', handleSocketError)
+  socket.connect()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  
+  // 销毁WebSocket实例
+  socket.destroy()
 })
 </script>
 

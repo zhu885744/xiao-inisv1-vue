@@ -168,6 +168,171 @@ const routes = [
     }
   },
 
+  // 管理相关路由
+  {
+    path: '/functions',
+    name: '主题设置',
+    component: () => import('@/views/index/pages/functions.vue'),
+    meta: { 
+      title: '主题设置', 
+      requiresAuth: true, 
+      isAdmin: true
+    }
+  },
+  {
+    path: '/upgrade/theme',
+    name: '版本更新',
+    component: () => import('@/views/index/pages/theme-upgrade.vue'),
+    meta: { 
+      title: '版本更新', 
+      requiresAuth: true
+    }
+  },
+
+  // Admin路由系统
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import('@/views/admin/layout/base.vue'),
+    meta: { 
+      title: '后台管理', 
+      requiresAuth: true, 
+      isAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'admin-home',
+        meta: { title: '控制台' },
+        component: () => import('@/views/admin/pages/index.vue'),
+      },
+      {
+        path: 'index',
+        redirect: ''
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        meta: { title: '用户管理' },
+        component: () => import('@/views/admin/pages/users.vue'),
+      },
+      {
+        path: 'banner',
+        name: 'admin-banner',
+        meta: { title: '轮播管理' },
+        component: () => import('@/views/admin/pages/banner.vue'),
+      },
+      {
+        path: 'links',
+        name: 'admin-links',
+        meta: { title: '友链管理' },
+        component: () => import('@/views/admin/pages/links.vue'),
+      },
+      {
+        path: 'tags',
+        name: 'admin-tags',
+        meta: { title: '标签管理' },
+        component: () => import('@/views/admin/pages/tags.vue'),
+      },
+      {
+        path: 'placard',
+        name: 'admin-placard',
+        meta: { title: '公告管理' },
+        component: () => import('@/views/admin/pages/placard.vue'),
+      },
+      {
+        path: 'level',
+        name: 'admin-level',
+        meta: { title: '等级管理' },
+        component: () => import('@/views/admin/pages/level.vue'),
+      },
+      {
+        path: 'comment',
+        name: 'admin-comment',
+        meta: { title: '评论管理' },
+        component: () => import('@/views/admin/pages/comment.vue'),
+      },
+      {
+        path: 'article',
+        name: 'admin-article',
+        meta: { title: '文章列表' },
+        component: () => import('@/views/admin/pages/article.vue'),
+      },
+      {
+        path: 'article/write/:id?',
+        name: 'admin-article-write',
+        meta: { title: '撰写文章' },
+        component: () => import('@/views/admin/pages/article-write[id].vue'),
+      },
+      {
+        path: 'article/group',
+        name: 'admin-article-group',
+        meta: { title: '文章分组' },
+        component: () => import('@/views/admin/pages/article-group.vue'),
+      },
+      {
+        path: 'pages',
+        name: 'admin-pages',
+        meta: { title: '页面列表' },
+        component: () => import('@/views/admin/pages/pages.vue'),
+      },
+      {
+        path: 'pages/write/:id?',
+        name: 'admin-pages-write',
+        meta: { title: '撰写页面' },
+        component: () => import('@/views/admin/pages/pages-write[id].vue'),
+      },
+      {
+        path: 'links/group',
+        name: 'admin-links-group',
+        meta: { title: '友链分组' },
+        component: () => import('@/views/admin/pages/links-group.vue'),
+      },
+      {
+        path: 'auth/rules',
+        name: 'admin-auth-rules',
+        meta: { title: '权限规则' },
+        component: () => import('@/views/admin/pages/auth-rules.vue'),
+      },
+      {
+        path: 'auth/group',
+        name: 'admin-auth-group',
+        meta: { title: '权限分组' },
+        component: () => import('@/views/admin/pages/auth-group.vue'),
+      },
+      {
+        path: 'auth/pages',
+        name: 'admin-auth-pages',
+        meta: { title: '管理页面' },
+        component: () => import('@/views/admin/pages/auth-pages.vue'),
+      },
+      {
+        path: 'api/keys',
+        name: 'admin-api-keys',
+        meta: { title: '接口密钥' },
+        component: () => import('@/views/admin/pages/api-keys.vue'),
+      },
+      {
+        path: 'system',
+        name: 'admin-system',
+        meta: { title: '系统配置' },
+        component: () => import('@/views/admin/pages/system.vue'),
+      },
+      {
+        path: 'ip/black',
+        name: 'admin-ip-black',
+        meta: { title: 'IP黑名单' },
+        component: () => import('@/views/admin/pages/ip-black.vue'),
+      },
+      {
+        path: 'qps/warn',
+        name: 'admin-qps-warn',
+        meta: { title: 'QPS预警' },
+        component: () => import('@/views/admin/pages/qps-warn.vue'),
+      }
+    ]
+  },
+
   // 404 兜底路由（必须放在最后！）
   {
     path: '/:pathMatch(.*)*',

@@ -121,6 +121,11 @@
                   </router-link>
                 </li>
                 <li v-if="isAdmin">
+                  <router-link class="dropdown-item" to="/admin">
+                    <i class="bi bi-gear-wide-connected me-1"></i>后台管理
+                  </router-link>
+                </li>
+                <li v-if="isAdmin">
                   <router-link class="dropdown-item" to="/upgrade/theme">
                     <i class="bi bi-arrow-down-circle me-1"></i>版本更新
                   </router-link>
@@ -280,6 +285,9 @@
             </router-link>
             <router-link v-if="isAdmin" class="btn btn-outline-secondary text-center" to="/functions" @click="closeSidebar">
               <i class="bi bi-palette me-1"></i>主题设置
+            </router-link>
+            <router-link v-if="isAdmin" class="btn btn-outline-secondary text-center" to="/admin" @click="closeSidebar">
+              <i class="bi bi-gear-wide-connected me-1"></i>后台管理
             </router-link>
             <button class="btn btn-outline-success text-center" type="button" @click="method.showPublishNotification()">
               <i class="bi bi-plus-circle me-1"></i>发布文章
@@ -625,8 +633,8 @@ const toggleDarkMode = () => {
   const htmlElement = document.documentElement
   htmlElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
   
-  // 保存用户偏好到localStorage
-  localStorage.setItem('preferred-theme', isDarkMode.value ? 'dark' : 'light')
+  // 保存用户偏好到localStorage，与comm store保持一致
+  localStorage.setItem('dark-mode', isDarkMode.value.toString())
   
   // console.log(`已切换到${isDarkMode.value ? '深色' : '浅色'}模式`)
 }
@@ -634,15 +642,14 @@ const toggleDarkMode = () => {
 // 初始化主题
 const initTheme = () => {
   // 从localStorage获取用户偏好
-  const savedTheme = localStorage.getItem('preferred-theme')
+  const savedTheme = localStorage.getItem('dark-mode')
   
   if (savedTheme) {
     // 使用用户保存的偏好
-    isDarkMode.value = savedTheme === 'dark'
+    isDarkMode.value = savedTheme === 'true'
   } else {
-    // 如果没有保存的偏好，使用系统偏好
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    isDarkMode.value = prefersDark
+    // 默认使用浅色模式
+    isDarkMode.value = false
   }
   
   // 应用主题
@@ -652,25 +659,10 @@ const initTheme = () => {
   // console.log(`初始化${isDarkMode.value ? '深色' : '浅色'}模式`)
 }
 
-// 监听系统主题变化
+// 移除系统主题变化的监听，只支持手动切换
 const setupSystemThemeListener = () => {
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  
-  const handleThemeChange = (e) => {
-    // 只有当用户没有保存偏好时才跟随系统变化
-    if (!localStorage.getItem('preferred-theme')) {
-      isDarkMode.value = e.matches
-      const htmlElement = document.documentElement
-      htmlElement.setAttribute('data-bs-theme', e.matches ? 'dark' : 'light')
-      // console.log(`系统主题已切换，跟随系统到${e.matches ? '深色' : '浅色'}模式`)
-    }
-  }
-  
-  // 添加监听
-  mediaQuery.addEventListener('change', handleThemeChange)
-  
-  // 返回清理函数
-  return () => mediaQuery.removeEventListener('change', handleThemeChange)
+  // 不再监听系统主题变化
+  return () => {}
 }
 
 // 侧边栏实例

@@ -187,6 +187,7 @@ export const useCommStore = defineStore('comm', {
         const cachedUser = cache.get('user-info') || {}
         const hasUser = !utils.is.empty(cachedUser)
         const cachedSiteInfo = cache.get('xiao_functions') || {}
+        const cachedDarkMode = cache.get('dark-mode') !== null ? cache.get('dark-mode') : cachedSiteInfo?.dark_mode || false
         
         return {
             auth: {
@@ -202,7 +203,8 @@ export const useCommStore = defineStore('comm', {
             nav: {
                 title: ''
             },
-            siteInfo: cachedSiteInfo
+            siteInfo: cachedSiteInfo,
+            darkMode: cachedDarkMode
         }
     },
     actions: {
@@ -266,6 +268,27 @@ export const useCommStore = defineStore('comm', {
          */
         setProgress(state) {
             this.progress = state
+        },
+        
+        /**
+         * 切换暗黑模式
+         * @param {boolean|null} mode - 暗黑模式状态，null 表示切换
+         */
+        toggleDarkMode(mode = null) {
+            const newMode = mode !== null ? mode : !this.darkMode
+            this.darkMode = newMode
+            cache.set('dark-mode', newMode, 86400) // 24小时缓存
+            
+            // 更新文档根元素类和属性
+            if (typeof window !== 'undefined') {
+                if (newMode) {
+                    document.documentElement.classList.add('dark')
+                    document.documentElement.setAttribute('data-bs-theme', 'dark')
+                } else {
+                    document.documentElement.classList.remove('dark')
+                    document.documentElement.setAttribute('data-bs-theme', 'light')
+                }
+            }
         }
     },
     getters: {

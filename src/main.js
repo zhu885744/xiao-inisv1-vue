@@ -100,6 +100,9 @@ async function initApp() {
       }
     }
     
+    // 9. 设置暗黑模式
+    commStore.toggleDarkMode()
+    
     // 7. 挂载应用（确保所有配置完成后挂载）
     // 挂载前可等待路由就绪（可选，解决首屏路由白屏）
     await router.isReady()
@@ -150,6 +153,9 @@ async function initApp() {
             console.log('Favicon已更新')
           }
         }
+        
+        // 设置暗黑模式
+        commStore.toggleDarkMode()
       } catch (siteInfoError) {
         console.error('获取站点信息失败:', siteInfoError)
         // 即使获取站点信息失败，也尝试加载默认样式
