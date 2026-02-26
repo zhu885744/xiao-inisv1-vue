@@ -111,17 +111,8 @@ const fetchSiteInfo = async (state = {}, force = false) => {
     fetchingSiteInfo = true
     
     try {
-        // 1. 优先从缓存取站点信息（非强制刷新时）
-        if (!force) {
-            const cachedSiteInfo = cache.get(cacheName)
-            if (cachedSiteInfo && !utils.is.empty(cachedSiteInfo)) {
-                state.siteInfo = cachedSiteInfo
-                return cachedSiteInfo
-            }
-        }
-
-        // 2. 从API获取站点信息
-        // 尝试直接在URL中拼接参数，确保key参数能够正确传递
+        // 直接从API获取站点信息，不使用缓存
+        // 这样可以确保每次都获取最新的配置，包括enable_custom_style设置
         const response = await axios.get(`/api/config/one?key=xiao_functions`)
 
         // 检查响应结构
@@ -155,10 +146,13 @@ const fetchSiteInfo = async (state = {}, force = false) => {
                 }
                 
                 siteInfo = sanitizeObject(siteInfo)
-                state.siteInfo = siteInfo
                 
-                // 缓存站点信息（24小时）
-                cache.set(cacheName, siteInfo, 86400)
+                // 确保enable_custom_style字段存在，默认为false
+                if (siteInfo.enable_custom_style === undefined) {
+                    siteInfo.enable_custom_style = false
+                }
+                
+                state.siteInfo = siteInfo
                 
                 // 更新页面标题
                 if (siteInfo.title) {
@@ -187,7 +181,7 @@ export const useCommStore = defineStore('comm', {
         const cachedUser = cache.get('user-info') || {}
         const hasUser = !utils.is.empty(cachedUser)
         const cachedSiteInfo = cache.get('xiao_functions') || {}
-        const cachedDarkMode = cache.get('dark-mode') !== null ? cache.get('dark-mode') : cachedSiteInfo?.dark_mode || false
+        const cachedDarkMode = localStorage.getItem('dark-mode') === 'true'
         
         return {
             auth: {
@@ -272,23 +266,21 @@ export const useCommStore = defineStore('comm', {
         
         /**
          * 切换暗黑模式
-         * @param {boolean|null} mode - 暗黑模式状态，null 表示切换
          */
-        toggleDarkMode(mode = null) {
-            const newMode = mode !== null ? mode : !this.darkMode
-            this.darkMode = newMode
-            cache.set('dark-mode', newMode, 86400) // 24小时缓存
-            
-            // 更新文档根元素类和属性
-            if (typeof window !== 'undefined') {
-                if (newMode) {
-                    document.documentElement.classList.add('dark')
-                    document.documentElement.setAttribute('data-bs-theme', 'dark')
-                } else {
-                    document.documentElement.classList.remove('dark')
-                    document.documentElement.setAttribute('data-bs-theme', 'light')
-                }
+        toggleDarkMode() {
+            // 确保darkMode有初始值
+            if (this.darkMode === undefined) {
+                this.darkMode = localStorage.getItem('dark-mode') === 'true'
             }
+            
+            this.darkMode = !this.darkMode
+            
+            // 更新HTML的data-bs-theme属性
+            const htmlElement = document.documentElement
+            htmlElement.setAttribute('data-bs-theme', this.darkMode ? 'dark' : 'light')
+            
+            // 保存用户偏好到localStorage
+            localStorage.setItem('dark-mode', this.darkMode.toString())
         }
     },
     getters: {
@@ -334,6 +326,15 @@ export const useCommStore = defineStore('comm', {
          */
         currentUser: (state) => {
             return state.login.user || {}
+        },
+        
+        /**
+         * 获取暗黑模式状态
+         * @param {Object} state - 状态对象
+         * @returns {boolean} 是否为暗黑模式
+         */
+        isDarkMode: (state) => {
+            return state.darkMode
         }
     }
 })

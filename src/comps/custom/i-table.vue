@@ -1,12 +1,7 @@
 <template>
     <div class="table-container">
-        <!-- 表格头部 -->
-        <div class="table-header mb-3 d-flex justify-content-between align-items-center">
-            <slot name="header"></slot>
-        </div>
-        
         <!-- 加载状态 -->
-        <div v-if="loading" class="loading-state d-flex flex-column justify-content-center align-items-center py-8">
+        <div v-if="state.item.loading.data" class="loading-state d-flex flex-column justify-content-center align-items-center py-8">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">数据加载中...</span>
             </div>
@@ -19,7 +14,7 @@
                 <i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i>
             </div>
             <p class="text-danger">{{ errorMessage }}</p>
-            <button class="btn btn-primary mt-3" @click="loadData">重新加载</button>
+            <button class="btn btn-primary mt-3" @click="method.init()">重新加载</button>
         </div>
         
         <!-- 表格 -->
@@ -32,9 +27,9 @@
 
                         <!-- 表格列 -->
                         <th 
-                            v-for="(column, index) in columns" 
+                            v-for="(column, index) in state.config.opts.columns" 
                             :key="index"
-                            :class="[column.class, isTimeColumn(column.prop) ? 'text-center' : column.align || 'text-start']"
+                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : column.align || 'text-start']"
                             :style="{ width: column.width }"
                         >
                             {{ column.label }}
@@ -45,23 +40,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(row, rowIndex) in data" :key="rowIndex">
+                    <tr v-for="(row, rowIndex) in state.item.data" :key="rowIndex">
                         <!-- 自定义列 - 开始位置 -->
                         <slot name="start" :scope="row"></slot>
 
                         <!-- 表格数据 -->
                         <td 
-                            v-for="(column, index) in columns" 
+                            v-for="(column, index) in state.config.opts.columns" 
                             :key="index"
-                            :class="[column.class, isTimeColumn(column.prop) ? 'text-center' : column.align || 'text-start']"
+                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : column.align || 'text-start']"
                         >
                             <template v-if="column.slot">
-                                <slot :name="`col-${column.prop}`" :scope="row"></slot>
+                                <slot :name="'i-' + column.prop" :scope="row"></slot>
                             </template>
                             <template v-else>
-                                <span v-if="isTimeColumn(column.prop)">
-                                    <span v-if="!isEmpty(row[column.prop])">
-                                        {{ formatTime(row[column.prop]) }}
+                                <span v-if="utils.inArray(column.prop, ['create_time', 'update_time'])">
+                                    <span v-if="!utils.isEmpty(row[column.prop])">
+                                        {{ utils.time.nature(row[column.prop]) }}
                                     </span>
                                     <span v-else>-</span>
                                 </span>
@@ -76,7 +71,7 @@
                     </tr>
                     
                     <!-- 空数据状态 -->
-                    <tr v-if="data.length === 0">
+                    <tr v-if="state.item.data.length === 0">
                         <td :colspan="totalColumns" class="text-center py-5">
                             <div class="empty-state">
                                 <i class="bi bi-database" style="font-size: 2rem; color: #ced4da;"></i>
@@ -89,28 +84,28 @@
         </div>
         
         <!-- 分页和统计信息 -->
-        <div v-if="!loading && !error" class="table-footer mt-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div v-if="!state.item.loading.data && !error" class="table-footer mt-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
             <!-- 统计信息 -->
-            <div v-if="total > 0" class="text-muted">
-                共 <strong>{{ total }}</strong> 条数据
+            <div v-if="state.item.count > 0" class="text-muted">
+                共 <strong>{{ state.item.count }}</strong> 条数据
             </div>
             
             <!-- 分页控制 -->
             <div class="d-flex align-items-center gap-3">
                 <!-- 每页显示条数选择 -->
                 <div class="d-flex align-items-center">
-                    <select class="form-select form-select-sm" v-model="pageSize" @change="handlePageSizeChange">
-                        <option v-for="size in pageSizes" :key="size" :value="size">
+                    <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange">
+                        <option v-for="size in state.config.pagination.sizes" :key="size" :value="size">
                             {{ size }}
                         </option>
                     </select>
                 </div>
                 
                 <!-- 分页导航 -->
-                <nav v-if="totalPages > 1" aria-label="Page navigation">
+                <nav v-if="state.item.page.total > 1" aria-label="Page navigation">
                     <ul class="pagination mb-0">
-                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                            <button class="page-link" @click="handlePageChange(currentPage - 1)" :disabled="currentPage === 1">
+                        <li class="page-item" :class="{ disabled: state.item.page.code === 1 }">
+                            <button class="page-link" @click="handle.currentChange(state.item.page.code - 1)" :disabled="state.item.page.code === 1">
                                 上一页
                             </button>
                         </li>
@@ -119,15 +114,15 @@
                             v-for="page in pageRange" 
                             :key="page"
                             class="page-item" 
-                            :class="{ active: page === currentPage }"
+                            :class="{ active: page === state.item.page.code }"
                         >
-                            <button class="page-link" @click="handlePageChange(page)">
+                            <button class="page-link" @click="handle.currentChange(page)">
                                 {{ page }}
                             </button>
                         </li>
                         
-                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                            <button class="page-link" @click="handlePageChange(currentPage + 1)" :disabled="currentPage === totalPages">
+                        <li class="page-item" :class="{ disabled: state.item.page.code === state.item.page.total }">
+                            <button class="page-link" @click="handle.currentChange(state.item.page.code + 1)" :disabled="state.item.page.code === state.item.page.total">
                                 下一页
                             </button>
                         </li>
@@ -139,58 +134,117 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import utils from '@/utils/utils'
 import axios from '@/utils/request'
 
 const emit = defineEmits(['selection:change'])
 
 const props = defineProps({
-    api: {
+    opts: {
         type: Object,
         default: {
-            url: '',
+            url   : '',
             method: 'get',
             params: {},
-            headers: {}
+            headers: {},
+            columns: [],
+            menu: {},
         },
         required: true
     },
-    columns: {
-        type: Array,
-        default: () => [],
-        required: true
+    table: {
+        type: Object,
+        default: {
+            defaultSort: {
+                prop: 'id',
+                order: 'descending'
+            },
+            style: {
+                background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.15))`,
+                backdropFilter: 'blur(10px)',
+                borderRadius: '8px',
+            },
+        }
     },
-    pageSizes: {
-        type: Array,
-        default: () => [10, 50, 100, 500]
+    pagination: {
+        type: Object,
+        default: {
+            count: 5,
+            single: true,
+            class: 'custom',
+            background: true,
+            sizes: [10, 50, 100, 500],
+            layout: 'sizes, prev, pager, next',
+        },
     },
-    defaultPageSize: {
-        type: Number,
-        default: 10
-    }
 })
 
 // 响应式状态
-const loading = ref(false)
 const error = ref(false)
 const errorMessage = ref('')
-const data = ref([])
-const total = ref(0)
-const currentPage = ref(1)
-const pageSize = ref(props.defaultPageSize)
-const totalPages = ref(1)
+
+const state = reactive({
+    item: {
+        data: [],
+        count: 0,
+        page: {
+            code: 1,
+            total: 1,
+        },
+        limit: props.pagination.sizes[0],
+        order: 'create_time asc',
+        loading: {
+            data: false,
+            page: false,
+        },
+        selection: [],
+    },
+    // 配置
+    config: {
+        table: {
+            defaultSort: {
+                prop: 'id',
+                order: 'descending'
+            },
+            style: {
+                background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.15))`,
+                backdropFilter: 'blur(10px)',
+                borderRadius: '8px',
+            },
+            ...props.table
+        },
+        pagination: {
+            count: 5,
+            single: true,
+            class: 'custom',
+            background: true,
+            sizes: [10, 50, 100, 500],
+            layout: 'sizes, prev, pager, next',
+            ...props.pagination
+        },
+        opts: {
+            url   : '',
+            method: 'get',
+            params: {},
+            headers: {},
+            columns: [],
+            menu: {},
+            ...props.opts
+        },
+    },
+})
 
 // 计算总列数（包括自定义插槽）
 const totalColumns = computed(() => {
-    return props.columns.length + 2 // 2 是自定义插槽的列数
+    return state.config.opts.columns.length + 2 // 2 是自定义插槽的数量（start 和 end）
 })
 
 // 计算页码范围
 const pageRange = computed(() => {
-    const total = totalPages.value
-    const current = currentPage.value
-    const count = 5 // 显示5个页码
+    const total = state.item.page.total
+    const current = state.item.page.code
+    const count = state.config.pagination.count || 5 // 显示5个页码
     
     let start = Math.max(1, current - Math.floor(count / 2))
     let end = Math.min(total, start + count - 1)
@@ -207,73 +261,88 @@ const pageRange = computed(() => {
     return range
 })
 
-// 方法
-const isTimeColumn = (prop) => {
-    return ['create_time', 'update_time'].includes(prop)
-}
+const method = {
+    init   : async (page = state.item.page.code, limit = state.item.limit) => {
 
-const isEmpty = (value) => {
-    return utils.is.empty(value)
-}
+        // 数据加载中
+        state.item.loading.data = true
+        error.value = false
+        errorMessage.value = ''
 
-const formatTime = (value) => {
-    return utils.time.nature(value)
-}
+        try {
+            let response;
+            if (state.config.opts.method === 'get') {
+                // GET 请求：参数作为 URL 查询参数
+                response = await axios[state.config.opts.method](state.config.opts.url, {
+                    params: {
+                        ...state.config.opts.params,
+                        page, 
+                        limit, 
+                        order: state.item.order
+                    }
+                });
+            } else {
+                // 其他请求（包括 DELETE）：参数作为请求体
+                response = await axios[state.config.opts.method](state.config.opts.url, {
+                    ...state.config.opts.params,
+                    page, 
+                    limit, 
+                    order: state.item.order
+                });
+            }
+            const { data, code, msg } = response;
 
-const loadData = async (page = currentPage.value, size = pageSize.value) => {
-    loading.value = true
-    error.value = false
-    errorMessage.value = ''
-    
-    try {
-        // 从API获取数据
-        const { data: responseData, code, msg } = await axios[props.api.method](props.api.url, {
-            page, 
-            limit: size, 
-            ...props.api.params
-        })
+            // 数据加载失败
+            if (!utils.inArray(code, [200, 204])) {
+                throw new Error(msg || '数据加载失败')
+            }
 
-        // 数据加载失败
-        if (![200, 204].includes(code)) {
-            throw new Error(msg || '数据加载失败')
+            state.item.data       = data.data || []
+            state.item.count      = data.count || 0
+            state.item.page.total = data.page || 1
+
+            // 更新页码
+            state.item.page.code   = page
+
+        } catch (err) {
+            console.error('数据加载失败:', err)
+            error.value = true
+            errorMessage.value = err.message || '网络错误，请稍后重试'
+            state.item.data = []
+            state.item.count = 0
+            state.item.page.total = 1
+        } finally {
+            // 数据加载动画
+            state.item.loading.data = false
+            // 页码加载动画
+            state.item.loading.page = false
         }
-
-        data.value = responseData.data || []
-        total.value = responseData.count || 0
-        totalPages.value = responseData.page || 1
-        currentPage.value = page
-        pageSize.value = size
-    } catch (err) {
-        console.error('数据加载失败:', err)
-        error.value = true
-        errorMessage.value = err.message || '网络错误，请稍后重试'
-        data.value = []
-        total.value = 0
-        totalPages.value = 1
-    } finally {
-        loading.value = false
     }
 }
 
-const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages.value) return
-    loadData(page, pageSize.value)
+const handle = {
+    // 分页大小改变
+    sizeChange: () => {
+        method.init(1, state.item.limit)
+    },
+    // 页码改变
+    currentChange: val => method.init(val),
+    // 选中
+    selectionChange(selection) {
+        state.item.selection = selection
+        emit('selection:change', selection)
+    },
 }
 
-const handlePageSizeChange = () => {
-    loadData(1, pageSize.value)
-}
-
-// 暴露方法给父组件
+// 主动将子组件方法暴露给父组件
 defineExpose({
-    loadData,
-    refresh: () => loadData(),
-    getCurrentPage: () => currentPage.value,
-    setPage: (page) => handlePageChange(page)
+    init: method.init,
+    refresh: () => method.init(),
+    loadData: () => method.init(),
 })
 
 // 初始化加载数据
-loadData()
+method.init()
 </script>
 
 <style scoped>

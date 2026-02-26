@@ -346,7 +346,6 @@ const router = useRouter()
 // 导航项数据
 const navItems = ref([])
 const categories = ref([])
-const isDarkMode = ref(false)
 const sidebarOpen = ref(false)
 const categoryDropdownOpen = ref(false)
 const userDropdownOpen = ref(false)
@@ -608,6 +607,8 @@ const initDropdowns = () => {
 }
 
 // 计算属性
+const isDarkMode = computed(() => store.comm.isDarkMode)
+
 const darkModeIcon = computed(() => {
   return isDarkMode.value ? 'bi bi-brightness-high-fill' : 'bi bi-brightness-high'
 })
@@ -627,36 +628,14 @@ const isAdmin = computed(() => {
 
 // 切换深色/浅色模式
 const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  
-  // 更新HTML的data-bs-theme属性
-  const htmlElement = document.documentElement
-  htmlElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
-  
-  // 保存用户偏好到localStorage，与comm store保持一致
-  localStorage.setItem('dark-mode', isDarkMode.value.toString())
-  
-  // console.log(`已切换到${isDarkMode.value ? '深色' : '浅色'}模式`)
+  store.comm.toggleDarkMode()
 }
 
 // 初始化主题
 const initTheme = () => {
-  // 从localStorage获取用户偏好
-  const savedTheme = localStorage.getItem('dark-mode')
-  
-  if (savedTheme) {
-    // 使用用户保存的偏好
-    isDarkMode.value = savedTheme === 'true'
-  } else {
-    // 默认使用浅色模式
-    isDarkMode.value = false
-  }
-  
   // 应用主题
   const htmlElement = document.documentElement
   htmlElement.setAttribute('data-bs-theme', isDarkMode.value ? 'dark' : 'light')
-  
-  // console.log(`初始化${isDarkMode.value ? '深色' : '浅色'}模式`)
 }
 
 // 移除系统主题变化的监听，只支持手动切换

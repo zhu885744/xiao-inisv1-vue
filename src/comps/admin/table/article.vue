@@ -1,7 +1,6 @@
 <template>
     <i-table 
-        :api="apiConfig" 
-        :columns="state.opts.columns" 
+        :opts="optsConfig" 
         ref="tableRef"
     >
         <!-- 自定义选择列 -->
@@ -55,21 +54,21 @@
         </template>
 
         <!-- 创建时间自定义插槽 -->
-        <template #col-create_time="{ scope = {} }">
+        <template #i-create_time="{ scope = {} }">
             <span class="text-muted" data-bs-toggle="tooltip" :title="method.formatTime(scope.create_time)">
                 {{ method.formatTime(scope.create_time) }}
             </span>
         </template>
 
         <!-- 更新时间自定义插槽 -->
-        <template #col-update_time="{ scope = {} }">
+        <template #i-update_time="{ scope = {} }">
             <span class="text-muted" data-bs-toggle="tooltip" :title="method.formatTime(scope.update_time)">
                 {{ method.formatTime(scope.update_time) }}
             </span>
         </template>
 
         <!-- 标题自定义插槽 -->
-        <template #col-title="{ scope = {} }">
+        <template #i-title="{ scope = {} }">
             <span @dblclick="method.edit(scope)" class="d-flex align-items-center">
                 <span v-if="scope.audit === 1" class="me-1" data-bs-toggle="tooltip" title="已审核">
                     <i class="bi bi-check-circle text-success"></i>
@@ -84,14 +83,14 @@
         </template>
 
         <!-- 摘要自定义插槽 -->
-        <template #col-abstract="{ scope = {} }">
+        <template #i-abstract="{ scope = {} }">
             <span data-bs-toggle="tooltip" :title="method.autoWrap(scope.abstract)">
                 {{ method.omit(scope?.abstract) }}
             </span>
         </template>
 
         <!-- 备注自定义插槽 -->
-        <template #col-remark="{ scope }">
+        <template #i-remark="{ scope }">
             <span data-bs-toggle="tooltip" :title="method.autoWrap(scope?.remark)">
                 {{ method.omit(scope?.remark) }}
             </span>
@@ -146,11 +145,12 @@ const state  = reactive({
 })
 
 // API配置
-const apiConfig = computed(() => {
+const optsConfig = computed(() => {
     return {
         url: '/api/article/all',
         method: 'get',
-        params: props.params
+        params: props.params,
+        columns: state.opts.columns
     }
 })
 
@@ -158,8 +158,11 @@ const method = {
     // 刷新数据
     init: async () => {
         // 重新加载数据
-        if (tableRef.value) {
+        if (tableRef.value && typeof tableRef.value.refresh === 'function') {
             await tableRef.value.refresh()
+        } else if (tableRef.value && typeof tableRef.value.loadData === 'function') {
+            // 兼容 i-table 组件的 loadData 方法
+            await tableRef.value.loadData()
         }
     },
     // 编辑数据

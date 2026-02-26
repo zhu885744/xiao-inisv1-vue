@@ -12,10 +12,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import './assets/css/buyu.style.css'
 
 // 动态加载 Bootstrap 定制化样式
-const loadBootstrapCustomStyle = () => {
-  const commStore = useCommStore()
-  const siteInfo = commStore.siteInfo
-  
+const loadBootstrapCustomStyle = (siteInfo) => {
   // 检查是否启用自定义样式，默认为 false
   const enableCustomStyle = siteInfo?.enable_custom_style === true
   
@@ -89,7 +86,7 @@ async function initApp() {
     console.log('站点信息获取完成')
     
     // 7. 动态加载 Bootstrap 定制化样式
-    loadBootstrapCustomStyle()
+    loadBootstrapCustomStyle(commStore.siteInfo)
     
     // 8. 动态设置favicon
     if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
@@ -100,8 +97,10 @@ async function initApp() {
       }
     }
     
-    // 9. 设置暗黑模式
-    commStore.toggleDarkMode()
+    // 9. 应用保存的暗黑模式设置
+    // 不再自动切换，而是直接应用当前设置
+    const htmlElement = document.documentElement
+    htmlElement.setAttribute('data-bs-theme', commStore.isDarkMode ? 'dark' : 'light')
     
     // 7. 挂载应用（确保所有配置完成后挂载）
     // 挂载前可等待路由就绪（可选，解决首屏路由白屏）
@@ -143,7 +142,7 @@ async function initApp() {
         await commStore.fetchSiteInfo()
         
         // 动态加载 Bootstrap 定制化样式
-        loadBootstrapCustomStyle()
+        loadBootstrapCustomStyle(commStore.siteInfo)
         
         // 动态设置favicon
         if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
@@ -154,8 +153,9 @@ async function initApp() {
           }
         }
         
-        // 设置暗黑模式
-        commStore.toggleDarkMode()
+        // 应用保存的暗黑模式设置
+        const htmlElement = document.documentElement
+        htmlElement.setAttribute('data-bs-theme', commStore.isDarkMode ? 'dark' : 'light')
       } catch (siteInfoError) {
         console.error('获取站点信息失败:', siteInfoError)
         // 即使获取站点信息失败，也尝试加载默认样式

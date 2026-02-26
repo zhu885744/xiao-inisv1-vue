@@ -1,6 +1,9 @@
 <template>
-        <div class="row d-none d-lg-flex mb-4 mt-2">
+    <div class="card mt-2">
+        <div class="card-body">
+        <div class="row d-none d-lg-flex">
             <div class="col-lg-6 d-flex align-items-center">
+                <button type="button" class="btn btn-outline-secondary me-2" disabled>{{ state.item.title }}</button>
                 <div class="dropdown me-2" v-if="state.item.tabs !== 'setting'">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         {{ state.item.sort }}
@@ -22,10 +25,9 @@
                 <button class="btn btn-outline-secondary me-2" @click="method.refresh()">刷新</button>
                 <button class="btn btn-primary" v-if="!utils.in.array(['remove','setting'], state.item.tabs)" @click="method.add()">添加</button>
             </div>
-            <div class="col-lg-6 d-flex justify-content-end align-items-center">
-                <span class="text-muted">{{ state.item.title }}</span>
-            </div>
         </div>
+        </div>
+    </div>    
         <div class="row mt-3">
             <div class="col-12">
                 <div class="border rounded-lg overflow-hidden">
@@ -211,6 +213,8 @@ const state  = reactive({
     },
     tabs: {
         all: false,
+        check: false,
+        audit: false,
         remove: false,
     }
 })

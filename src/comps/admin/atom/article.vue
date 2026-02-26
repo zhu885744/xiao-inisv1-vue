@@ -94,7 +94,7 @@
                                 </label>
                                 <select v-model="state.struct.json.comment.show" class="form-select">
                                     <option v-for="item in state.select.comment.show" :key="item.value" :value="item.value">
-                                        {{ item.label }} <small class="text-muted">({{ item.value }})</small>
+                                        {{ item.label }} ({{ item.value }})
                                     </option>
                                 </select>
                             </div>

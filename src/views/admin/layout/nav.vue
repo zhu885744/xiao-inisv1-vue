@@ -327,7 +327,7 @@ const initDropdowns = () => {
 }
 
 // 计算属性
-const isDarkMode = computed(() => store.comm.darkMode)
+const isDarkMode = computed(() => store.comm.isDarkMode)
 
 const darkModeIcon = computed(() => {
   return isDarkMode.value ? 'bi bi-brightness-high-fill' : 'bi bi-brightness-high'
