@@ -29,7 +29,7 @@
           <!-- 首页 -->
           <li class="nav-item">
             <router-link class="nav-link" aria-current="page" to="/admin" active-class="active" exact-active-class="active">
-              首页
+              控制台
             </router-link>
           </li>
 
