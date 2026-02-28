@@ -248,6 +248,7 @@ import utils from '@/utils/utils'
 import axios from '@/utils/request'
 import IVditor from '@/comps/custom/i-vditor.vue'
 import { useCommStore } from '@/store/comm'
+import { usePageTitle } from '@/utils/usePageTitle'
 import toast from '@/utils/toast'
 
 // 路由和状态管理
@@ -255,6 +256,19 @@ const route = useRoute()
 const router = useRouter()
 const store = {
     comm: useCommStore(),
+}
+
+// 页面标题管理
+const { setDynamicTitle } = usePageTitle()
+
+// 根据是否有id参数设置页面标题
+const updatePageTitle = () => {
+    const id = route.params?.id
+    if (id) {
+        setDynamicTitle(`编辑文章 - ${state.struct.title || '加载中...'}`)
+    } else {
+        setDynamicTitle('撰写文章')
+    }
 }
 
 // 编辑器引用
@@ -579,6 +593,7 @@ const getTagName = (tagId) => {
 // 初始化
 onMounted(async () => {
     await method.init()
+    updatePageTitle()
     
     // 初始化Bootstrap组件
     if (window.bootstrap) {
@@ -608,5 +623,11 @@ watch(() => state.item.cover.links, (value) => {
 watch(() => route.params?.id, (value) => {
     if (utils.is.empty(value)) return
     method.init()
+    updatePageTitle()
+})
+
+// 监听文章标题变化，更新页面标题
+watch(() => state.struct.title, () => {
+    updatePageTitle()
 })
 </script>

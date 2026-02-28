@@ -165,19 +165,13 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import request from '@/utils/request'
 import toast from '@/utils/toast'
 import { useCommStore } from '@/store/comm'
+import { usePageTitle } from '@/utils/usePageTitle'
 
 const store = useCommStore()
 
-// 环境变量网站标题，兜底处理
-const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
-
-// 获取网站标题的方法
-const getSiteTitle = () => {
-  return store.siteInfo?.title || SITE_TITLE
-}
-
-// 页面标题
-const pageTitle = ref(`主题版本更新 - ${getSiteTitle()}`)
+// 页面标题管理
+const { setDynamicTitle } = usePageTitle()
+setDynamicTitle('主题版本更新')
 
 // 响应式数据
 const loading = ref(false)
@@ -188,23 +182,7 @@ const versionHistory = ref([])
 const lastCheckTime = ref('')
 const checkInterval = ref(null)
 
-// 监听页面标题更新浏览器标签
-watch(
-  pageTitle,
-  (newTitle) => {
-    document.title = newTitle
-  },
-  { immediate: true }
-)
 
-// 监听站点信息变化，重新设置页面标题
-watch(
-  () => store.siteInfo,
-  () => {
-    pageTitle.value = `主题版本更新 - ${getSiteTitle()}`
-  },
-  { deep: true }
-)
 
 // 计算属性
 // 当前版本
@@ -360,9 +338,6 @@ onUnmounted(() => {
     clearInterval(checkInterval.value)
     checkInterval.value = null
   }
-  
-  // 恢复原始页面标题
-  document.title = getSiteTitle()
 })
 </script>
 

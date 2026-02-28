@@ -3,6 +3,7 @@ import cache from '@/utils/cache'
 import utils from '@/utils/utils'
 import { useCommStore } from '@/store/comm'
 import config from '@/utils/config'
+import { setupRouteTitle } from '@/utils/usePageTitle'
 
 /**
  * 路由管理配置
@@ -40,7 +41,6 @@ const routes = [
       keepAlive: true
     }
   },
-
   // 用户相关路由
   {
     path: '/user',
@@ -374,19 +374,11 @@ const router = createRouter({
   }
 })
 
-// 全局前置守卫：统一标题 + 通用权限校验
+// 全局前置守卫：通用权限校验
 router.beforeEach((to, from, next) => {
-  const commStore = useCommStore()
-  const siteTitle = commStore.siteInfo?.title || '网站名称'
-  
-  // 只有当路由的路径发生变化时才重置页面标题，避免哈希变化导致的标题重置
-  if (to.path !== from.path) {
-    const pageTitle = to.meta.title || to.name || '未知页面'
-    document.title = `${pageTitle} - ${siteTitle}`
-  }
-
   // 权限校验
   if (to.meta.requiresAuth) {
+    const commStore = useCommStore()
     const userInfo = commStore.getLogin.user
     const isLogin = !utils.is.empty(userInfo)
 
@@ -465,6 +457,9 @@ const checkAdminPermission = (userInfo) => {
   // 检查是否为管理员
   return userAuth?.all || userGroups.some(group => group.key === 'admin')
 }
+
+// 设置路由标题管理
+setupRouteTitle(router);
 
 // 导出路由实例
 export default router

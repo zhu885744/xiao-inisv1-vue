@@ -545,8 +545,13 @@ import { ref, onMounted, computed } from 'vue'
 import { useCommStore } from '@/store/comm'
 import toast from '@/utils/toast'
 import request from '@/utils/request'
+import { usePageTitle } from '@/utils/usePageTitle'
 
 const store = useCommStore()
+
+// 页面标题管理
+const { setDynamicTitle } = usePageTitle()
+setDynamicTitle('站点配置')
 
 // 响应式数据
 const commentConfig = ref({

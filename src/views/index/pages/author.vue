@@ -226,6 +226,10 @@ import request from '@/utils/request'
 import toast from '@/utils/toast'
 import defaultAvatar from '@/assets/img/avatar.png'
 import { useCommStore } from '@/store/comm'
+import { usePageTitle } from '@/utils/usePageTitle'
+
+// 使用页面标题管理
+const { setDynamicTitle } = usePageTitle();
 
 const route = useRoute()
 const store = useCommStore()

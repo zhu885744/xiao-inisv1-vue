@@ -97,28 +97,17 @@ import BasicInfoSettings from '@/comps/user/settings/basic-info.vue'
 import AccountSecuritySettings from '@/comps/user/settings/account-security.vue'
 import ContactInfoSettings from '@/comps/user/settings/contact-info.vue'
 import toast from '@/utils/toast'
+import { usePageTitle } from '@/utils/usePageTitle'
+
+// 使用页面标题管理
+const { setDynamicTitle } = usePageTitle();
+setDynamicTitle('用户设置');
 import { useCommStore } from '@/store/comm'
 
 const store = useCommStore()
 
-// 环境变量网站标题，兜底处理
-const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
-
-// 获取网站标题的方法
-const getSiteTitle = () => {
-  return store.siteInfo?.title || SITE_TITLE
-}
-
-// 设置页面标题
-const setPageTitle = () => {
-  document.title = `用户设置 - ${getSiteTitle()}`
-}
-
-// 组件挂载时设置页面标题
+// 组件挂载时的逻辑
 onMounted(async () => {
-  // 设置页面标题
-  setPageTitle()
-  
   // 手动触发登录态校验
   await store.checkLoginState()
   
@@ -127,11 +116,6 @@ onMounted(async () => {
     // 跳转到首页
     window.location.href = '/'
   }
-})
-
-// 组件卸载时恢复原始页面标题
-onUnmounted(() => {
-  document.title = getSiteTitle()
 })
 
 // 加载状态

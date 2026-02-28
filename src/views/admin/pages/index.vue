@@ -520,6 +520,13 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import socket from '@/utils/socket';
+import { usePageTitle } from '@/utils/usePageTitle';
+
+// 使用页面标题管理
+const { setDynamicTitle } = usePageTitle();
+
+// 设置页面标题
+setDynamicTitle('控制台');
 
 // 响应式数据
 const connected = ref(false);

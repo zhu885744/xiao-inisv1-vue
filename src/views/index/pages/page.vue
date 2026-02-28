@@ -307,17 +307,14 @@ import iMarkdown from '@/comps/custom/i-markdown.vue'
 import iComment from '@/comps/custom/i-comment.vue'
 import utils from '@/utils/utils'
 import cache from '@/utils/cache'
+import { usePageTitle } from '@/utils/usePageTitle'
 
 // 状态管理
 const store = useCommStore()
 
-// 环境变量网站标题，兜底处理
-const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
-
-// 获取网站标题的方法
-const getSiteTitle = () => {
-  return store.siteInfo?.title || SITE_TITLE
-}
+// 页面标题管理
+const { setDynamicTitle } = usePageTitle()
+setDynamicTitle('加载中...')
 
 // 接收路由传递的页面key：使用pageKey代替key，避免保留关键字冲突
 const props = defineProps({
@@ -333,7 +330,6 @@ const loading = ref(true)
 const error = ref(false)
 const errorMsg = ref('')
 const pageInfo = ref({})
-const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
 
 // 路由实例
 const router = useRouter()
@@ -395,14 +391,7 @@ const groupLinkMap = computed(() => {
   return map
 })
 
-// 监听页面标题更新浏览器标签
-watch(
-  pageTitle,
-  (newTitle) => {
-    document.title = newTitle
-  },
-  { immediate: true }
-)
+
 
 /**
  * 时间格式化：使用utils.js中的timeToDate函数
@@ -461,7 +450,7 @@ const getPageData = async (pageKey) => {
       if (!res.data || Object.keys(res.data).length === 0) {
         error.value = true
         errorMsg.value = '未找到该独立页面，可能已被删除或访问地址错误'
-        pageTitle.value = `页面不存在 - ${getSiteTitle()}`
+        setDynamicTitle('页面不存在')
       } else {
         cachedPage = res.data
         // 缓存页面数据
@@ -470,12 +459,12 @@ const getPageData = async (pageKey) => {
         // 更新浏览量
         viewCount.value = res.data.views || 0
         error.value = false
-        pageTitle.value = `${pageInfo.value.title} - ${getSiteTitle()}`
+        setDynamicTitle(pageInfo.value.title)
       }
     } else {
       error.value = true
       errorMsg.value = res.msg || '获取独立页面数据失败'
-      pageTitle.value = `获取页面失败 - ${getSiteTitle()}`
+      setDynamicTitle('获取页面失败')
     }
   } else {
     // 使用缓存数据
@@ -483,13 +472,13 @@ const getPageData = async (pageKey) => {
     // 更新浏览量
     viewCount.value = cachedPage.views || 0
     error.value = false
-    pageTitle.value = `${pageInfo.value.title} - ${getSiteTitle()}`
+    setDynamicTitle(pageInfo.value.title)
   }
 } catch (err) {
   error.value = true
   errorMsg.value = '网络异常，请检查网络后刷新页面'
   // console.error('[独立页面接口异常]：', err)
-  pageTitle.value = `网络异常 - ${getSiteTitle()}`
+  setDynamicTitle('网络异常')
 } finally {
   loading.value = false
 }
@@ -504,14 +493,14 @@ const initPage = async () => {
   
   // 如果是归档页面，直接加载统计信息
   if (currentKey === 'archive') {
-    pageTitle.value = `加载中... - ${SITE_TITLE}`
+    setDynamicTitle('加载中...')
     await getArchivePageData()
     fetchArchiveStats()
     startArchiveAutoRefresh()
   } 
   // 如果是友链页面，加载友链数据
   else if (currentKey === 'links') {
-    pageTitle.value = `加载中... - ${getSiteTitle()}`
+    setDynamicTitle('加载中...')
     await getLinksPageData()
     await fetchLinks()
     await getLinksComments(currentPage.value, pageSize.value)
@@ -521,7 +510,7 @@ const initPage = async () => {
   } else {
     error.value = true
     loading.value = false
-    pageTitle.value = `页面标识不合法 - ${getSiteTitle()}`
+    setDynamicTitle('页面标识不合法')
     setTimeout(() => router.go(-1), 3000)
   }
 }
@@ -828,8 +817,7 @@ const getLinksPageData = async () => {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       // 更新浏览量
       viewCount.value = res.data.views || 0
-      pageTitle.value = `${res.data.title || '友链'} - ${getSiteTitle()}`
-      document.title = pageTitle.value
+      setDynamicTitle(res.data.title || '友链')
     } else {
       error.value = true
       errorMsg.value = '未找到友链页面配置，请联系管理员检查后台'
@@ -863,8 +851,7 @@ const getArchivePageData = async () => {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       // 更新浏览量
       viewCount.value = res.data.views || 0
-      pageTitle.value = `${res.data.title || '归档'} - ${getSiteTitle()}`
-      document.title = pageTitle.value
+      setDynamicTitle(res.data.title || '归档')
     }
   } catch (err) {
     console.error('[归档页面基础数据异常]：', err)

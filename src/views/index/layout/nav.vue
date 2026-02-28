@@ -117,7 +117,7 @@
                 </li>
                 <li v-if="isAdmin">
                   <router-link class="dropdown-item" to="/functions">
-                    <i class="bi bi-palette me-1"></i>主题设置
+                    <i class="bi bi-palette me-1"></i>站点配置
                   </router-link>
                 </li>
                 <li v-if="isAdmin">

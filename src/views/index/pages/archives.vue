@@ -141,19 +141,15 @@ import CommentList from '@/comps/custom/i-comment.vue'
 import { useCommStore } from '@/store/comm'
 import utils from '@/utils/utils'
 import cache from '@/utils/cache'
+import { usePageTitle } from '@/utils/usePageTitle'
+
+// 使用页面标题管理
+const { setDynamicTitle } = usePageTitle();
 
 // 存储
 const store = {
   comm: useCommStore()
 };
-
-// 环境变量网站标题，兜底处理
-const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
-
-// 获取网站标题的方法
-const getSiteTitle = () => {
-  return store.comm.siteInfo?.title || SITE_TITLE
-}
 
 // 路由参数获取文章ID
 const getCurrentArticleId = () => {
@@ -165,7 +161,6 @@ const loading = ref(true)
 const error = ref(false)
 const errorMsg = ref('')
 const articleInfo = ref({})
-const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
 // 评论相关响应式数据
 const staticCommentList = ref([])
 const commentCount = ref(0)
@@ -185,15 +180,6 @@ const collectCount = ref(0)
 // 路由实例
 const router = useRouter()
 const route = useRoute()
-
-// 监听页面标题，更新浏览器标签
-watch(
-  pageTitle,
-  (newTitle) => {
-    document.title = newTitle
-  },
-  { immediate: true }
-)
 
 /**
  * 时间格式化：使用utils.js中的timeToDate函数
@@ -242,14 +228,14 @@ const getArticleDetail = async (id) => {
         if (!res.data || Object.keys(res.data).length === 0) {
             error.value = true
             errorMsg.value = '未找到该文章，可能已被删除或ID错误'
-            pageTitle.value = `文章不存在 - ${getSiteTitle()}`
+            setDynamicTitle('文章不存在')
           } else {
             cachedArticle = res.data
             // 缓存文章详情
             cache.set(cacheKey, cachedArticle, cacheExpire)
             articleInfo.value = cachedArticle
             error.value = false
-            pageTitle.value = `${articleInfo.value.title} - ${getSiteTitle()}`
+            setDynamicTitle(articleInfo.value.title)
             // 初始化文章操作状态（获取点赞数、收藏数等）
             await initArticleActions()
             // 获取文章评论
@@ -258,13 +244,13 @@ const getArticleDetail = async (id) => {
       } else {
         error.value = true
         errorMsg.value = res.msg || '获取文章详情失败'
-        pageTitle.value = `获取文章失败 - ${getSiteTitle()}`
+        setDynamicTitle('获取文章失败')
       }
     } else {
       // 使用缓存数据
       articleInfo.value = cachedArticle
       error.value = false
-      pageTitle.value = `${articleInfo.value.title} - ${getSiteTitle()}`
+      setDynamicTitle(articleInfo.value.title)
       // 初始化文章操作状态（获取点赞数、收藏数等）
       await initArticleActions()
       // 获取文章评论
@@ -274,7 +260,7 @@ const getArticleDetail = async (id) => {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
     // console.error('[文章详情接口异常]：', err)
-    pageTitle.value = `网络异常 - ${getSiteTitle()}`
+    setDynamicTitle('网络异常')
   } finally {
     loading.value = false
   }
@@ -643,7 +629,7 @@ onMounted(() => {
   } else {
     error.value = true
     loading.value = false
-    pageTitle.value = `文章ID不合法 - ${getSiteTitle()}`
+    setDynamicTitle('文章ID不合法')
     setTimeout(() => router.go(-1), 3000)
   }
   

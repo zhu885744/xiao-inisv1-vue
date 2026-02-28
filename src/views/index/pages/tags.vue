@@ -203,6 +203,7 @@ import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '@/utils/request'
 import cache from '@/utils/cache'
+import { usePageTitle } from '@/utils/usePageTitle'
 
 // 定义组件属性
 const props = defineProps({
@@ -221,19 +222,12 @@ const store = {
   comm: useCommStore()
 };
 
-// 环境变量网站标题，兜底处理
-const SITE_TITLE = import.meta.env.VITE_TITLE || '朱某的生活印记'
-
-// 获取网站标题的方法
-const getSiteTitle = () => {
-  return store.comm.siteInfo?.title || SITE_TITLE
-}
-
-// 页面标题
-const pageTitle = ref(`加载中... - ${getSiteTitle()}`)
-
 const router = useRouter()
 const route = useRoute()
+
+// 页面标题管理
+const { setDynamicTitle } = usePageTitle()
+setDynamicTitle('加载中...')
 
 // 响应式状态
 const loading = ref(true)
@@ -298,14 +292,7 @@ const pageCount = computed(() => {
   return Math.ceil(total.value / limit.value)
 })
 
-// 监听页面标题，更新浏览器标签
-watch(
-  pageTitle,
-  (newTitle) => {
-    document.title = newTitle
-  },
-  { immediate: true }
-)
+
 
 // 格式化时间
 const formatTime = (timestamp) => {
@@ -626,7 +613,7 @@ const loadTagFromProps = async (tagId) => {
     if (cachedTag) {
       currentTagId.value = cachedTag.id
       currentTag.value = cachedTag
-      pageTitle.value = `${cachedTag.name} - ${getSiteTitle()}`
+      setDynamicTitle(cachedTag.name)
       // 获取标签文章列表
       await getTagArticles(tagId, 1)
       return
@@ -648,7 +635,7 @@ const loadTagFromProps = async (tagId) => {
       if (tag) {
         currentTagId.value = tag.id
         currentTag.value = tag
-        pageTitle.value = `${tag.name} - ${getSiteTitle()}`
+        setDynamicTitle(tag.name)
         // 缓存标签详情
         cache.set(cacheKey, tag, cacheExpire)
         // 获取标签文章数量
@@ -659,17 +646,17 @@ const loadTagFromProps = async (tagId) => {
         // 如果标签不存在，显示错误信息
         error.value = true
         errorMsg.value = '未找到该标签，可能已被删除或参数错误'
-        pageTitle.value = `标签不存在 - ${getSiteTitle()}`
+        setDynamicTitle('标签不存在')
       }
     } else {
       error.value = true
       errorMsg.value = '获取标签信息失败'
-      pageTitle.value = `标签不存在 - ${getSiteTitle()}`
+      setDynamicTitle('标签不存在')
     }
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
-    pageTitle.value = `网络异常 - ${getSiteTitle()}`
+    setDynamicTitle('网络异常')
   }
 }
 
@@ -694,14 +681,14 @@ const initPage = async () => {
       await loadTagFromProps(tagIdFromRoute)
     } else {
       // 如果没有标签ID，更新页面标题为"标签"
-      pageTitle.value = `标签 - ${getSiteTitle()}`
+      setDynamicTitle('标签')
     }
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
     // console.error('初始化页面失败:', err)
     // 更新页面标题
-    pageTitle.value = `网络异常 - ${getSiteTitle()}`
+    setDynamicTitle('网络异常')
   } finally {
     loading.value = false
   }

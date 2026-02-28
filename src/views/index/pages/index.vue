@@ -197,6 +197,11 @@ import { useRouter } from 'vue-router'
 import request from '@/utils/request' 
 // 导入公告组件
 import INotice from '@/comps/custom/i-notice.vue'
+import { usePageTitle } from '@/utils/usePageTitle'
+
+// 使用页面标题管理
+const { setDynamicTitle } = usePageTitle();
+setDynamicTitle('首页');
 
 // 导入本地图片
 import defaultCover from '@/assets/img/fm.avif'

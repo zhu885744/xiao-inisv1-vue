@@ -175,6 +175,7 @@ import { push } from '@/utils/route'
 import AtomArticle from '@/comps/admin/atom/article.vue'
 import TableArticle from '@/comps/admin/table/article.vue'
 import cache from '@/utils/cache.js'
+import { usePageTitle } from '@/utils/usePageTitle'
 
 // 组件引用
 const refs = {
@@ -184,6 +185,12 @@ const refs = {
   remove: ref(null),
   article: ref(null)
 }
+
+// 页面标题管理
+const { setDynamicTitle } = usePageTitle()
+
+// 设置页面标题
+setDynamicTitle('文章管理')
 
 const state  = reactive({
     user: cache.get('user-info'),
