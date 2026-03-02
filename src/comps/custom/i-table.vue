@@ -94,7 +94,7 @@
             <div class="d-flex align-items-center gap-3">
                 <!-- 每页显示条数选择 -->
                 <div class="d-flex align-items-center">
-                    <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange">
+                    <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange()">
                         <option v-for="size in state.config.pagination.sizes" :key="size" :value="size">
                             {{ size }}
                         </option>

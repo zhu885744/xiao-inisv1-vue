@@ -462,16 +462,6 @@ watch(
 </script>
 
 <style scoped>
-/* 基础样式优化 */
-.card {
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.card-body {
-  padding: 1.5rem;
-}
-
 /* 加载动画 */
 .spin {
   animation: spin 1s linear infinite;
@@ -488,23 +478,9 @@ watch(
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  /* 卡片头部 */
-  .card-header {
-    padding: 1rem;
-  }
-  
-  .card-title {
-    font-size: 1.1rem !important;
-  }
-  
   .btn-sm {
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
-  }
-  
-  /* 卡片内容 */
-  .card-body {
-    padding: 1rem;
   }
   
   /* 加载状态 */
