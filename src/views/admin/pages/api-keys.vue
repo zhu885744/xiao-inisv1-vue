@@ -2,7 +2,7 @@
     <div class="main">
       <div class="card mt-2">
         <div class="card-body">
-          <div class="row d-none d-lg-flex mb-4 mt-2">
+          <div class="row d-none d-lg-flex">
             <div class="col-lg-6 d-flex align-items-center">
                 <div class="dropdown me-2" v-if="state.item.tabs !== 'setting'">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -187,7 +187,36 @@ const method = {
         // 批量刷新
         for (let item of args) {
             if (refsMap[item]?.value) {
-                refsMap[item].value.init()
+                // 优先使用refresh方法
+                if (typeof refsMap[item].value.refresh === 'function') {
+                    refsMap[item].value.refresh()
+                } else {
+                    refsMap[item].value.init()
+                }
+            }
+        }
+    },
+    // 加载数据
+    loadData(...args) {
+        // 允许加载的参数
+        const refsMap = {
+            'all': allRef,
+            'remove': removeRef,
+            'apiKey': apiKeyRef
+        }
+        // 如果没有传参则加载所有
+        if (args.length === 0) args = Object.keys(refsMap)
+        // 如果传参则过滤不允许的参数
+        else args = args.filter(item => Object.keys(refsMap).includes(item))
+        // 批量加载
+        for (let item of args) {
+            if (refsMap[item]?.value) {
+                // 优先使用loadData方法
+                if (typeof refsMap[item].value.loadData === 'function') {
+                    refsMap[item].value.loadData()
+                } else {
+                    refsMap[item].value.init()
+                }
             }
         }
     },

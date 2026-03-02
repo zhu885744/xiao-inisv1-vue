@@ -248,7 +248,32 @@ const method = {
         // 批量刷新
         for (let item of args) {
             if (refs[item]) {
-                refs[item].init()
+                // 优先使用refresh方法
+                if (typeof refs[item].refresh === 'function') {
+                    refs[item].refresh()
+                } else {
+                    refs[item].init()
+                }
+            }
+        }
+    },
+    // 加载数据
+    loadData(...args) {
+        // 允许加载的参数
+        let allow = ['all', 'check', 'audit' , 'remove', 'article']
+        // 如果没有传参则加载所有
+        if (args.length === 0) args = allow
+        // 如果传参则过滤不允许的参数
+        else args = args.filter(item => allow.includes(item))
+        // 批量加载
+        for (let item of args) {
+            if (refs[item]) {
+                // 优先使用loadData方法
+                if (typeof refs[item].loadData === 'function') {
+                    refs[item].loadData()
+                } else {
+                    refs[item].init()
+                }
             }
         }
     },
@@ -295,27 +320,3 @@ watch(() => state.item.search, (val) => {
     state.item.timer = setTimeout(() => method.refresh(...allow), globalThis.inis?.lazy_time ?? 500)
 })
 </script>
-
-<style scoped>
-/* 自定义样式 */
-.nav-tabs {
-    border-bottom: 1px solid #dee2e6;
-}
-
-.nav-tabs .nav-link {
-    border: 1px solid transparent;
-    border-top-left-radius: 0.375rem;
-    border-top-right-radius: 0.375rem;
-}
-
-.nav-tabs .nav-link.active {
-    color: #495057;
-    background-color: #fff;
-    border-color: #dee2e6 #dee2e6 #fff;
-}
-
-.tab-content {
-    padding: 1rem;
-    background-color: #fff;
-}
-</style>

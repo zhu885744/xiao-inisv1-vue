@@ -14,14 +14,33 @@
                 <i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i>
             </div>
             <p class="text-danger">{{ errorMessage }}</p>
-            <button class="btn btn-primary mt-3" @click="method.init()">重新加载</button>
+            <button class="btn btn-primary mt-3" @click="method.init">重新加载</button>
         </div>
         
         <!-- 表格 -->
-        <div v-else class="table-responsive">
-            <table class="table table-striped table-hover table-bordered">
+        <div v-else>
+            <!-- 批量操作工具栏 -->
+            <div v-if="state.config.opts.selection && state.item.selection.length > 0" class="batch-operation mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted">已选择 {{ state.item.selection.length }} 项</span>
+                    <slot name="batch-operations"></slot>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered">
                 <thead class="table-primary">
                     <tr>
+                        <!-- 多选列 -->
+                        <th v-if="state.config.opts.selection" class="text-center" style="width: 50px;">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input" 
+                                :checked="isAllSelected" 
+                                @change="handle.selectAll($event)"
+                            >
+                        </th>
+
                         <!-- 自定义列 - 开始位置 -->
                         <slot name="start-header"></slot>
 
@@ -29,7 +48,7 @@
                         <th 
                             v-for="(column, index) in state.config.opts.columns" 
                             :key="index"
-                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : column.align || 'text-start']"
+                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : (column.align || 'text-start')]"
                             :style="{ width: column.width }"
                         >
                             {{ column.label }}
@@ -41,6 +60,16 @@
                 </thead>
                 <tbody>
                     <tr v-for="(row, rowIndex) in state.item.data" :key="rowIndex">
+                        <!-- 多选列 -->
+                        <td v-if="state.config.opts.selection" class="text-center">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input" 
+                                :checked="isSelected(row)" 
+                                @change="() => handle.select(row)"
+                            >
+                        </td>
+
                         <!-- 自定义列 - 开始位置 -->
                         <slot name="start" :scope="row"></slot>
 
@@ -48,7 +77,7 @@
                         <td 
                             v-for="(column, index) in state.config.opts.columns" 
                             :key="index"
-                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : column.align || 'text-start']"
+                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : (column.align || 'text-start')]"
                         >
                             <template v-if="column.slot">
                                 <slot :name="'i-' + column.prop" :scope="row"></slot>
@@ -81,6 +110,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
         
         <!-- 分页和统计信息 -->
@@ -94,7 +124,7 @@
             <div class="d-flex align-items-center gap-3">
                 <!-- 每页显示条数选择 -->
                 <div class="d-flex align-items-center">
-                    <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange()">
+                    <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange">
                         <option v-for="size in state.config.pagination.sizes" :key="size" :value="size">
                             {{ size }}
                         </option>
@@ -105,7 +135,7 @@
                 <nav v-if="state.item.page.total > 1" aria-label="Page navigation">
                     <ul class="pagination mb-0">
                         <li class="page-item" :class="{ disabled: state.item.page.code === 1 }">
-                            <button class="page-link" @click="handle.currentChange(state.item.page.code - 1)" :disabled="state.item.page.code === 1">
+                            <button class="page-link" @click="() => handle.currentChange(state.item.page.code - 1)" :disabled="state.item.page.code === 1">
                                 上一页
                             </button>
                         </li>
@@ -116,13 +146,13 @@
                             class="page-item" 
                             :class="{ active: page === state.item.page.code }"
                         >
-                            <button class="page-link" @click="handle.currentChange(page)">
+                            <button class="page-link" @click="() => handle.currentChange(page)">
                                 {{ page }}
                             </button>
                         </li>
                         
                         <li class="page-item" :class="{ disabled: state.item.page.code === state.item.page.total }">
-                            <button class="page-link" @click="handle.currentChange(state.item.page.code + 1)" :disabled="state.item.page.code === state.item.page.total">
+                            <button class="page-link" @click="() => handle.currentChange(state.item.page.code + 1)" :disabled="state.item.page.code === state.item.page.total">
                                 下一页
                             </button>
                         </li>
@@ -235,10 +265,24 @@ const state = reactive({
     },
 })
 
-// 计算总列数（包括自定义插槽）
+// 计算总列数（包括自定义插槽和多选列）
 const totalColumns = computed(() => {
-    return state.config.opts.columns.length + 2 // 2 是自定义插槽的数量（start 和 end）
+    let count = state.config.opts.columns.length + 2 // 2 是自定义插槽的数量（start 和 end）
+    if (state.config.opts.selection) {
+        count += 1 // 加上多选列
+    }
+    return count
 })
+
+// 计算是否全选
+const isAllSelected = computed(() => {
+    return state.item.data.length > 0 && state.item.selection.length === state.item.data.length
+})
+
+// 检查行是否被选中
+const isSelected = (row) => {
+    return state.item.selection.some(item => item.id === row.id)
+}
 
 // 计算页码范围
 const pageRange = computed(() => {
@@ -332,6 +376,25 @@ const handle = {
         state.item.selection = selection
         emit('selection:change', selection)
     },
+    // 选择单行
+    select(row) {
+        const index = state.item.selection.findIndex(item => item.id === row.id)
+        if (index > -1) {
+            state.item.selection.splice(index, 1)
+        } else {
+            state.item.selection.push(row)
+        }
+        emit('selection:change', state.item.selection)
+    },
+    // 全选/取消全选
+    selectAll(e) {
+        if (e.target.checked) {
+            state.item.selection = [...state.item.data]
+        } else {
+            state.item.selection = []
+        }
+        emit('selection:change', state.item.selection)
+    },
 }
 
 // 主动将子组件方法暴露给父组件
@@ -349,18 +412,40 @@ method.init()
 /* 表格容器 */
 .table-container {
     width: 100%;
-    background-color: #ffffff;
-    border-radius: 0.5rem;
+    background-color: var(--bs-body-bg);
+    border-radius: 0.75rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     padding: 1.5rem;
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.3s ease;
+}
+
+.table-container:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* 批量操作工具栏 */
+.batch-operation {
+    padding: 1rem;
+    background-color: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.batch-operation:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-color: var(--bs-primary);
 }
 
 /* 表格样式 */
 .table {
     margin-bottom: 0;
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
     overflow: hidden;
     transition: all 0.3s ease;
+    border: 1px solid var(--bs-border-color);
 }
 
 .table:hover {
@@ -368,40 +453,76 @@ method.init()
 }
 
 /* 表格头部 */
-.table-header {
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
+.table thead {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.table thead th {
+    border-bottom: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+/* 表格行 */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+
+/* 表格单元格 */
+.table td,
+.table th {
+    vertical-align: middle;
+    padding: 0.75rem 1rem;
 }
 
 /* 加载状态 */
 .loading-state {
     min-height: 200px;
-    background-color: #f8f9fa;
-    border-radius: 0.375rem;
+    background-color: var(--bs-tertiary-bg);
+    border-radius: 0.5rem;
     transition: all 0.3s ease;
+    border: 1px solid var(--bs-border-color);
 }
 
 /* 错误状态 */
 .error-state {
     min-height: 200px;
-    background-color: #fff5f5;
-    border: 1px solid #f8d7da;
-    border-radius: 0.375rem;
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    border: 1px solid var(--bs-danger-border-subtle);
+    border-radius: 0.5rem;
     transition: all 0.3s ease;
 }
 
 /* 空数据状态 */
 .empty-state {
-    padding: 2rem 0;
+    padding: 3rem 0;
     transition: all 0.3s ease;
+    color: var(--bs-secondary-color);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
 }
 
 /* 表格底部 */
 .table-footer {
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--bs-border-color);
     padding-top: 1rem;
     margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 }
 
 /* 分页样式 */
@@ -410,28 +531,38 @@ method.init()
 }
 
 .page-item.active .page-link {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
 }
 
 .page-link {
     transition: all 0.2s ease;
+    color: var(--bs-primary);
+    border-color: var(--bs-border-color);
 }
 
 .page-link:hover {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
+    background-color: var(--bs-tertiary-bg);
+    border-color: var(--bs-primary);
+    transform: translateY(-1px);
+}
+
+.page-link:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
     .table-container {
         padding: 1rem;
+        border-radius: 0.5rem;
     }
     
     .table-responsive {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.5rem;
+        overflow-x: auto;
     }
     
     .table-footer {
@@ -450,6 +581,12 @@ method.init()
         min-height: 150px;
         padding: 4rem 2rem;
     }
+    
+    .table td,
+    .table th {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
 }
 
 /* 动画效果 */
@@ -464,10 +601,47 @@ method.init()
     }
 }
 
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .table,
 .loading-state,
 .error-state,
 .empty-state {
     animation: fadeIn 0.3s ease-in-out;
+}
+
+.loading-state .spinner-border {
+    animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
+}
+
+/* 复选框样式 */
+.form-check-input {
+    transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
 }
 </style>

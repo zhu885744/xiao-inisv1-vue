@@ -2,6 +2,9 @@
     <i-table 
         :opts="optsConfig" 
         ref="tableRef"
+        @batch:remove="method.batchRemove"
+        @batch:delete="method.batchDelete"
+        @batch:clear="method.clearRecycle"
     >
         <!-- 自定义列 - 结束位置表头 -->
         <template #end-header>
@@ -163,8 +166,26 @@ const method = {
     // 刷新数据
     init: async () => {
         // 重新加载数据
-        if (tableRef.value && typeof tableRef.value.init === 'function') {
+        if (tableRef.value && typeof tableRef.value.refresh === 'function') {
+            await tableRef.value.refresh()
+        } else if (tableRef.value && typeof tableRef.value.loadData === 'function') {
+            // 兼容 i-table 组件的 loadData 方法
+            await tableRef.value.loadData()
+        } else if (tableRef.value && typeof tableRef.value.init === 'function') {
+            // 兼容 i-table 组件的 init 方法
             await tableRef.value.init()
+        }
+    },
+    // 刷新数据 - 使用i-table的refresh方法
+    refresh: async () => {
+        if (tableRef.value && typeof tableRef.value.refresh === 'function') {
+            await tableRef.value.refresh()
+        }
+    },
+    // 加载数据 - 使用i-table的loadData方法
+    loadData: async () => {
+        if (tableRef.value && typeof tableRef.value.loadData === 'function') {
+            await tableRef.value.loadData()
         }
     },
     // 保存数据
@@ -245,6 +266,25 @@ const method = {
         // 重新加载数据
         await method.init()
     },
+    // 批量软删除
+    async batchRemove(ids = []) {
+        if (utils.is.empty(ids)) return
+        await method.delete(ids, true)
+    },
+    // 批量硬删除
+    async batchDelete(ids = []) {
+        if (utils.is.empty(ids)) return
+        await method.delete(ids, false)
+    },
+    // 清空回收站
+    async clearRecycle() {
+        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
+        if (code !== 200) return Toast.error(msg)
+        // 刷新回收站数据
+        emit('refresh', 'remove')
+        // 重新加载数据
+        await method.init()
+    },
     // 生成32位随机字符串
     rand(field = 'value') {
         let result  = ''
@@ -303,6 +343,8 @@ watch(() => state.item.dialog, (value) => {
 // 将子组件方法暴露给父组件
 defineExpose({
     init: method.init,
+    refresh: method.refresh,
+    loadData: method.loadData,
     show: method.show,
 })
 </script>

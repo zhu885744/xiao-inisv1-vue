@@ -6,7 +6,7 @@
                     <i class="bi bi-file-text text-primary" style="font-size: 43px;"></i>
                 </div>
                 <h6 class="text-muted text-uppercase mt-0">
-                    <span class="d-inline-flex align-items-center" data-bs-toggle="tooltip" title="● Markdown编辑器：Vditor支持所见即所得、即时时渲染（类似 Typora）和分屏预览模式。">
+                    <span class="d-inline-flex align-items-center" data-bs-toggle="tooltip" title="● Markdown编辑器：md-editor-v3支持所见即所得、即时时渲染（类似 Typora）和分屏预览模式。">
                         <i class="bi bi-info-circle text-muted me-1"></i>
                         <span class="ms-1">文章</span>
                     </span>
@@ -44,13 +44,13 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">
-                                    <span class="d-inline-flex align-items-center" data-bs-toggle="tooltip" title="● Markdown编辑器：Vditor支持所见即所得、即时渲染（类似 Typora）和分屏预览模式。">
+                                    <span class="d-inline-flex align-items-center" data-bs-toggle="tooltip" title="● Markdown编辑器：md-editor-v3支持所见即所得、即时渲染（类似 Typora）和分屏预览模式。">
                                         <i class="bi bi-info-circle text-muted me-1"></i>
                                         <span class="ms-1">编辑器：</span>
                                     </span>
                                 </label>
                                 <select v-model="state.cache.json.editor" class="form-select" disabled>
-                                    <option value="vditor">Markdown (vditor)</option>
+                                    <option value="md-editor-v3">Markdown (md-editor-v3)</option>
                                 </select>
                             </div>
                         </div>
@@ -117,6 +117,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import cache from '@/utils/cache'
 import axios from '@/utils/request'
+import toast from '@/utils/toast'
 
 // 模态框实例
 let modalInstance = null
@@ -125,7 +126,7 @@ const state = reactive({
     cache: {
         name: 'article',
         json: {
-            editor: 'vditor'
+            editor: 'md-editor-v3'
         }
     },
     struct: {
@@ -145,7 +146,7 @@ const state = reactive({
     },
     select: {
         editor: [
-            { value: 'vditor', label: 'Markdown' }
+            { value: 'md-editor-v3', label: 'Markdown' }
         ],
         comment: {
             allow: [
@@ -190,9 +191,9 @@ const method = {
             if (code !== 200) return
             state.struct = data
 
-            // 确保编辑器类型为vditor
-            state.cache.json.editor = 'vditor'
-            state.struct.json.editor = 'vditor'
+            // 确保编辑器类型为md-editor-v3
+            state.cache.json.editor = 'md-editor-v3'
+            state.struct.json.editor = 'md-editor-v3'
             
             state.status.finish  = true
         } catch (error) {
@@ -203,7 +204,7 @@ const method = {
     },
     show() {
         if (!state.status.finish) {
-            alert('配置获取失败，无法进行配置！')
+            toast.error('配置获取失败，无法进行配置！')
             return
         }
         
@@ -221,8 +222,8 @@ const method = {
     save: async () => {
         state.status.wait   = true
 
-        // 保存时强制设置为vditor
-        state.struct.json.editor = 'vditor'
+        // 保存时强制设置为md-editor-v3
+        state.struct.json.editor = 'md-editor-v3'
         
         try {
             const { code, msg } = await axios.post('/api/config/save', {
@@ -231,7 +232,7 @@ const method = {
             })
 
             if (code !== 200) {
-                alert('保存失败：' + msg)
+                toast.error('保存失败：' + msg)
                 return
             }
 
@@ -241,26 +242,26 @@ const method = {
             }
             
             state.status.dialog = false
-            alert('保存成功')
+            toast.success('保存成功')
             cache.set(state.cache.name, state.cache.json)
         } catch (error) {
             console.error('保存配置失败:', error)
-            alert('保存失败：网络错误')
+            toast.error('保存失败：网络错误')
         } finally {
             state.status.wait   = false
         }
     },
     // 获取缓存
     cache: (json = state.cache.json) => {
-        // 缓存存在 - 直接返回并确保是vditor
+        // 缓存存在 - 直接返回并确保是md-editor-v3
         if (cache.has(state.cache.name)) {
             const cached = cache.get(state.cache.name)
-            state.cache.json = { ...cached, editor: 'vditor' }
+            state.cache.json = { ...cached, editor: 'md-editor-v3' }
             return
         }
 
-        // 缓存不存在 - 保存缓存（强制为vditor）
-        cache.set(state.cache.name, { ...json, editor: 'vditor' })
+        // 缓存不存在 - 保存缓存（强制为md-editor-v3）
+        cache.set(state.cache.name, { ...json, editor: 'md-editor-v3' })
     },
 }
 

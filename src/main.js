@@ -16,10 +16,19 @@ const loadBootstrapCustomStyle = (siteInfo) => {
   // 检查是否启用自定义样式，默认为 false
   const enableCustomStyle = siteInfo?.enable_custom_style === true
   
-  if (enableCustomStyle) {
-    // 动态加载样式文件
+  // 检查当前路由是否为 admin 路由
+  let isAdminRoute = false
+  if (typeof window !== 'undefined' && window.location) {
+    const currentPath = window.location.pathname
+    isAdminRoute = currentPath.startsWith('/admin')
+  }
+  
+  if (enableCustomStyle && !isAdminRoute) {
+    // 动态加载样式文件（仅针对非 admin 路由）
     import('./assets/css/bootstrap-custom.css')
-    console.log('Bootstrap 定制化样式已加载')
+    console.log('Bootstrap 定制化样式已加载（仅非 admin 路由）')
+  } else if (isAdminRoute) {
+    console.log('Bootstrap 定制化样式已跳过（admin 路由）')
   } else {
     console.log('Bootstrap 定制化样式已禁用')
   }

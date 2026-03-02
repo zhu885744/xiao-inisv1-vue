@@ -1,25 +1,29 @@
 <template>
-    <i-table 
-        :opts="optsConfig" 
-        ref="tableRef"
-    >
-        <!-- 自定义选择列 -->
-        <template v-slot:start-header>
-            <th class="text-center" style="width: 55px;">
-                <input 
-                    type="checkbox" 
-                    class="form-check-input"
-                >
-            </th>
-        </template>
-        <template v-slot:start="{ scope }">
-            <td class="text-center">
-                <input 
-                    type="checkbox" 
-                    class="form-check-input"
-                >
-            </td>
-        </template>
+    <div>
+        <!-- 批量操作工具栏 -->
+        <div v-if="state.item.selection.length > 0" class="batch-operation mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted">已选择 {{ state.item.selection.length }} 项</span>
+                <button v-if="props.type === 'all'" class="btn btn-sm btn-outline-danger" @click="method.batchRemove">
+                    <i class="bi bi-trash"></i> 批量删除
+                </button>
+                <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-success" @click="method.batchRestore">
+                    <i class="bi bi-arrow-clockwise"></i> 批量恢复
+                </button>
+                <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-danger" @click="method.batchDelete">
+                    <i class="bi bi-trash"></i> 批量删除
+                </button>
+                <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-warning" @click="method.clearRecycle">
+                    <i class="bi bi-trash3"></i> 清空回收站
+                </button>
+            </div>
+        </div>
+        
+        <i-table 
+            :opts="optsConfig" 
+            ref="tableRef"
+            @selection:change="method.handleSelectionChange"
+        >
 
         <!-- 操作列 -->
         <template v-slot:end-header>
@@ -96,7 +100,8 @@
             </span>
         </template>
 
-    </i-table>
+        </i-table>
+    </div>
 </template>
 
 <script setup>
@@ -131,6 +136,7 @@ const router = useRouter()
 const state  = reactive({
     item: {
         table: 'article',
+        selection: [], // 存储选中的项
     },
     struct: {},
     opts: {
@@ -150,7 +156,8 @@ const optsConfig = computed(() => {
         url: '/api/article/all',
         method: 'get',
         params: props.params,
-        columns: state.opts.columns
+        columns: state.opts.columns,
+        selection: true // 启用多选功能
     }
 })
 
@@ -162,6 +169,21 @@ const method = {
             await tableRef.value.refresh()
         } else if (tableRef.value && typeof tableRef.value.loadData === 'function') {
             // 兼容 i-table 组件的 loadData 方法
+            await tableRef.value.loadData()
+        } else if (tableRef.value && typeof tableRef.value.init === 'function') {
+            // 兼容 i-table 组件的 init 方法
+            await tableRef.value.init()
+        }
+    },
+    // 刷新数据 - 使用i-table的refresh方法
+    refresh: async () => {
+        if (tableRef.value && typeof tableRef.value.refresh === 'function') {
+            await tableRef.value.refresh()
+        }
+    },
+    // 加载数据 - 使用i-table的loadData方法
+    loadData: async () => {
+        if (tableRef.value && typeof tableRef.value.loadData === 'function') {
             await tableRef.value.loadData()
         }
     },
@@ -179,6 +201,8 @@ const method = {
             alert('删除失败：' + msg)
             return
         }
+        // 清空选中的项
+        state.item.selection = []
         // 刷新回收站数据
         emit('refresh', 'remove', 'check', 'audit')
         // 重新加载数据
@@ -192,8 +216,46 @@ const method = {
             alert('恢复失败：' + msg)
             return
         }
+        // 清空选中的项
+        state.item.selection = []
         // 刷新全部数据
         emit('refresh', 'all', 'check', 'audit')
+        // 重新加载数据
+        await method.init()
+    },
+    // 处理选择变化
+    handleSelectionChange(selection) {
+        state.item.selection = selection
+    },
+    // 批量软删除
+    async batchRemove() {
+        if (utils.is.empty(state.item.selection)) return
+        const ids = state.item.selection.map(item => item.id)
+        await method.delete(ids, true)
+    },
+    // 批量硬删除
+    async batchDelete() {
+        if (utils.is.empty(state.item.selection)) return
+        const ids = state.item.selection.map(item => item.id)
+        await method.delete(ids, false)
+    },
+    // 批量恢复
+    async batchRestore() {
+        if (utils.is.empty(state.item.selection)) return
+        const ids = state.item.selection.map(item => item.id)
+        await method.restore(ids)
+    },
+    // 清空回收站
+    async clearRecycle() {
+        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
+        if (code !== 200) {
+            alert('清空失败：' + msg)
+            return
+        }
+        // 清空选中的项
+        state.item.selection = []
+        // 刷新回收站数据
+        emit('refresh', 'remove')
         // 重新加载数据
         await method.init()
     },
@@ -245,6 +307,8 @@ watch(() => props.init, (val) => {
 // 将子组件方法暴露给父组件
 defineExpose({
     init: method.init,
+    refresh: method.refresh,
+    loadData: method.loadData,
 })
 </script>
 

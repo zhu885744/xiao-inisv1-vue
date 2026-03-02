@@ -10,7 +10,7 @@
                             </div>
                             <span class="ms-2">加载编辑器中...</span>
                         </div>
-                        <i-vditor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-vditor>
+                        <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
                     </div>
                     <div class="card-footer d-flex justify-content-end gap-2">
                         <button class="btn btn-outline-secondary" type="button">保存草稿</button>
@@ -246,7 +246,7 @@ import { useRoute, useRouter } from 'vue-router'
 import cache from '@/utils/cache'
 import utils from '@/utils/utils'
 import axios from '@/utils/request'
-import IVditor from '@/comps/custom/i-vditor.vue'
+import IMdEditor from '@/comps/custom/i-md-editor.vue'
 import { useCommStore } from '@/store/comm'
 import { usePageTitle } from '@/utils/usePageTitle'
 import toast from '@/utils/toast'
@@ -424,12 +424,11 @@ const method = {
     // 保存
     save: async () => {
         try {
-            // 获取 Vditor 内容
-            if (!vditorRef.value) {
+            // md-editor-v3 内容通过 v-model 双向绑定，直接使用 state.struct.content
+            if (!state.struct.content) {
                 toast.warning('编辑器尚未加载完成，请稍候重试')
                 return
             }
-            state.struct.content = vditorRef.value.getValue()
 
             // 正则匹配纯文本内容 - 去除换行符
             const reg = /<[^>]+>/g
