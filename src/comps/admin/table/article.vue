@@ -1,106 +1,107 @@
 <template>
-    <div>
-        <!-- 批量操作工具栏 -->
-        <div v-if="state.item.selection.length > 0" class="batch-operation mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted">已选择 {{ state.item.selection.length }} 项</span>
-                <button v-if="props.type === 'all'" class="btn btn-sm btn-outline-danger" @click="method.batchRemove">
-                    <i class="bi bi-trash"></i> 批量删除
-                </button>
-                <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-success" @click="method.batchRestore">
-                    <i class="bi bi-arrow-clockwise"></i> 批量恢复
-                </button>
-                <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-danger" @click="method.batchDelete">
-                    <i class="bi bi-trash"></i> 批量删除
-                </button>
-                <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-warning" @click="method.clearRecycle">
-                    <i class="bi bi-trash3"></i> 清空回收站
-                </button>
+    <div class="article-table-container">
+        <div class="card shadow-sm rounded-3 overflow-hidden">
+            <div class="card-body p-0">
+                <i-table 
+                    :opts="optsConfig" 
+                    ref="tableRef"
+                    @selection:change="method.handleSelectionChange"
+                    class="table table-hover table-striped align-middle"
+                >
+                    <!-- 批量操作按钮 -->
+                    <template #batch-operations>
+                        <button v-if="props.type === 'all'" class="btn btn-sm btn-outline-danger" @click="method.batchRemove">
+                            <i class="bi bi-trash me-1"></i> 批量删除
+                        </button>
+                        <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-success" @click="method.batchRestore">
+                            <i class="bi bi-arrow-clockwise me-1"></i> 批量恢复
+                        </button>
+                        <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-danger" @click="method.batchDelete">
+                            <i class="bi bi-trash me-1"></i> 批量删除
+                        </button>
+                        <button v-if="props.type === 'remove'" class="btn btn-sm btn-outline-warning" @click="method.clearRecycle">
+                            <i class="bi bi-trash3 me-1"></i> 清空回收站
+                        </button>
+                    </template>
+
+                <!-- 操作列 -->
+                <template v-slot:end-header>
+                    <th class="text-center" style="width: 120px;">操作</th>
+                </template>
+                <template v-if="props.type === 'all'" v-slot:end="{ scope }">
+                    <td class="text-center">
+                        <div class="btn-group" role="group" aria-label="Article actions">
+                            <button class="btn btn-sm btn-outline-primary" @click="method.edit(scope)" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" @click="method.delete(scope.id, true)" title="删除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </template>
+                <template v-if="props.type === 'remove'" v-slot:end="{ scope }">
+                    <td class="text-center">
+                        <div class="btn-group" role="group" aria-label="Recycle actions">
+                            <button class="btn btn-sm btn-outline-success" @click="method.restore(scope.id)" title="恢复">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary ms-1" @click="method.edit(scope)" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" @click="method.delete(scope.id, false)" title="删除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </template>
+
+                <!-- 创建时间自定义插槽 -->
+                <template #i-create_time="{ scope = {} }">
+                    <span class="text-muted" data-bs-toggle="tooltip" :title="method.formatTime(scope.create_time)">
+                        {{ method.formatTime(scope.create_time) }}
+                    </span>
+                </template>
+
+                <!-- 更新时间自定义插槽 -->
+                <template #i-update_time="{ scope = {} }">
+                    <span class="text-muted" data-bs-toggle="tooltip" :title="method.formatTime(scope.update_time)">
+                        {{ method.formatTime(scope.update_time) }}
+                    </span>
+                </template>
+
+                <!-- 标题自定义插槽 -->
+                <template #i-title="{ scope = {} }">
+                    <span @dblclick="method.edit(scope)" class="d-flex align-items-center cursor-pointer">
+                        <span v-if="scope.audit === 1" class="me-1" data-bs-toggle="tooltip" title="已审核">
+                            <i class="bi bi-check-circle text-success"></i>
+                        </span>
+                        <span v-if="scope.top === 1" class="me-1" data-bs-toggle="tooltip" title="置顶">
+                            <i class="bi bi-star text-warning"></i>
+                        </span>
+                        <span class="limit-1-line" data-bs-toggle="tooltip" :title="scope.title">
+                            {{ scope?.title }}
+                        </span>
+                    </span>
+                </template>
+
+                <!-- 摘要自定义插槽 -->
+                <template #i-abstract="{ scope = {} }">
+                    <span data-bs-toggle="tooltip" :title="method.autoWrap(scope.abstract)">
+                        {{ method.omit(scope?.abstract) }}
+                    </span>
+                </template>
+
+                <!-- 备注自定义插槽 -->
+                <template #i-remark="{ scope }">
+                    <span data-bs-toggle="tooltip" :title="method.autoWrap(scope?.remark)">
+                        {{ method.omit(scope?.remark) }}
+                    </span>
+                </template>
+
+                </i-table>
             </div>
         </div>
-        
-        <i-table 
-            :opts="optsConfig" 
-            ref="tableRef"
-            @selection:change="method.handleSelectionChange"
-        >
-
-        <!-- 操作列 -->
-        <template v-slot:end-header>
-            <th class="text-center" style="width: 100px;">操作</th>
-        </template>
-        <template v-if="props.type === 'all'" v-slot:end="{ scope }">
-            <td class="text-center">
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-primary" @click="method.edit(scope)">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger ms-1" @click="method.delete(scope.id, true)">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </template>
-        <template v-if="props.type === 'remove'" v-slot:end="{ scope }">
-            <td class="text-center">
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-success" @click="method.restore(scope.id)">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-primary ms-1" @click="method.edit(scope)">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger ms-1" @click="method.delete(scope.id, false)">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </template>
-
-        <!-- 创建时间自定义插槽 -->
-        <template #i-create_time="{ scope = {} }">
-            <span class="text-muted" data-bs-toggle="tooltip" :title="method.formatTime(scope.create_time)">
-                {{ method.formatTime(scope.create_time) }}
-            </span>
-        </template>
-
-        <!-- 更新时间自定义插槽 -->
-        <template #i-update_time="{ scope = {} }">
-            <span class="text-muted" data-bs-toggle="tooltip" :title="method.formatTime(scope.update_time)">
-                {{ method.formatTime(scope.update_time) }}
-            </span>
-        </template>
-
-        <!-- 标题自定义插槽 -->
-        <template #i-title="{ scope = {} }">
-            <span @dblclick="method.edit(scope)" class="d-flex align-items-center">
-                <span v-if="scope.audit === 1" class="me-1" data-bs-toggle="tooltip" title="已审核">
-                    <i class="bi bi-check-circle text-success"></i>
-                </span>
-                <span v-if="scope.top === 1" class="me-1" data-bs-toggle="tooltip" title="置顶">
-                    <i class="bi bi-star text-warning"></i>
-                </span>
-                <span class="limit-1-line" data-bs-toggle="tooltip" :title="scope.title">
-                    {{ scope?.title }}
-                </span>
-            </span>
-        </template>
-
-        <!-- 摘要自定义插槽 -->
-        <template #i-abstract="{ scope = {} }">
-            <span data-bs-toggle="tooltip" :title="method.autoWrap(scope.abstract)">
-                {{ method.omit(scope?.abstract) }}
-            </span>
-        </template>
-
-        <!-- 备注自定义插槽 -->
-        <template #i-remark="{ scope }">
-            <span data-bs-toggle="tooltip" :title="method.autoWrap(scope?.remark)">
-                {{ method.omit(scope?.remark) }}
-            </span>
-        </template>
-
-        </i-table>
     </div>
 </template>
 
@@ -314,11 +315,55 @@ defineExpose({
 
 <style scoped>
 /* 自定义样式 */
+.article-table-container {
+    width: 100%;
+}
+
 .limit-1-line {
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.cursor-pointer:hover {
+    color: var(--bs-primary);
+}
+
+/* 适配暗黑模式 */
+@media (prefers-color-scheme: dark) {
+    .batch-operation {
+        background-color: var(--bs-dark) !important;
+        border: 1px solid var(--bs-border-color) !important;
+    }
+    
+    .batch-operation .text-muted {
+        color: var(--bs-light) !important;
+    }
+    
+    .card {
+        background-color: var(--bs-dark) !important;
+        border: 1px solid var(--bs-border-color) !important;
+    }
+    
+    .table {
+        color: var(--bs-light) !important;
+    }
+    
+    .table-hover tbody tr:hover {
+        color: var(--bs-light) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+    }
 }
 </style>

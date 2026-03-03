@@ -11,29 +11,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 // 自定义全局样式
 import './assets/css/buyu.style.css'
 
-// 动态加载 Bootstrap 定制化样式
-const loadBootstrapCustomStyle = (siteInfo) => {
-  // 检查是否启用自定义样式，默认为 false
-  const enableCustomStyle = siteInfo?.enable_custom_style === true
-  
-  // 检查当前路由是否为 admin 路由
-  let isAdminRoute = false
-  if (typeof window !== 'undefined' && window.location) {
-    const currentPath = window.location.pathname
-    isAdminRoute = currentPath.startsWith('/admin')
-  }
-  
-  if (enableCustomStyle && !isAdminRoute) {
-    // 动态加载样式文件（仅针对非 admin 路由）
-    import('./assets/css/bootstrap-custom.css')
-    console.log('Bootstrap 定制化样式已加载（仅非 admin 路由）')
-  } else if (isAdminRoute) {
-    console.log('Bootstrap 定制化样式已跳过（admin 路由）')
-  } else {
-    console.log('Bootstrap 定制化样式已禁用')
-  }
-}
-
 // ========== 工具类引入 ==========
 // Bootstrap 5 JS（建议放到最后，避免DOM未加载完成时执行）
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
@@ -62,12 +39,9 @@ async function initApp() {
     app.use(router)
     
     // 5. 全局挂载/提供工具（按「通用 → 业务」顺序）
-    // ✅ 修复：原代码直接用 bootstrap 变量会报错，需通过 import * as 解构后挂载
     if (typeof window !== 'undefined') {
       window.bootstrap = bootstrap
     }
-    
-    // ✅ Toast 全局配置 + 挂载（配置优先，再挂载）
     
     // 配置 Toast（可以根据需要添加全局配置）
     Toast.config({})
@@ -93,9 +67,6 @@ async function initApp() {
     const commStore = useCommStore()
     await commStore.fetchSiteInfo()
     console.log('站点信息获取完成')
-    
-    // 7. 动态加载 Bootstrap 定制化样式
-    loadBootstrapCustomStyle(commStore.siteInfo)
     
     // 8. 动态设置favicon
     if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
@@ -146,31 +117,26 @@ async function initApp() {
       app.config.globalProperties.$api = API
       
       // 即使出错也尝试获取站点信息
-      try {
-        const commStore = useCommStore()
-        await commStore.fetchSiteInfo()
-        
-        // 动态加载 Bootstrap 定制化样式
-        loadBootstrapCustomStyle(commStore.siteInfo)
-        
-        // 动态设置favicon
-        if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
-          const favicon = document.querySelector('link[rel="icon"]')
-          if (favicon) {
-            favicon.href = commStore.siteInfo.favicon
-            console.log('Favicon已更新')
+        try {
+          const commStore = useCommStore()
+          await commStore.fetchSiteInfo()
+          
+          // 动态设置favicon
+          if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
+            const favicon = document.querySelector('link[rel="icon"]')
+            if (favicon) {
+              favicon.href = commStore.siteInfo.favicon
+              console.log('Favicon已更新')
+            }
           }
+          
+          // 应用保存的暗黑模式设置
+          const htmlElement = document.documentElement
+          htmlElement.setAttribute('data-bs-theme', commStore.isDarkMode ? 'dark' : 'light')
+        } catch (siteInfoError) {
+          console.error('获取站点信息失败:', siteInfoError)
+          // Bootstrap 定制化样式功能已移除
         }
-        
-        // 应用保存的暗黑模式设置
-        const htmlElement = document.documentElement
-        htmlElement.setAttribute('data-bs-theme', commStore.isDarkMode ? 'dark' : 'light')
-      } catch (siteInfoError) {
-        console.error('获取站点信息失败:', siteInfoError)
-        // 即使获取站点信息失败，也尝试加载默认样式
-        import('./assets/css/bootstrap-custom.css')
-        console.log('默认加载 Bootstrap 定制化样式')
-      }
       
       await router.isReady()
       app.mount('#app')

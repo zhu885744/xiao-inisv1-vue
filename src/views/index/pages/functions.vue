@@ -171,25 +171,6 @@
                       >
                       <div class="form-text text-muted mt-1">网站的建立日期</div>
                     </div>
-                    <div class="col-md-6">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                          <label class="form-label">启用定制主题</label>
-                          <p class="form-text text-muted mt-1">启用后将加载 bootstrap-custom.css 定制样式</p>
-                        </div>
-                        <div class="form-check form-switch">
-                          <input 
-                            class="form-check-input" 
-                            type="checkbox" 
-                            id="enable_custom_style_switch"
-                            v-model="globalConfig.enable_custom_style"
-                          >
-                          <label class="form-check-label" for="enable_custom_style_switch">
-                            {{ globalConfig.enable_custom_style ? '已启用' : '已禁用' }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -579,7 +560,6 @@ const globalConfig = ref({
   favicon: '',
   date: Math.floor(Date.now() / 1000).toString(),
   display_mode: true, // true为有图模式，false为无图模式
-  enable_custom_style: false, // false为默认不加载定制主题
   copy: {
     code: '',
     link: 'http://beian.miit.gov.cn/'
@@ -658,7 +638,6 @@ async function getGlobalConfig() {
         favicon: config.favicon || '',
         date: config.date || Math.floor(Date.now() / 1000).toString(),
         display_mode: config.display_mode !== false, // 默认值为true
-        enable_custom_style: config.enable_custom_style === true, // 默认值为false
         copy: {
           code: config.copy?.code || '',
           link: config.copy?.link || 'http://beian.mps.gov.cn/'

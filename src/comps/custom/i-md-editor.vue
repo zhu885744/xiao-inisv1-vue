@@ -133,20 +133,3 @@ defineExpose({
     setValue: (value) => emit('update:modelValue', value)
 })
 </script>
-
-<style scoped>
-/* 自定义样式 */
-:deep(.md-editor) {
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
-    overflow: hidden;
-}
-
-:deep(.md-editor-toolbar) {
-    border-bottom: 1px solid #dee2e6;
-}
-
-:deep(.md-editor-content) {
-    min-height: 360px;
-}
-</style>
