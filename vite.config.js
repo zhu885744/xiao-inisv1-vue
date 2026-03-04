@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => {
       assetsDir: 'static',
       cacheDir: false,
       minify: isProduction ? 'terser' : 'esbuild',
+      sourcemap: false,
+      chunkSizeWarningLimit: 300,
       rollupOptions: {
         output: {
           manualChunks: {
@@ -41,6 +43,8 @@ export default defineConfig(({ mode }) => {
         compress: {
           drop_console: isProduction,
           drop_debugger: isProduction,
+          dead_code: true,
+          pure_funcs: ['console.log', 'console.warn', 'console.error']
         },
         format: {
           comments: false
@@ -62,10 +66,24 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       open: true,
       cors: true,
+      // 增加服务器响应超时时间
+      timeout: 60000,
+      // 启用HTTP2，提高传输效率
+      http2: false,
+      // 配置缓存
+      hmr: {
+        overlay: false,
+        timeout: 3000
+      },
+      // 配置代理
       proxy: {
         '/api': {
           target: 'https://cs.zhuxu.asia',
           changeOrigin: true,
+          // 增加代理超时时间
+          timeout: 60000,
+          // 启用WebSocket代理
+          ws: true
         },
       }
     },

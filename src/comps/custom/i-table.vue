@@ -20,10 +20,18 @@
         <!-- 表格 -->
         <div v-else>
             <!-- 批量操作工具栏 -->
-            <div v-if="state.config.opts.selection && state.item.selection.length > 0" class="batch-operation mb-3">
+            <div v-if="state.config.opts.selection" class="batch-operation mb-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-muted">已选择 {{ state.item.selection.length }} 项</span>
-                    <slot name="batch-operations"></slot>
+                    <button 
+                        v-if="state.item.selection.length > 0" 
+                        class="btn btn-outline-secondary btn-sm" 
+                        @click="handle.clearSelection"
+                        :disabled="state.item.loading.data"
+                    >
+                        清除选择
+                    </button>
+                    <slot name="batch-operations" :disabled="state.item.selection.length === 0 || state.item.loading.data"></slot>
                 </div>
             </div>
             
@@ -38,6 +46,7 @@
                                 class="form-check-input" 
                                 :checked="isAllSelected" 
                                 @change="handle.selectAll($event)"
+                                :disabled="state.item.loading.data"
                             >
                         </th>
 
@@ -67,6 +76,7 @@
                                 class="form-check-input" 
                                 :checked="isSelected(row)" 
                                 @change="() => handle.select(row)"
+                                :disabled="state.item.loading.data"
                             >
                         </td>
 
@@ -312,6 +322,9 @@ const method = {
         state.item.loading.data = true
         error.value = false
         errorMessage.value = ''
+        // 清空选中项
+        state.item.selection = []
+        emit('selection:change', [])
 
         try {
             let response;
@@ -367,10 +380,18 @@ const method = {
 const handle = {
     // 分页大小改变
     sizeChange: () => {
+        // 清空选中项
+        state.item.selection = []
+        emit('selection:change', [])
         method.init(1, state.item.limit)
     },
     // 页码改变
-    currentChange: val => method.init(val),
+    currentChange: val => {
+        // 清空选中项
+        state.item.selection = []
+        emit('selection:change', [])
+        method.init(val)
+    },
     // 选中
     selectionChange(selection) {
         state.item.selection = selection
@@ -378,6 +399,7 @@ const handle = {
     },
     // 选择单行
     select(row) {
+        if (state.item.loading.data) return
         const index = state.item.selection.findIndex(item => item.id === row.id)
         if (index > -1) {
             state.item.selection.splice(index, 1)
@@ -388,12 +410,18 @@ const handle = {
     },
     // 全选/取消全选
     selectAll(e) {
+        if (state.item.loading.data) return
         if (e.target.checked) {
             state.item.selection = [...state.item.data]
         } else {
             state.item.selection = []
         }
         emit('selection:change', state.item.selection)
+    },
+    // 清除选择
+    clearSelection() {
+        state.item.selection = []
+        emit('selection:change', [])
     },
 }
 

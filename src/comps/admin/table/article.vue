@@ -195,6 +195,13 @@ const method = {
     // 真删 和 软删
     async delete(ids = [], isSoft = true) {
         if (utils.is.empty(ids)) return
+        
+        // 添加删除确认
+        const confirmMessage = isSoft ? '确定要将选中的文章移到回收站吗？' : '确定要永久删除选中的文章吗？此操作不可恢复！'
+        if (!confirm(confirmMessage)) {
+            return
+        }
+        
         // 拼接服务地址
         const uri = `/api/${state.item.table}/${isSoft ? 'remove' : 'delete'}`
         const { code, msg } = await axios.del(uri, { ids })
@@ -248,6 +255,11 @@ const method = {
     },
     // 清空回收站
     async clearRecycle() {
+        // 添加清空确认
+        if (!confirm('确定要清空回收站吗？此操作将永久删除所有回收站中的文章，不可恢复！')) {
+            return
+        }
+        
         const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
         if (code !== 200) {
             alert('清空失败：' + msg)
