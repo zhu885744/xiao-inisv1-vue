@@ -464,7 +464,16 @@ const method = {
 
             state.item.wait = true
 
-            const { code, msg, data } = await axios.post('/api/article/save', saveData)
+            let response
+            if (state.item.id) {
+                // 更新文章
+                response = await axios.put('/api/article/update', saveData)
+            } else {
+                // 创建文章
+                response = await axios.post('/api/article/create', saveData)
+            }
+
+            const { code, msg, data } = response
 
             state.item.wait = false
 

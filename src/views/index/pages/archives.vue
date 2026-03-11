@@ -18,96 +18,100 @@
       <!-- 文章内容区：核心阅读区，重写样式 -->
       <main class="card shadow-sm mt-2">
         <div class="p-3">
-        <!-- 文章头部：标题+元信息 -->
-        <header class="article-header mt-2">
-          <h1 class="article-title text-center fw-bold mb-3">{{ articleInfo.title }}</h1>
-          <!-- 文章元信息：居中布局、弱化样式 -->
-          <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-            <span class="meta-item d-flex align-items-center">
-              <i class="bi bi-folder-fill me-2"></i>
-              {{ articleInfo.result?.group[0]?.name || '未分类' }}
-            </span>
-            <span class="meta-item d-flex align-items-center">
-              <i class="bi bi-calendar-fill me-2"></i>
-              {{ formatTime(articleInfo.create_time) }}
-            </span>
-            <span class="meta-item d-flex align-items-center">
-              <i class="bi bi-chat-fill me-2"></i>
-              {{ articleInfo.result?.comment?.count || 0 }} 评论
-            </span>
-            <span class="meta-item d-flex align-items-center">
-              <i class="bi bi-eye-fill me-2"></i>
-              {{ articleInfo.views || 0 }} 浏览
-            </span>
-          </div>
-        </header>
-        <div class="article-content mt-4">
-          <i-markdown :model-value="articleInfo.content || '暂无文章内容，敬请期待～'" />
-        </div>
-        
-        <!-- 文章标签显示 -->
-        <div v-if="articleInfo.result?.tags && articleInfo.result.tags.length > 0" class="article-tags mt-4 d-flex flex-wrap justify-content-center gap-3">
-          <router-link 
-            v-for="tag in articleInfo.result.tags" 
-            :key="tag.id"
-            :to="`/tag/${tag.id}`"
-            class="badge rounded-pill text-bg-success py-1.5 px-4 transition-all duration-300 cursor-pointer text-decoration-none"
-          >
-            <i class="bi bi-tag me-1"></i> {{ tag.name }}
-          </router-link>
-        </div>
+          <!-- 文章头部：标题+元信息 -->
+          <header class="article-header">
+            <h1 class="article-title fw-bold mb-3">{{ articleInfo.title }}</h1>
+            <!-- 文章元信息：居中布局、弱化样式 -->
+            <div class="article-meta d-flex flex-wrap align-items-center text-muted gap-4 fs-6">
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-folder-fill me-2"></i>
+                {{ articleInfo.result?.group[0]?.name || '未分类' }}
+              </span>
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-calendar-fill me-2"></i>
+                {{ formatTime(articleInfo.create_time) }}
+              </span>
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-chat-fill me-2"></i>
+                {{ articleInfo.result?.comment?.count || 0 }} 评论
+              </span>
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-eye-fill me-2"></i>
+                {{ articleInfo.views || 0 }} 浏览
+              </span>
+            </div>
+            <hr>
+          </header>
 
-        <!-- 版权归属信息 -->
-        <div class="card border mt-4 overflow-hidden shadow-sm">
-          <div class="card-body">
-            <!-- 版权归属信息 -->
-            <div class="mb-1">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-shield-check me-2"></i>
-                <span class="text-muted">版权属于：{{ articleInfo.result?.author?.nickname || '匿名' }}</span>
+          <div class="article-content mt-4">
+            <i-markdown :model-value="articleInfo.content || '暂无文章内容，敬请期待～'" />
+          </div>
+          
+          <!-- 文章标签显示 -->
+          <div v-if="articleInfo.result?.tags && articleInfo.result.tags.length > 0" class="article-tags mt-4 d-flex flex-wrap justify-content-center gap-3">
+            <router-link 
+              v-for="tag in articleInfo.result.tags" 
+              :key="tag.id"
+              :to="`/tag/${tag.id}`"
+              class="badge rounded-pill text-bg-success py-1.5 px-4 transition-all duration-300 cursor-pointer text-decoration-none"
+            >
+              <i class="bi bi-tag me-1"></i> {{ tag.name }}
+            </router-link>
+          </div>
+
+          <!-- 版权归属信息 -->
+          <div class="card border mt-4 overflow-hidden shadow-sm">
+            <div class="card-body">
+              <!-- 版权归属信息 -->
+              <div class="mb-1">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-shield-check me-2"></i>
+                  <span class="text-muted">版权属于：{{ articleInfo.result?.author?.nickname || '匿名' }}</span>
+                </div>
               </div>
-            </div>
-            <!-- 许可协议信息 -->
-            <div class="mb-1">
-              <div class="d-flex align-items-center">
-                <i class="bi bi-cc-circle me-2"></i>
-                <span class="text-muted">文章采用：<a class="bg-opacity-10 me-2" href="//creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener noreferrer nofollow" title="知识共享 署名-非商业性使用-相同方式共享 4.0 国际许可协议">
-                    CC BY-NC-SA 4.0
-                  </a>
-                  <span class="text-muted text-sm">知识共享许可协议授权</span></span>
+              <!-- 许可协议信息 -->
+              <div class="mb-1">
+                <div class="d-flex align-items-center">
+                  <i class="bi bi-cc-circle me-2"></i>
+                  <span class="text-muted">文章采用：
+                    <a class="bg-opacity-10 me-2" href="//creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener noreferrer nofollow" title="知识共享 署名-非商业性使用-相同方式共享 4.0 国际许可协议">
+                      CC BY-NC-SA 4.0
+                    </a>
+                    <span class="text-muted text-sm">知识共享许可协议授权</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- 文章操作按钮：点赞、分享、收藏 -->
-        <div class="mt-4 mb-4 d-flex justify-content-center">
-          <div class="btn-group gap-2" role="group" aria-label="文章操作">
-            <button 
-              @click="handleLike" 
-              class="btn btn-outline-danger"
-              :class="{ 'btn-danger text-white': isLiked, 'btn-outline-danger': !isLiked }"
-            >
-              <i :class="isLiked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up'" class="me-2"></i>
-              <span>{{ likeCount }}</span>
-            </button>
-            <button 
-              @click="handleCollect" 
-              class="btn btn-outline-warning"
-              :class="{ 'btn-warning text-white': isCollected, 'btn-outline-warning': !isCollected }"
-            >
-              <i :class="isCollected ? 'bi bi-star-fill' : 'bi bi-star'" class="me-2"></i>
-              <span>{{ collectCount }}</span>
-            </button>
-            <button 
-              @click="handleShare" 
-              class="btn btn-outline-success"
-            >
-              <i class="bi bi-share me-2"></i>
-              <span>{{ shareCount }}</span>
-            </button>
+          
+          <!-- 文章操作按钮：点赞、分享、收藏 -->
+          <div class="mt-4 mb-4 d-flex justify-content-center">
+            <div class="btn-group gap-2" role="group" aria-label="文章操作">
+              <button 
+                @click="handleLike" 
+                class="btn btn-outline-danger"
+                :class="{ 'btn-danger text-white': isLiked, 'btn-outline-danger': !isLiked }"
+              >
+                <i :class="isLiked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up'" class="me-2"></i>
+                <span>{{ likeCount }}</span>
+              </button>
+              <button 
+                @click="handleCollect" 
+                class="btn btn-outline-warning"
+                :class="{ 'btn-warning text-white': isCollected, 'btn-outline-warning': !isCollected }"
+              >
+                <i :class="isCollected ? 'bi bi-star-fill' : 'bi bi-star'" class="me-2"></i>
+                <span>{{ collectCount }}</span>
+              </button>
+              <button 
+                @click="handleShare" 
+                class="btn btn-outline-success"
+              >
+                <i class="bi bi-share me-2"></i>
+                <span>{{ shareCount }}</span>
+              </button>
+            </div>
           </div>
-        </div>
         </div>
       </main>
 

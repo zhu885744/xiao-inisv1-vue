@@ -41,6 +41,34 @@ const routes = [
       keepAlive: true
     }
   },
+  // 认证相关路由
+  {
+    path: '/auth/login',
+    name: '登录',
+    component: () => import('@/views/auth/login.vue'),
+    meta: { 
+      title: '登录', 
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/auth/register',
+    name: '注册',
+    component: () => import('@/views/auth/register.vue'),
+    meta: { 
+      title: '注册', 
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/auth/reset-password',
+    name: '重置密码',
+    component: () => import('@/views/auth/reset-password.vue'),
+    meta: { 
+      title: '重置密码', 
+      requiresAuth: false
+    }
+  },
   // 用户相关路由
   {
     path: '/user',

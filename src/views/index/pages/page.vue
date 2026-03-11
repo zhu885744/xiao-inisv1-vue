@@ -18,27 +18,8 @@
       <!-- 归档页面统计信息 -->
       <div v-if="isArchivePage">
         <!-- 统计信息卡片区域 -->
-          <main class="article-content-wrap card shadow-sm mt-2">
+          <main class="card shadow-sm mt-2">
             <div class="p-3">
-              <!-- 页面标题 -->
-              <header class="article-header mt-2 mb-4">
-                <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title || '归档' }}</h1>
-                <!-- 文章元信息：居中布局、弱化样式 -->
-                <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-                  <span class="meta-item d-flex align-items-center">
-                    <i class="bi bi-person-fill me-2"></i>
-                    {{ authorInfo.nickname || '匿名' }}
-                  </span>
-                  <span class="meta-item d-flex align-items-center">
-                    <i class="bi bi-calendar-fill me-2"></i>
-                    {{ formatTime(pageInfo.last_update || Date.now() / 1000) }}
-                  </span>
-                  <span class="meta-item d-flex align-items-center">
-                    <i class="bi bi-eye-fill me-2"></i>
-                    {{ viewCount || 0 }} 浏览
-                  </span>
-                </div>
-              </header>
               <!-- 统计信息网格 -->
               <div class="stats-grid">
                 <!-- 文章总数 -->
@@ -108,18 +89,85 @@
             </div>
           </div>
 
-          <!-- 刷新按钮 -->
-          <div class="refresh-container">
-            <button 
-              @click="refreshArchiveStats" 
-              class="refresh-btn"
-              :disabled="refreshingArchive"
-            >
-              <i class="bi bi-arrow-clockwise" :class="{ 'spin': refreshingArchive }"></i>
-              {{ refreshingArchive ? '刷新中...' : '刷新数据' }}
-            </button>
-          </div>
+          <!-- 文章归档时间线 -->
+          <div class="archive-timeline mt-6">
+            <h2 class="timeline-title mb-4">文章归档</h2>
+            
+            <!-- 加载状态 -->
+            <div v-if="articlesLoading" class="d-flex justify-content-center py-5">
+              <div class="spinner-border text-info" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
             </div>
+            
+            <!-- 错误状态 -->
+            <div v-else-if="articlesError" class="alert alert-warning d-flex align-items-center mt-2 p-2" role="alert">
+              <i class="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+              <p class="mb-0">{{ articlesErrorMsg }}</p>
+            </div>
+            
+            <!-- 无文章数据 -->
+            <div v-else-if="groupedArticles.length === 0" class="text-center py-5 text-muted">
+              <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
+              <p class="mb-0">暂无文章数据，敬请期待～</p>
+            </div>
+            
+            <!-- 文章时间线 -->
+            <div v-else class="timeline-container">
+              <div v-for="(articles, yearMonth) in groupedArticles" :key="yearMonth" class="timeline-year-month">
+                <h3 class="timeline-year-month-title">{{ yearMonth }}</h3>
+                <div class="timeline-items">
+                  <div v-for="article in articles" :key="article.id" class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                      <router-link :to="`/archives/${article.id}`" class="timeline-article-title">{{ article.title }}</router-link>
+                      <div class="timeline-article-meta">
+                        <span class="timeline-article-date">{{ formatTime(article.create_time) }}</span>
+                        <span class="timeline-article-category" v-if="article.result?.group && article.result.group.length > 0">
+                          <i class="bi bi-folder me-1"></i>{{ article.result.group[0].name }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 分页 -->
+              <div v-if="articleTotal > 0" class="pagination-container mt-4">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    <li class="page-item" :class="{ disabled: articlePage === 1 }">
+                      <button class="page-link" @click="changeArticlePage(articlePage - 1)">
+                        <span aria-hidden="true">&laquo;</span>
+                      </button>
+                    </li>
+                    <li class="page-item active">
+                      <span class="page-link">{{ articlePage }} / {{ articlePageCount }}</span>
+                    </li>
+                    <li class="page-item" :class="{ disabled: articlePage === articlePageCount }">
+                      <button class="page-link" @click="changeArticlePage(articlePage + 1)">
+                        <span aria-hidden="true">&raquo;</span>
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+
+            <!-- 刷新按钮 -->
+            <div class="refresh-container">
+              <button 
+                @click="refreshArchiveStats" 
+                class="refresh-btn"
+                :disabled="refreshingArchive"
+              >
+                <i class="bi bi-arrow-clockwise" :class="{ 'spin': refreshingArchive }"></i>
+                {{ refreshingArchive ? '刷新中...' : '刷新数据' }}
+              </button>
+            </div>
+
+            </div>
+          </div>
         </main>
       </div>
 
@@ -358,6 +406,22 @@ const archiveStats = ref({
 const refreshingArchive = ref(false)
 let archiveRefreshTimer = null
 
+// 文章归档相关数据
+const articles = ref([])
+const articlesLoading = ref(false)
+const articlesError = ref(false)
+const articlesErrorMsg = ref('')
+const groupedArticles = ref({})
+// 分页相关
+const articlePage = ref(1)
+const articlePageSize = ref(20)
+const articleTotal = ref(0)
+
+// 计算总页数
+const articlePageCount = computed(() => {
+  return Math.ceil(articleTotal.value / articlePageSize.value)
+})
+
 // 友链页面相关数据
 const links = ref([])
 const linksLoading = ref(false)
@@ -496,6 +560,7 @@ const initPage = async () => {
     setDynamicTitle('加载中...')
     await getArchivePageData()
     fetchArchiveStats()
+    await fetchArticles()
     startArchiveAutoRefresh()
   } 
   // 如果是友链页面，加载友链数据
@@ -863,6 +928,72 @@ const getArchivePageData = async () => {
       getAuthorInfo(authorId)
     }
   }
+}
+
+// 获取文章列表
+const fetchArticles = async (page = 1) => {
+  articlesLoading.value = true
+  articlesError.value = false
+  articlesErrorMsg.value = ''
+  
+  try {
+    const res = await request.get('/api/article/all', {
+      params: {
+        page: page,
+        limit: articlePageSize.value,
+        order: 'create_time desc'
+      }
+    })
+    
+    if (res && res.code === 200 && res.data) {
+      const { data = [], count = 0 } = res.data
+      
+      articles.value = data
+      articleTotal.value = count
+      articlePage.value = page
+      
+      // 按年月分组
+      groupArticlesByYearMonth(articles.value)
+    } else {
+      articlesError.value = true
+      articlesErrorMsg.value = res?.msg || '获取文章数据失败'
+    }
+  } catch (err) {
+    articlesError.value = true
+    articlesErrorMsg.value = '网络异常，无法加载文章数据'
+    console.error('[文章数据请求异常]：', err)
+  } finally {
+    articlesLoading.value = false
+  }
+}
+
+// 切换文章分页
+const changeArticlePage = (page) => {
+  if (page < 1 || page > articlePageCount.value) return
+  articlePage.value = page
+  fetchArticles(page)
+}
+
+// 按年月分组文章
+const groupArticlesByYearMonth = (articlesData) => {
+  const grouped = {}
+  
+  articlesData.forEach(article => {
+    if (article.create_time) {
+      const date = new Date(article.create_time * 1000)
+      const year = date.getFullYear()
+      const month = date.getMonth() + 1
+      const yearMonth = `${year}年${month}月`
+      
+      if (!grouped[yearMonth]) {
+        grouped[yearMonth] = []
+      }
+      
+      grouped[yearMonth].push(article)
+    }
+  })
+  
+  groupedArticles.value = grouped
 }
 
 // 获取全部友链数据
@@ -1279,6 +1410,168 @@ watch(
 @media (min-width: 769px) and (max-width: 1024px) {
   .stats-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 文章归档时间线样式 */
+.archive-timeline {
+  margin-top: 2rem;
+}
+
+.timeline-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.timeline-container {
+  position: relative;
+}
+
+.timeline-year-month {
+  margin-bottom: 2rem;
+}
+
+.timeline-year-month-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.timeline-items {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.timeline-items::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--bs-border-color);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -0.375rem;
+  top: 0.5rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  border: 2px solid var(--bs-card-bg);
+  box-shadow: 0 0 0 2px var(--bs-primary);
+}
+
+.timeline-content {
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+  box-shadow: var(--bs-shadow);
+  transform: translateY(-2px);
+}
+
+.timeline-article-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  display: block;
+  transition: color 0.2s ease;
+}
+
+.timeline-article-title:hover {
+  color: var(--bs-primary);
+  text-decoration: underline;
+}
+
+.timeline-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+}
+
+.timeline-article-date {
+  display: flex;
+  align-items: center;
+}
+
+.timeline-article-category {
+  display: flex;
+  align-items: center;
+}
+
+/* 文章归档时间线响应式设计 */
+@media (max-width: 768px) {
+  .timeline-title {
+    font-size: 1.3rem;
+  }
+  
+  .timeline-year-month-title {
+    font-size: 1.1rem;
+    padding-left: 1.25rem;
+  }
+  
+  .timeline-items {
+    padding-left: 1.25rem;
+  }
+  
+  .timeline-item {
+    padding-left: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .timeline-content {
+    padding: 0.75rem;
+  }
+  
+  .timeline-article-title {
+    font-size: 1rem;
+  }
+  
+  .timeline-article-meta {
+    font-size: 0.8rem;
+    gap: 0.75rem;
+  }
+}
+
+/* 分页样式 */
+.pagination-container {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* 分页响应式设计 */
+@media (max-width: 768px) {
+  .pagination-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .page-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
   }
 }
 

@@ -215,7 +215,7 @@ const state  = reactive({
         },
         remove: {
             order: 'top desc, id desc',
-            onlyTrashed: true
+            withTrashed: true
         },
     },
     tabs: {
