@@ -20,9 +20,9 @@
         <div class="p-3">
           <!-- 文章头部：标题+元信息 -->
           <header class="article-header">
-            <h1 class="article-title fw-bold mb-3">{{ articleInfo.title }}</h1>
+            <h1 class="article-title fw-bold mb-3 text-center">{{ articleInfo.title }}</h1>
             <!-- 文章元信息：居中布局、弱化样式 -->
-            <div class="article-meta d-flex flex-wrap align-items-center text-muted gap-4 fs-6">
+            <div class="article-meta d-flex flex-wrap align-items-center justify-content-center text-muted gap-4 fs-6">
               <span class="meta-item d-flex align-items-center">
                 <i class="bi bi-folder-fill me-2"></i>
                 {{ articleInfo.result?.group[0]?.name || '未分类' }}
@@ -40,7 +40,6 @@
                 {{ articleInfo.views || 0 }} 浏览
               </span>
             </div>
-            <hr>
           </header>
 
           <div class="article-content mt-4">

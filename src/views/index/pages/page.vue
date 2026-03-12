@@ -131,27 +131,6 @@
                   </div>
                 </div>
               </div>
-              
-              <!-- 分页 -->
-              <div v-if="articleTotal > 0" class="pagination-container mt-4">
-                <nav aria-label="Page navigation">
-                  <ul class="pagination justify-content-center">
-                    <li class="page-item" :class="{ disabled: articlePage === 1 }">
-                      <button class="page-link" @click="changeArticlePage(articlePage - 1)">
-                        <span aria-hidden="true">&laquo;</span>
-                      </button>
-                    </li>
-                    <li class="page-item active">
-                      <span class="page-link">{{ articlePage }} / {{ articlePageCount }}</span>
-                    </li>
-                    <li class="page-item" :class="{ disabled: articlePage === articlePageCount }">
-                      <button class="page-link" @click="changeArticlePage(articlePage + 1)">
-                        <span aria-hidden="true">&raquo;</span>
-                      </button>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
             </div>
 
             <!-- 刷新按钮 -->
@@ -454,8 +433,6 @@ const groupLinkMap = computed(() => {
   })
   return map
 })
-
-
 
 /**
  * 时间格式化：使用utils.js中的timeToDate函数
