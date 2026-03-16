@@ -28,6 +28,9 @@
             <li v-else-if="isLinksPage" class="breadcrumb-item active" aria-current="page">
               友链
             </li>
+            <li v-else-if="isMessagePage" class="breadcrumb-item active" aria-current="page">
+              留言板
+            </li>
             <li v-else class="breadcrumb-item active" aria-current="page">
               {{ pageInfo.title }}
             </li>
@@ -192,29 +195,7 @@
         <!-- 友链页面主体 -->
         <main v-else class="card shadow-sm mt-2">
           <div class="p-3">
-          <!-- 页面标题 -->
-          <header class="article-header mt-2 mb-2">
-            <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title || '友链页面' }}</h1>
-            <!-- 文章元信息：居中布局、弱化样式 -->
-            <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-person-fill me-2"></i>
-                {{ authorInfo.nickname || '匿名' }}
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-calendar-fill me-2"></i>
-                {{ formatTime(pageInfo.last_update || Date.now() / 1000) }}
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-chat-fill me-2"></i>
-                {{ commentCount || 0 }} 评论
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-eye-fill me-2"></i>
-                {{ viewCount || 0 }} 浏览
-              </span>
-            </div>
-          </header>
+          <h2 class="timeline-title mb-4">友情链接</h2>
           
           <!-- 核心内容区 -->
           <div class="pb-2">
@@ -306,7 +287,323 @@
             />
         </div>
       </div>
+      
+      <!-- 留言页面 -->
+      <div v-else-if="isMessagePage">
+        <!-- 留言页面主体 -->
+        <main class="mt-2">
+          <!-- 核心内容区 -->
+          <div class="pb-2">
+            <!-- 留言统计 -->
+            <div class="message-stats mb-6">
+              <div class="card p-4 rounded-lg">
+                <div class="row">
+                  <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                    <div class="text-center">
+                      <div class="fs-3 font-bold">{{ commentCount || 0 }}</div>
+                      <div class="text-muted">总留言数</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                    <div class="text-center">
+                      <div class="fs-3 font-bold">{{ uniqueCommenters || 0 }}</div>
+                      <div class="text-muted">留言人数</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                    <div class="text-center">
+                      <div class="fs-3 font-bold">{{ recentMessagesCount || 0 }}</div>
+                      <div class="text-muted">最近留言</div>
+                    </div>
+                  </div>
+                  <div class="col-md-3 col-sm-6">
+                    <div class="text-center">
+                      <div class="fs-3 font-bold">{{ viewCount || 0 }}</div>
+                      <div class="text-muted">页面浏览</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 留言显示模块 -->
+            <div class="message-display mb-6 mt-2">
+              <div class="card shadow-sm">
+                <div class="card-header bg-transparent">
+                  <h3 class="h5 fw-bold mt-2">
+                    <i class="bi bi-chat-dots me-2"></i>
+                    留言列表
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <!-- 留言输入框：仅登录状态显示 -->
+                  <div class="mb-5" v-if="isLogin">
+                    <textarea 
+                      v-model="messageInput"
+                      class="form-control border border-secondary-subtle bg-body" 
+                      rows="3" 
+                      placeholder="请输入你的留言..."
+                      :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                    ></textarea>
+                    
+                    <!-- 表情选择面板 -->
+                    <div v-if="showMessageEmojiPicker" class="emoji-picker-container mt-2 p-3 border bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+                      <div class="d-flex flex-wrap gap-2">
+                        <button 
+                          v-for="(emoji, index) in emojis" 
+                          :key="index"
+                          @click="insertMessageEmoji(emoji)"
+                          class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+                          :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                        >
+                          {{ emoji }}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <!-- 按钮区域：表情按钮和发布留言按钮在同一行 -->
+                    <div class="d-flex gap-2 mt-3">
+                      <button 
+                        @click="toggleMessageEmojiPicker"
+                        class="btn btn-outline-secondary btn-sm px-4 emoji-button"
+                        :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                      >
+                        <i class="bi bi-emoji-smile me-1"></i> 表情
+                      </button>
+                      <button 
+                          @click="handlePublishMessage"
+                          class="btn btn-primary px-4 publish-btn flex-grow-1"
+                          :disabled="!messageInput.trim() || isPublishingMessage"
+                        >
+                          <i class="bi" :class="isPublishingMessage ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
+                          {{ isPublishingMessage ? ' 发布中...' : ' 发布留言' }}
+                        </button>
+                    </div>
+                  </div>
 
+                  <!-- 未登录引导区 -->
+                  <div class="mb-5 p-4 bg-body text-center border" v-else>
+                    <i class="bi bi-person-circle fs-3  mb-2"></i>
+                    <p class="mb-3 text-muted">登录后即可发表留言～</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                      <button 
+                        @click="handleToLogin()"
+                        class="btn btn-primary btn-sm px-4"
+                      >
+                        登录
+                      </button>
+                      <button 
+                        @click="handleToRegister()"
+                        class="btn btn-outline-primary btn-sm px-4"
+                      >
+                        注册
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 留言列表 -->
+                  <div v-if="commentList.length > 0">
+                    <div class="messages-list">
+                      <div 
+                        class="message-item mb-4" 
+                        v-for="(message, index) in commentList" 
+                        :key="message.id || index"
+                      >
+                        <!-- 便利贴样式留言卡片 -->
+                        <div class="sticky-note card shadow-sm">
+                          <div class="card-body">
+                            <!-- 留言头部：用户信息和时间 -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                              <div class="d-flex align-items-center">
+                                <img 
+                                  :src="message.result?.author?.avatar || message.author?.avatar || message.avatar || 'https://picsum.photos/60/60'" 
+                                  class="message-avatar rounded-circle me-3 border border-light shadow-sm" 
+                                  alt="用户头像"
+                                  style="width: 40px; height: 40px; object-fit: cover;"
+                                >
+                                <div>
+                                  <h6 class="fw-semibold mb-0">
+                                    <router-link v-if="message.result?.author?.id || message.author?.id" :to="`/author/${message.result?.author?.id || message.author?.id}`" class="text-decoration-none ">
+                                      {{ message.result?.author?.nickname || message.author?.nickname || message.nickname || '匿名用户' }}
+                                    </router-link>
+                                    <span v-else>{{ message.result?.author?.nickname || message.author?.nickname || message.nickname || '匿名用户' }}</span>
+                                    <span v-if="message.result?.author?.result?.isAuthor || message.result?.author?.isAuthor || message.author?.result?.isAuthor || message.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
+                                  </h6>
+                                  <small class="text-muted">{{ formatTime(message.create_time || message.time || message.update_time) }}</small>
+                                </div>
+                              </div>
+                              <!-- 回复图标：点击显示回复弹窗 -->
+                              <div class="reply-icon-container">
+                                <button 
+                                  class="btn btn-sm btn-outline-secondary reply-icon" 
+                                  @click="openReplyModal(message)"
+                                  data-bs-toggle="modal"
+                                  data-bs-target="#replyModal"
+                                >
+                                  <i class="bi bi-chat-dots"></i>
+                                  <span class="ms-1">{{ message.replies?.length || 0 }}</span>
+                                </button>
+                              </div>
+                            </div>
+                            <!-- 留言内容 -->
+                            <div class="message-content mb-3">
+                              <p class="mb-0" v-html="processMessageContent(message.content || '')"></p>
+                            </div>
+                            <!-- 操作按钮 -->
+                            <div class="message-actions">
+                              <button 
+                                class="btn btn-sm btn-outline-primary reply-btn" 
+                                @click="toggleReplyForm(index)"
+                                v-if="isLogin"
+                              >
+                                <i class="bi bi-reply-fill me-1"></i> 回复
+                              </button>
+                              <button 
+                                class="btn btn-sm btn-outline-secondary disabled reply-btn" 
+                                v-else
+                                data-bs-toggle="tooltip"
+                                data-bs-title="登录后可回复"
+                              >
+                                <i class="bi bi-reply-fill me-1"></i> 回复
+                              </button>
+                            </div>
+                            <!-- 回复输入框 -->
+                            <div v-if="showReplyIndex === index" class="mt-3 reply-form">
+                              <textarea 
+                                v-model="replyInput"
+                                class="form-control border border-secondary-subtle bg-body" 
+                                rows="2" 
+                                placeholder="请输入你的回复..."
+                                :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                              ></textarea>
+                              
+                              <!-- 回复表情选择面板 -->
+                              <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+                                <div class="d-flex flex-wrap gap-2">
+                                  <button 
+                                    v-for="(emoji, index) in emojis" 
+                                    :key="index"
+                                    @click="insertReplyEmoji(emoji)"
+                                    class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+                                    :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                                  >
+                                    {{ emoji }}
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              <!-- 按钮区域 -->
+                              <div class="d-flex gap-2 mt-2">
+                                <button 
+                                  @click="toggleReplyEmojiPicker"
+                                  class="btn btn-sm btn-outline-secondary px-3 emoji-button"
+                                  :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                                >
+                                  <i class="bi bi-emoji-smile me-1"></i> 表情
+                                </button>
+                                <button 
+                                  @click="handleSubmitReply(message.id)"
+                                  class="btn btn-sm btn-primary px-3 flex-grow-1"
+                                  :disabled="!replyInput.trim() || isPublishingMessage"
+                                >
+                                  <i class="bi" :class="isPublishingMessage ? 'bi-arrow-clockwise spin' : ''"></i>
+                                  {{ isPublishingMessage ? ' 发送中...' : ' 发送回复' }}
+                                </button>
+                                <button 
+                                  @click="cancelReply"
+                                  class="btn btn-sm btn-outline-secondary px-3"
+                                >
+                                  取消
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- 无留言提示 -->
+                  <div v-else class="text-center py-5 text-muted">
+                    <p class="mb-0 h6">暂无留言，快来抢沙发吧～</p>
+                  </div>
+                  
+                  <!-- 回复弹窗 -->
+                  <div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="replyModalLabel">回复列表</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          <div v-if="selectedMessage && selectedMessage.replies && selectedMessage.replies.length > 0">
+                            <div 
+                              class="reply-item mb-3 p-3 border rounded" 
+                              v-for="(reply, index) in selectedMessage.replies" 
+                              :key="reply.id || index"
+                            >
+                              <div class="d-flex align-items-start mb-2">
+                                <img 
+                                  :src="reply.result?.author?.avatar || reply.author?.avatar || reply.avatar || 'https://picsum.photos/62/62'" 
+                                  class="message-avatar rounded-circle me-3 border border-light shadow-sm" 
+                                  alt="回复用户头像"
+                                  style="width: 35px; height: 35px; object-fit: cover;"
+                                >
+                                <div class="flex-grow-1">
+                                  <h6 class="fw-semibold mb-0">
+                                    <router-link v-if="reply.result?.author?.id || reply.author?.id" :to="`/author/${reply.result?.author?.id || reply.author?.id}`" class="text-decoration-none ">
+                                      {{ reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户' }}
+                                    </router-link>
+                                    <span v-else>{{ reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户' }}</span>
+                                    <span v-if="reply.result?.author?.result?.isAuthor || reply.result?.author?.isAuthor || reply.author?.result?.isAuthor || reply.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
+                                  </h6>
+                                  <small class="text-muted">{{ formatTime(reply.create_time || reply.time || reply.update_time) }}</small>
+                                </div>
+                              </div>
+                              <p class="mb-0 px-2 py-1 bg-body-tertiary" v-html="processMessageContent(reply.content || '')"></p>
+                            </div>
+                          </div>
+                          <div v-else class="text-center py-3 text-muted">
+                            <p class="mb-0">暂无回复</p>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 分页控件 -->
+                  <div v-if="totalComments > pageSize" class="mt-4">
+                    <nav aria-label="留言分页">
+                      <ul class="pagination justify-content-center">
+                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                          <button class="page-link" @click="handleCommentPageChange(currentPage - 1)" :disabled="currentPage === 1">
+                            <span aria-hidden="true">&laquo;</span>
+                          </button>
+                        </li>
+                        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+                          <button class="page-link" @click="handleCommentPageChange(page)">
+                            {{ page }}
+                          </button>
+                        </li>
+                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                          <button class="page-link" @click="handleCommentPageChange(currentPage + 1)" :disabled="currentPage === totalPages">
+                            <span aria-hidden="true">&raquo;</span>
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+      
       <!-- 普通独立页面 -->
       <div v-else>
         <!-- 页面内容区：核心阅读区，重写样式 -->
@@ -462,6 +759,38 @@ const isLinksPage = computed(() => {
   return currentKey === 'links'
 })
 
+// 判断是否为留言页面
+const isMessagePage = computed(() => {
+  const currentKey = (props.pageKey || route.params.key || '').trim()
+  return currentKey === 'message'
+})
+
+// 留言统计相关数据
+const uniqueCommenters = ref(0)
+const recentMessagesCount = ref(0)
+
+// 留言板相关数据
+const messageInput = ref('')
+const replyInput = ref('')
+const showReplyIndex = ref(null)
+const replyTarget = ref(null)
+const selectedMessage = ref(null)
+// 表情功能相关状态
+const showMessageEmojiPicker = ref(false)
+const showReplyEmojiPicker = ref(false)
+// 发布状态
+const isPublishingMessage = ref(false)
+
+// 常用表情
+const emojis = [
+  // 颜文字
+  '😊', '😂', '😍', '🤔', '😎', '😢', '😡', '👍', '👎', '👏',
+  // Emoji表情
+  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
+  '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😙', '😚',
+  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩'
+]
+
 // 友链分组聚合
 const groupLinkMap = computed(() => {
   const map = {}
@@ -585,6 +914,13 @@ const initPage = async () => {
     await getLinksPageData()
     await fetchLinks()
     await getLinksComments(currentPage.value, pageSize.value)
+  } 
+  // 如果是留言页面，加载留言页面数据
+  else if (currentKey === 'message') {
+    setDynamicTitle('加载中...')
+    await getMessagePageData()
+    await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
+    await calculateMessageStats()
   } else if (checkPageKey(currentKey)) {
     // 普通独立页面
     getPageData(currentKey)
@@ -1155,6 +1491,80 @@ const handleLinkAvatarError = (event) => {
   event.target.src = 'https://img1.zhuxu.asia/2026/L2SIxoK1ss.png'
 }
 
+// 获取留言页面基础数据
+const getMessagePageData = async () => {
+  loading.value = true
+  try {
+    const res = await request.get('/api/pages/one?key=message', {
+      params: {
+        key: 'message',
+        cache: false,
+        withTrashed: false
+      }
+    })
+    if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
+      pageInfo.value = { ...pageInfo.value, ...res.data }
+      // 更新浏览量
+      viewCount.value = res.data.views || 0
+      setDynamicTitle(res.data.title || '留言板')
+    } else {
+      error.value = true
+      errorMsg.value = '未找到留言页面配置，请联系管理员检查后台'
+    }
+  } catch (err) {
+    error.value = true
+    errorMsg.value = '网络异常，无法加载留言页面配置'
+    console.error('[留言页面基础数据异常]：', err)
+  } finally {
+    loading.value = false
+    // 获取作者信息
+    const authorId = pageInfo.value.uid
+    if (authorId) {
+      getAuthorInfo(authorId)
+    }
+  }
+}
+
+// 计算留言统计数据
+const calculateMessageStats = async () => {
+  try {
+    if (!pageInfo.value.id) return
+    
+    // 获取所有留言数据
+    const res = await request.get('/api/comment/flat', {
+      bind_id: pageInfo.value.id,
+      bind_type: 'page',
+      page: 1,
+      limit: 1000,
+      order: 'create_time desc'
+    })
+    
+    if (res.code === 200 && res.data?.data) {
+      const allComments = res.data.data
+      
+      // 计算唯一留言人数
+      const uniqueUsers = new Set()
+      allComments.forEach(comment => {
+        // 尝试从不同位置获取用户ID
+        const userId = comment.user_id || comment.result?.author?.id || comment.author?.id
+        if (userId) {
+          uniqueUsers.add(userId)
+        }
+      })
+      uniqueCommenters.value = uniqueUsers.size
+      
+      // 计算最近留言数（7天内）
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      const recentComments = allComments.filter(comment => {
+        return comment.create_time * 1000 >= sevenDaysAgo
+      })
+      recentMessagesCount.value = recentComments.length
+    }
+  } catch (error) {
+    console.error('计算留言统计数据失败：', error)
+  }
+}
+
 // 检测深色模式
 const detectDarkMode = () => {
   isDarkMode.value = document.documentElement.classList.contains('dark') || 
@@ -1181,6 +1591,209 @@ onUnmounted(() => {
   window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', detectDarkMode)
 })
 
+// 计算总页数
+const totalPages = computed(() => {
+  return Math.ceil(totalComments.value / pageSize.value)
+})
+
+// 处理留言内容，添加@提及效果和换行支持
+const processMessageContent = (content) => {
+  if (!content) return ''
+  // 先将换行符转换为<br>标签
+  let processedContent = content.replace(/\n/g, '<br>')
+  // 匹配@用户名格式，替换为带颜色的HTML
+  return processedContent.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
+}
+
+// 发布留言
+const handlePublishMessage = async () => {
+  const content = messageInput.value.trim()
+  if (!content) return
+  
+  isPublishingMessage.value = true
+  
+  try {
+    // 发布留言
+    const commentData = {
+      content: content,
+      bind_type: 'page',
+      bind_id: pageInfo.value.id
+    }
+    
+    const res = await request.post('/api/comment/create', commentData)
+    
+    if (res.code === 200) {
+      // 清除评论缓存
+      const pageId = pageInfo.value.id
+      const cacheKeys = [
+        `page_comments_${pageId}_1_10`,
+        `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+      ]
+      
+      cache.delMultiple(cacheKeys)
+      // 重新获取评论列表
+      await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
+      // 重新计算统计数据
+      await calculateMessageStats()
+      // 显示成功提示
+      if (window.Toast) {
+        window.Toast.success('留言发布成功！')
+      }
+      messageInput.value = ''
+    } else {
+      // 显示失败提示
+      if (window.Toast) {
+        window.Toast.error(res.msg || '留言发布失败')
+      }
+    }
+  } catch (error) {
+    console.error('发布留言失败：', error)
+    if (window.Toast) {
+      window.Toast.error('网络异常，留言发布失败')
+    }
+  } finally {
+    isPublishingMessage.value = false
+  }
+}
+
+// 切换回复输入框
+const toggleReplyForm = (index, replyIndex = null) => {
+  // 创建一个唯一的标识符，用于区分不同留言的回复输入框
+  const uniqueKey = replyIndex !== null ? `${index}-${replyIndex}` : index
+  
+  if (showReplyIndex.value === uniqueKey) {
+    showReplyIndex.value = null
+    replyInput.value = ''
+    replyTarget.value = null
+  } else {
+    showReplyIndex.value = uniqueKey
+    let targetComment
+    
+    if (replyIndex !== null) {
+      // 回复二级留言
+      const parentComment = commentList.value[index]
+      targetComment = parentComment.replies[replyIndex]
+    } else {
+      // 回复一级留言
+      targetComment = commentList.value[index]
+    }
+    
+    replyTarget.value = targetComment
+    // 在回复输入框中显示@用户
+    const nickname = targetComment.result?.author?.nickname || targetComment.author?.nickname || targetComment.nickname || '匿名用户'
+    replyInput.value = `@${nickname} `
+  }
+}
+
+// 提交回复
+const handleSubmitReply = async (commentId) => {
+  const content = replyInput.value.trim()
+  if (!content || !commentId) return
+  
+  isPublishingMessage.value = true
+  
+  try {
+    // 提交回复
+    const commentData = {
+      content: content,
+      bind_type: 'page',
+      bind_id: pageInfo.value.id,
+      pid: commentId
+    }
+    
+    const res = await request.post('/api/comment/create', commentData)
+    
+    if (res.code === 200) {
+      // 清除评论缓存
+      const pageId = pageInfo.value.id
+      const cacheKeys = [
+        `page_comments_${pageId}_1_10`,
+        `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+      ]
+      
+      cache.delMultiple(cacheKeys)
+      // 重新获取评论列表
+      await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
+      // 重新计算统计数据
+      await calculateMessageStats()
+      // 显示成功提示
+      if (window.Toast) {
+        window.Toast.success('回复发布成功！')
+      }
+      showReplyIndex.value = null
+      replyInput.value = ''
+      replyTarget.value = null
+    } else {
+      // 显示失败提示
+      if (window.Toast) {
+        window.Toast.error(res.msg || '回复发布失败')
+      }
+    }
+  } catch (error) {
+    console.error('提交回复失败：', error)
+    if (window.Toast) {
+      window.Toast.error('网络异常，回复发布失败')
+    }
+  } finally {
+    isPublishingMessage.value = false
+  }
+}
+
+// 取消回复
+const cancelReply = () => {
+  showReplyIndex.value = null
+  replyInput.value = ''
+  replyTarget.value = null
+  showReplyEmojiPicker.value = false
+}
+
+// 表情功能
+// 切换留言表情选择面板
+const toggleMessageEmojiPicker = () => {
+  showMessageEmojiPicker.value = !showMessageEmojiPicker.value
+  showReplyEmojiPicker.value = false
+}
+
+// 切换回复表情选择面板
+const toggleReplyEmojiPicker = () => {
+  showReplyEmojiPicker.value = !showReplyEmojiPicker.value
+  showMessageEmojiPicker.value = false
+}
+
+// 插入表情到留言输入框
+const insertMessageEmoji = (emoji) => {
+  messageInput.value += emoji
+}
+
+// 插入表情到回复输入框
+const insertReplyEmoji = (emoji) => {
+  replyInput.value += emoji
+}
+
+// 处理登录注册
+const handleToLogin = () => {
+  store.switchAuth('login', true)
+}
+
+const handleToRegister = () => {
+  store.switchAuth('register', true)
+}
+
+// 点击外部关闭表情选择面板
+const handleClickOutside = (event) => {
+  const emojiPickers = event.target.closest('.emoji-picker-container')
+  const emojiButtons = event.target.closest('.emoji-button')
+  if (!emojiPickers && !emojiButtons) {
+    showMessageEmojiPicker.value = false
+    showReplyEmojiPicker.value = false
+  }
+}
+
+// 打开回复弹窗
+const openReplyModal = (message) => {
+  selectedMessage.value = message
+}
+
 // 监听页面信息变化，获取评论和作者信息
 watch(
   () => pageInfo.value.id,
@@ -1196,6 +1809,20 @@ watch(
   },
   { immediate: false }
 )
+
+// 页面挂载时添加点击外部事件监听器
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  // 确保Bootstrap模态框正常工作
+  if (window.bootstrap) {
+    // 这里可以添加模态框相关的初始化代码
+  }
+})
+
+// 页面卸载时移除点击外部事件监听器
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
@@ -2052,6 +2679,418 @@ watch(
   .link-list-container .row > div {
     flex: 0 0 100%;
     max-width: 100%;
+  }
+}
+
+/* 留言板页面样式 */
+/* 留言统计区域 */
+.message-stats .card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.message-stats .card:hover {
+  box-shadow: var(--bs-shadow-lg);
+  border-color: var(--bs-border-color-translucent);
+}
+
+.message-stats .fs-3 {
+  font-weight: 700;
+  color: var(--bs-body-color);
+}
+
+.message-stats .text-muted {
+  font-size: 0.875rem;
+}
+
+/* 留言区域 */
+.article-comment {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* 留言板响应式设计 */
+@media (max-width: 768px) {
+  .message-stats .card {
+    padding: 1.5rem !important;
+  }
+  
+  .message-stats .fs-3 {
+    font-size: 1.5rem !important;
+  }
+  
+  .message-stats .text-muted {
+    font-size: 0.8rem;
+  }
+  
+  .article-comment {
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .message-stats .card {
+    padding: 1.25rem !important;
+  }
+  
+  .message-stats .fs-3 {
+    font-size: 1.25rem !important;
+  }
+  
+  .message-stats .text-muted {
+    font-size: 0.75rem;
+  }
+}
+
+/* 留言板样式 */
+/* 留言显示模块 */
+.message-display {
+  margin-bottom: 2rem;
+}
+
+.message-display .card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.message-display .card:hover {
+  box-shadow: var(--bs-shadow-lg);
+  border-color: var(--bs-border-color-translucent);
+}
+
+/* 便利贴样式 */
+.sticky-note {
+  position: relative;
+  border-radius: 0.5rem;
+  background-color: #fff9c4;
+  border: 1px solid #f5f5f5;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  transform: rotate(-1deg);
+}
+
+.sticky-note:hover {
+  transform: rotate(0deg) translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* 留言头像 */
+.message-avatar {
+  transition: transform 0.2s ease;
+  border: 2px solid rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.message-avatar:hover {
+  transform: scale(1.05);
+  border-color: rgba(var(--bs-primary-rgb), 0.3);
+}
+
+/* 留言内容 */
+.message-content {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.message-content:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* 暗黑模式适配 */
+[data-bs-theme=dark] {
+  .sticky-note {
+    background-color: #33332a;
+    border: 1px solid #444;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .sticky-note:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+  }
+  
+  .message-content {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .message-content:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .message-avatar {
+    border: 2px solid rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  .message-avatar:hover {
+    border-color: rgba(var(--bs-primary-rgb), 0.4);
+  }
+  
+  .reply-icon:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.2);
+  }
+  
+  #replyModal .modal-content {
+    background-color: var(--bs-dark);
+    border-color: var(--bs-border-color);
+  }
+  
+  #replyModal .modal-header,
+  #replyModal .modal-footer {
+    border-color: var(--bs-border-color);
+  }
+  
+  #replyModal .reply-item {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+  }
+  
+  #replyModal .reply-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.15);
+  }
+  
+  .reply-form {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+  }
+  
+  /* 留言统计适配 */
+  .message-stats .card {
+    background-color: var(--bs-dark);
+    border-color: var(--bs-border-color);
+  }
+  
+  .message-stats .fs-3 {
+    color: var(--bs-light);
+  }
+  
+  .message-stats .text-muted {
+    color: var(--bs-secondary-color) !important;
+  }
+}
+
+/* 回复图标 */
+.reply-icon-container {
+  transition: all 0.3s ease;
+}
+
+.reply-icon {
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.reply-icon:hover {
+  transform: scale(1.1);
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* 操作按钮 */
+.message-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.reply-btn {
+  transition: all 0.3s ease;
+}
+
+.reply-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* 回复弹窗样式 */
+#replyModal .modal-content {
+  border-radius: 0.875rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+#replyModal .modal-header {
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+#replyModal .modal-footer {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+#replyModal .reply-item {
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+  transition: all 0.3s ease;
+}
+
+#replyModal .reply-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  transform: translateX(5px);
+}
+
+/* 回复输入框 */
+.reply-form {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: rgba(var(--bs-primary-rgb), 0.02);
+}
+
+/* 回复项 */
+.reply-item {
+  border-left: 3px solid rgba(var(--bs-primary-rgb), 0.2);
+  padding-left: 1rem;
+  margin-left: 1rem;
+  margin-top: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.reply-item:hover {
+  border-left-color: rgba(var(--bs-primary-rgb), 0.4);
+  margin-left: 1.25rem;
+}
+
+/* @提及样式 */
+:deep(.at-mention) {
+  color: var(--bs-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* 发布留言按钮 */
+.publish-btn {
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.publish-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.publish-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 表情功能 */
+.emoji-button {
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.emoji-button:hover {
+  transform: scale(1.1);
+  border-color: var(--bs-primary);
+}
+
+.emoji-picker-container {
+  transition: all 0.3s ease;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+}
+
+.emoji-item {
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.emoji-item:hover {
+  transform: scale(1.2);
+  border-color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* 表情选择面板滚动条 */
+.emoji-picker-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.emoji-picker-container::-webkit-scrollbar-track {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  border-radius: 3px;
+}
+
+.emoji-picker-container::-webkit-scrollbar-thumb {
+  background: rgba(var(--bs-primary-rgb), 0.3);
+  border-radius: 3px;
+}
+
+.emoji-picker-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--bs-primary-rgb), 0.5);
+}
+
+/* 深色模式表情样式 */
+:deep(.bg-dark) .emoji-item {
+  border-color: #444;
+  color: #fff;
+}
+
+:deep(.bg-dark) .emoji-item:hover {
+  background-color: rgba(var(--bs-primary-rgb), 0.2);
+}
+
+/* 加载动画 */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 留言板响应式设计 */
+@media (max-width: 768px) {
+  .message-display .card {
+    border-radius: 0.5rem;
+  }
+  
+  .message-item {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .message-item p {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .message-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .reply-item {
+    margin-left: 0.75rem;
+    padding-left: 0.75rem;
+  }
+  
+  .emoji-picker-container {
+    max-height: 150px;
+  }
+  
+  .emoji-item {
+    font-size: 1rem;
+    min-width: 32px;
+    height: 32px;
   }
 }
 </style>
