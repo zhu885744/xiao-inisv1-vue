@@ -51,9 +51,12 @@ import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
 import ConfigInit from '@/comps/config/init.vue'
 import socket from '@/utils/socket'
+import { useCommStore } from '@/store/comm'
+import request from '@/utils/request'
 
 const navRef = ref(null)
 const showBackToTop = ref(false)
+const store = useCommStore()
 
 const handleShowLogin = () => {
   if (navRef.value && navRef.value.method && navRef.value.method.showLogin) {
@@ -75,6 +78,61 @@ const scrollToTop = () => {
   })
 }
 
+// 注入自定义代码
+const injectCustomCode = async () => {
+  try {
+    // 从后端获取自定义代码配置
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      const config = response.data.json || {}
+      const customCodeData = config.custom_code || {}
+      
+      // 注入CSS
+      if (customCodeData.css) {
+        const style = document.createElement('style')
+        style.textContent = customCodeData.css
+        document.head.appendChild(style)
+      }
+      
+      // 注入头部HTML
+      if (customCodeData.header) {
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = customCodeData.header
+        while (tempDiv.firstChild) {
+          document.head.appendChild(tempDiv.firstChild)
+        }
+      }
+      
+      // 注入JavaScript
+      if (customCodeData.js) {
+        const script = document.createElement('script')
+        script.textContent = customCodeData.js
+        document.body.appendChild(script)
+      }
+      
+      // 注入底部HTML
+      if (customCodeData.footer) {
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = customCodeData.footer
+        while (tempDiv.firstChild) {
+          document.body.appendChild(tempDiv.firstChild)
+        }
+      }
+      
+      // 注入网站统计代码
+      if (customCodeData.analytics) {
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = customCodeData.analytics
+        while (tempDiv.firstChild) {
+          document.body.appendChild(tempDiv.firstChild)
+        }
+      }
+    }
+  } catch (error) {
+    console.error('注入自定义代码失败:', error)
+  }
+}
+
 // 监听滚动事件
 const handleScroll = () => {
   showBackToTop.value = window.scrollY > 300
@@ -93,7 +151,7 @@ const handleSocketError = (error) => {
   console.error('WebSocket错误:', error);
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   
   // 连接WebSocket
@@ -101,6 +159,9 @@ onMounted(() => {
   socket.on('close', handleSocketClose)
   socket.on('error', handleSocketError)
   socket.connect()
+  
+  // 注入自定义代码
+  await injectCustomCode()
 })
 
 onUnmounted(() => {

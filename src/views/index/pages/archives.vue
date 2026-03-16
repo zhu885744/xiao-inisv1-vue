@@ -45,41 +45,50 @@
           <div class="article-content mt-4">
             <i-markdown :model-value="articleInfo.content || '暂无文章内容，敬请期待～'" />
           </div>
-          
-          <!-- 文章标签显示 -->
-          <div v-if="articleInfo.result?.tags && articleInfo.result.tags.length > 0" class="article-tags mt-4 d-flex flex-wrap justify-content-center gap-3">
-            <router-link 
-              v-for="tag in articleInfo.result.tags" 
-              :key="tag.id"
-              :to="`/tag/${tag.id}`"
-              class="badge rounded-pill text-bg-success py-1.5 px-4 transition-all duration-300 cursor-pointer text-decoration-none"
-            >
-              <i class="bi bi-tag me-1"></i> {{ tag.name }}
-            </router-link>
-          </div>
 
           <!-- 版权归属信息 -->
-          <div class="card border mt-4 overflow-hidden shadow-sm">
-            <div class="card-body">
-              <!-- 版权归属信息 -->
-              <div class="mb-1">
-                <div class="d-flex align-items-center">
-                  <i class="bi bi-shield-check me-2"></i>
-                  <span class="text-muted">版权属于：{{ articleInfo.result?.author?.nickname || '匿名' }}</span>
-                </div>
+          <div class="border rounded mt-3 p-2">
+          <!-- 版权归属信息 -->
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <i class="bi bi-c-circle text-primary fs-6"></i>
+              <span class="text-muted fs-6">版权属于：</span>
+              <span class="fs-6">{{ articleInfo.result?.author?.nickname || '匿名' }}</span>
+            </div>
+
+            <!-- 文章标签信息 -->
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <i class="bi bi-tag text-primary fs-6"></i>
+              <span class="text-muted fs-6">文章标签：</span>
+              <div class="d-flex flex-wrap gap-2">
+                <router-link 
+                  v-for="tag in articleInfo.result?.tags || []" 
+                  :key="tag.id"
+                  :to="`/tag/${tag.id}`"
+                  class="text-primary hover:text-primary-emphasis transition-colors text-decoration-none fs-6"
+                >
+                  {{ tag.name }}
+                </router-link>
+                <span v-if="!articleInfo.result?.tags || articleInfo.result.tags.length === 0" class="text-muted fs-6">无标签</span>
               </div>
-              <!-- 许可协议信息 -->
-              <div class="mb-1">
-                <div class="d-flex align-items-center">
-                  <i class="bi bi-cc-circle me-2"></i>
-                  <span class="text-muted">文章采用：
-                    <a class="bg-opacity-10 me-2" href="//creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener noreferrer nofollow" title="知识共享 署名-非商业性使用-相同方式共享 4.0 国际许可协议">
-                      CC BY-NC-SA 4.0
-                    </a>
-                    <span class="text-muted text-sm">知识共享许可协议授权</span>
-                  </span>
-                </div>
-              </div>
+            </div>
+
+            <!-- 文章链接信息 -->
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+              <i class="bi bi-link-45deg text-primary fs-6"></i>
+              <span class="text-muted fs-6">本文链接：</span>
+              <a class="text-primary hover:text-primary-emphasis transition-colors flex-1 break-all text-decoration-none fs-6" :href="currentUrl" target="_blank" rel="noopener noreferrer nofollow">
+                {{ currentUrl }}
+              </a>
+            </div>
+
+            <!-- 许可协议信息 -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <i class="bi bi-cc-circle text-primary fs-6"></i>
+              <span class="text-muted fs-6">文章采用：</span>
+              <a class="text-primary hover:text-primary-emphasis transition-colors text-decoration-none fs-6" href="//creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener noreferrer nofollow" title="知识共享 署名-非商业性使用-相同方式共享 4.0 国际许可协议">
+                CC BY-NC-SA 4.0
+              </a>
+              <span class="text-muted fs-6">许可协议授权</span>
             </div>
           </div>
           
@@ -179,6 +188,8 @@ const isCollected = ref(false)
 const likeCount = ref(0)
 const shareCount = ref(0)
 const collectCount = ref(0)
+// 当前页面链接
+const currentUrl = ref('')
 
 // 路由实例
 const router = useRouter()
@@ -626,6 +637,11 @@ const checkUserActions = async () => {
 
 // 页面挂载执行核心逻辑
 onMounted(() => {
+  // 设置当前页面链接
+  if (typeof window !== 'undefined') {
+    currentUrl.value = window.location.href
+  }
+  
   const currentId = getCurrentArticleId()
   if (checkArticleId(currentId)) {
     getArticleDetail(Number(currentId))
@@ -633,7 +649,7 @@ onMounted(() => {
     error.value = true
     loading.value = false
     setDynamicTitle('文章ID不合法')
-    setTimeout(() => router.go(-1), 3000)
+    setTimeout(() => goBack(), 3000)
   }
   
   detectDarkMode()

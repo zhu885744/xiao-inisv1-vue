@@ -20,6 +20,7 @@
         <!-- 统计信息卡片区域 -->
           <main class="card shadow-sm mt-2">
             <div class="p-3">
+              <h2 class="timeline-title mb-4">数据统计</h2>
               <!-- 统计信息网格 -->
               <div class="stats-grid">
                 <!-- 文章总数 -->
@@ -107,7 +108,7 @@
             </div>
             
             <!-- 无文章数据 -->
-            <div v-else-if="groupedArticles.length === 0" class="text-center py-5 text-muted">
+            <div v-else-if="Object.keys(groupedArticles).length === 0" class="text-center py-5 text-muted">
               <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
               <p class="mb-0">暂无文章数据，敬请期待～</p>
             </div>
@@ -118,13 +119,17 @@
                 <h3 class="timeline-year-month-title">{{ yearMonth }}</h3>
                 <div class="timeline-items">
                   <div v-for="article in articles" :key="article.id" class="timeline-item">
-                    <div class="timeline-dot"></div>
                     <div class="timeline-content">
                       <router-link :to="`/archives/${article.id}`" class="timeline-article-title">{{ article.title }}</router-link>
                       <div class="timeline-article-meta">
-                        <span class="timeline-article-date">{{ formatTime(article.create_time) }}</span>
-                        <span class="timeline-article-category" v-if="article.result?.group && article.result.group.length > 0">
+                        <span class="timeline-article-date d-flex align-items-center">
+                          <i class="bi bi-calendar-date me-1"></i>{{ formatTime(article.create_time) }}
+                        </span>
+                        <span class="timeline-article-category d-flex align-items-center" v-if="article.result?.group && article.result.group.length > 0">
                           <i class="bi bi-folder me-1"></i>{{ article.result.group[0].name }}
+                        </span>
+                        <span class="timeline-article-views d-flex align-items-center">
+                          <i class="bi bi-eye me-1"></i>{{ article.views || 0 }}
                         </span>
                       </div>
                     </div>
@@ -225,22 +230,35 @@
                 <div class="row g-4">
                   <!-- 响应式调整：PC端2列，平板2列，手机1列 -->
                   <div v-for="link in groupLinks" :key="link.id" class="col-lg-6 col-md-6 col-sm-6 col-12">
-                    <!-- 长方形友链卡片：横向布局 -->
-                    <div class="link-card h-100 d-flex align-items-center p-4">
+                    <!-- 现代化友链卡片：横向布局 -->
+                    <div class="link-card h-100 d-flex align-items-center p-4 transition-all duration-300">
                       <!-- 头像区域 -->
-                      <div class="link-avatar-wrapper me-4">
-                        <img :src="link.avatar" :alt="link.nickname" class="link-avatar rounded-circle">
+                      <div class="link-avatar-wrapper me-4 flex-shrink-0">
+                        <img 
+                          :src="link.avatar" 
+                          :alt="link.nickname" 
+                          class="link-avatar transition-transform duration-300 hover:scale-110"
+                          @error="handleLinkAvatarError"
+                        >
                       </div>
                       
                       <!-- 信息区域（占主要宽度） -->
                       <div class="link-info flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                          <h4 class="link-name fs-5 mb-0">{{ link.nickname }}</h4>
-                          <a :href="link.url" :target="link.target || '_blank'" class="btn btn-outline-primary btn-sm">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <h4 class="link-name mb-0 transition-colors duration-200">
+                            {{ link.nickname }}
+                          </h4>
+                          <a 
+                            :href="link.url" 
+                            :target="link.target || '_blank'" 
+                            class="btn btn-primary btn-sm rounded-full px-4 py-1 text-sm font-medium transition-all duration-200"
+                          >
                             访问
                           </a>
                         </div>
-                        <p class="link-desc text-secondary mb-0">{{ link.description || '无介绍' }}</p>
+                        <p class="link-desc mb-0 line-clamp-2">
+                          {{ link.description || '无介绍' }}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -908,29 +926,30 @@ const getArchivePageData = async () => {
 }
 
 // 获取文章列表
-const fetchArticles = async (page = 1) => {
+const fetchArticles = async () => {
   articlesLoading.value = true
   articlesError.value = false
   articlesErrorMsg.value = ''
   
   try {
-    const res = await request.get('/api/article/all', {
-      params: {
-        page: page,
-        limit: articlePageSize.value,
-        order: 'create_time desc'
-      }
-    })
+    // 直接使用查询字符串，确保参数正确传递
+    const res = await request.get('/api/article/all?page=1&limit=9999&order=create_time+desc')
     
     if (res && res.code === 200 && res.data) {
       const { data = [], count = 0 } = res.data
       
+      // 打印数据长度，以便调试
+      console.log('文章数据长度:', data.length)
+      console.log('文章总数:', count)
+      
       articles.value = data
       articleTotal.value = count
-      articlePage.value = page
       
       // 按年月分组
       groupArticlesByYearMonth(articles.value)
+      
+      // 打印分组后的数据
+      console.log('分组后的数据:', groupedArticles.value)
     } else {
       articlesError.value = true
       articlesErrorMsg.value = res?.msg || '获取文章数据失败'
@@ -942,13 +961,6 @@ const fetchArticles = async (page = 1) => {
   } finally {
     articlesLoading.value = false
   }
-}
-
-// 切换文章分页
-const changeArticlePage = (page) => {
-  if (page < 1 || page > articlePageCount.value) return
-  articlePage.value = page
-  fetchArticles(page)
 }
 
 // 按年月分组文章
@@ -1399,9 +1411,9 @@ watch(
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--bs-body-color);
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--bs-border-color);
+  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--bs-border-color);
 }
 
 .timeline-container {
@@ -1409,26 +1421,39 @@ watch(
 }
 
 .timeline-year-month {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .timeline-year-month-title {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: var(--bs-body-color);
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
+  color: var(--bs-primary);
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+  position: relative;
+}
+
+.timeline-year-month-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  box-shadow: 0 0 0 4px rgba(var(--bs-primary-rgb), 0.1);
 }
 
 .timeline-items {
   position: relative;
-  padding-left: 1.5rem;
 }
 
 .timeline-items::before {
   content: '';
   position: absolute;
-  left: 0.75rem;
+  left: 0.5rem;
   top: 0;
   bottom: 0;
   width: 2px;
@@ -1441,77 +1466,104 @@ watch(
   padding-left: 1.5rem;
 }
 
-.timeline-dot {
-  position: absolute;
-  left: -0.375rem;
-  top: 0.5rem;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: var(--bs-primary);
-  border: 2px solid var(--bs-card-bg);
-  box-shadow: 0 0 0 2px var(--bs-primary);
-}
-
 .timeline-content {
   background-color: var(--bs-card-bg);
   border: 1px solid var(--bs-border-color);
-  border-radius: 0.5rem;
-  padding: 1rem;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: var(--bs-primary);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s ease;
 }
 
 .timeline-content:hover {
-  box-shadow: var(--bs-shadow);
-  transform: translateY(-2px);
+  box-shadow: var(--bs-shadow-lg);
+  transform: translateY(-3px);
+  border-color: var(--bs-primary);
+}
+
+.timeline-content:hover::before {
+  transform: scaleY(1);
 }
 
 .timeline-article-title {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--bs-body-color);
   text-decoration: none;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   display: block;
   transition: color 0.2s ease;
+  line-height: 1.4;
 }
 
 .timeline-article-title:hover {
   color: var(--bs-primary);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .timeline-article-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.25rem;
   font-size: 0.875rem;
   color: var(--bs-secondary-color);
+  margin-top: 0.5rem;
 }
 
-.timeline-article-date {
+.timeline-article-date,
+.timeline-article-category,
+.timeline-article-views {
   display: flex;
   align-items: center;
+  transition: color 0.2s ease;
 }
 
-.timeline-article-category {
-  display: flex;
-  align-items: center;
+.timeline-content:hover .timeline-article-date,
+.timeline-content:hover .timeline-article-category,
+.timeline-content:hover .timeline-article-views {
+  color: var(--bs-primary);
+}
+
+.timeline-article-date i,
+.timeline-article-category i,
+.timeline-article-views i {
+  margin-right: 0.5rem;
+  font-size: 0.85rem;
 }
 
 /* 文章归档时间线响应式设计 */
 @media (max-width: 768px) {
   .timeline-title {
     font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .timeline-year-month {
+    margin-bottom: 2rem;
   }
   
   .timeline-year-month-title {
     font-size: 1.1rem;
-    padding-left: 1.25rem;
+    padding-left: 1.5rem;
   }
   
-  .timeline-items {
-    padding-left: 1.25rem;
+  .timeline-year-month-title::before {
+    width: 10px;
+    height: 10px;
   }
   
   .timeline-item {
@@ -1520,16 +1572,43 @@ watch(
   }
   
   .timeline-content {
-    padding: 0.75rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
   }
   
   .timeline-article-title {
     font-size: 1rem;
+    margin-bottom: 0.5rem;
   }
   
   .timeline-article-meta {
     font-size: 0.8rem;
     gap: 0.75rem;
+  }
+  
+  .timeline-article-date i,
+  .timeline-article-category i,
+  .timeline-article-views i {
+    font-size: 0.75rem;
+  }
+}
+
+/* 文章归档时间线平板设备适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .timeline-title {
+    font-size: 1.4rem;
+  }
+  
+  .timeline-year-month-title {
+    font-size: 1.2rem;
+  }
+  
+  .timeline-content {
+    padding: 1.1rem;
+  }
+  
+  .timeline-article-title {
+    font-size: 1.1rem;
   }
 }
 
@@ -1703,10 +1782,10 @@ watch(
   color: var(--bs-body-color);
 }
 
-/* 核心：长方形友链卡片样式 */
+/* 核心：现代化友链卡片样式 */
 .link-card {
   border: 1px solid var(--bs-border-color);
-  border-radius: 0.8rem;
+  border-radius: 0.875rem;
   transition: all 0.3s ease;
   background-color: var(--bs-card-bg);
   min-height: 120px; /* 长方形高度 */
@@ -1714,45 +1793,46 @@ watch(
 
 /* 卡片悬浮效果 */
 .link-card:hover {
-  box-shadow: var(--bs-shadow);
+  box-shadow: var(--bs-shadow-lg);
   border-color: var(--bs-border-color-translucent);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
-/* 头像样式（长方形卡片中适当放大） */
+/* 头像样式（现代化卡片中适当放大） */
 .link-avatar {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   object-fit: cover;
-  border: 3px solid var(--bs-tertiary-bg);
+  border: 2px solid var(--bs-tertiary-bg);
 }
 
 /* 名称样式 */
 .link-name {
   font-weight: 600;
   color: var(--bs-body-color);
+  transition: color 0.2s ease;
 }
 
-/* 描述样式 - 重点：补充line-clamp标准属性 + 全浏览器兼容 */
+.link-name:hover {
+  color: var(--bs-primary);
+}
+
+/* 描述样式 - 现代化文本截断 */
 .link-desc {
   line-height: 1.5;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   overflow: hidden;
   text-align: left;
   color: var(--bs-secondary-color);
   /* 标准属性 + 多浏览器前缀兼容 */
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -moz-line-clamp: 2;
-  -o-line-clamp: 2;
-  /* 必须配合的属性（跨浏览器） */
   display: -webkit-box;
-  display: -moz-box;
-  display: -ms-box;
-  display: box;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  display: -moz-box;
+  -moz-line-clamp: 2;
   -moz-box-orient: vertical;
-  -ms-box-orient: vertical;
+  display: box;
+  line-clamp: 2;
   box-orient: vertical;
 }
 

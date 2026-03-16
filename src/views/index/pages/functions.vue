@@ -84,6 +84,21 @@
                 首页配置
               </button>
             </li>
+            <li class="nav-item" role="presentation">
+              <button 
+                class="nav-link" 
+                id="custom-code-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#custom-code" 
+                type="button" 
+                role="tab" 
+                aria-controls="custom-code" 
+                aria-selected="false"
+              >
+                <i class="bi bi-code me-2"></i>
+                自定义代码
+              </button>
+            </li>
           </ul>
         </div>
       </div>
@@ -516,6 +531,120 @@
             </div>
           </div>
         </div>
+
+        <!-- 自定义代码 -->
+        <div 
+          class="tab-pane fade" 
+          id="custom-code" 
+          role="tabpanel" 
+          aria-labelledby="custom-code-tab"
+        >
+          <div class="config-section">
+            <!-- 自定义代码表单 -->
+            <div class="card shadow-sm">
+              <div class="card-body p-3">
+              <form class="custom-code-config-form">
+                <!-- CSS代码 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">CSS代码</h3>
+                  <div class="mb-3">
+                    <textarea 
+                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      id="custom-css"
+                      v-model="customCodeConfig.css"
+                      rows="6"
+                      placeholder="在这里输入自定义CSS代码"
+                    ></textarea>
+                    <div class="form-text text-muted mt-1">自定义CSS样式，会全局生效</div>
+                  </div>
+                </div>
+
+                <!-- JavaScript代码 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">JavaScript代码</h3>
+                  <div class="mb-3">
+                    <textarea 
+                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      id="custom-js"
+                      v-model="customCodeConfig.js"
+                      rows="6"
+                      placeholder="在这里输入自定义JavaScript代码"
+                    ></textarea>
+                    <div class="form-text text-muted mt-1">自定义JavaScript脚本，会在页面加载时执行</div>
+                  </div>
+                </div>
+
+                <!-- 头部HTML代码 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">头部HTML代码</h3>
+                  <div class="mb-3">
+                    <textarea 
+                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      id="custom-header"
+                      v-model="customCodeConfig.header"
+                      rows="4"
+                      placeholder="在这里输入自定义头部HTML代码"
+                    ></textarea>
+                    <div class="form-text text-muted mt-1">会被插入到HTML的head标签中</div>
+                  </div>
+                </div>
+
+                <!-- 底部HTML代码 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">底部HTML代码</h3>
+                  <div class="mb-3">
+                    <textarea 
+                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      id="custom-footer"
+                      v-model="customCodeConfig.footer"
+                      rows="4"
+                      placeholder="在这里输入自定义底部HTML代码"
+                    ></textarea>
+                    <div class="form-text text-muted mt-1">会被插入到HTML的body标签末尾</div>
+                  </div>
+                </div>
+
+                <!-- 网站统计代码 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">网站统计代码</h3>
+                  <div class="mb-3">
+                    <textarea 
+                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      id="custom-analytics"
+                      v-model="customCodeConfig.analytics"
+                      rows="4"
+                      placeholder="在这里输入网站统计代码"
+                    ></textarea>
+                    <div class="form-text text-muted mt-1">会被插入到HTML的body标签末尾</div>
+                  </div>
+                </div>
+
+                <!-- 保存按钮 -->
+                <div class="form-actions mt-8">
+                  <button 
+                    type="button" 
+                    class="btn btn-primary rounded-full px-6 py-2.5 shadow-sm"
+                    @click="saveCustomCodeConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存自定义代码' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
+                    @click="resetCustomCodeConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    重置
+                  </button>
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -572,6 +701,14 @@ const globalConfig = ref({
 
 const homepageConfig = ref({
   display_mode: true // true为有图模式，false为无图模式
+})
+
+const customCodeConfig = ref({
+  css: '',
+  js: '',
+  header: '',
+  footer: '',
+  analytics: ''
 })
 
 const saving = ref(false)
@@ -773,6 +910,26 @@ async function getHomepageConfig() {
   }
 }
 
+// 获取自定义代码配置
+async function getCustomCodeConfig() {
+  try {
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      const config = response.data.json || {}
+      customCodeConfig.value = config.custom_code || {
+        css: '',
+        js: '',
+        header: '',
+        footer: '',
+        analytics: ''
+      }
+    }
+  } catch (error) {
+    console.error('获取自定义代码配置失败:', error)
+    toast.error('获取自定义代码配置失败')
+  }
+}
+
 // 保存首页配置
 async function saveHomepageConfig() {
   saving.value = true
@@ -865,6 +1022,62 @@ function resetHomepageConfig() {
   }
 }
 
+// 保存自定义代码配置
+async function saveCustomCodeConfig() {
+  saving.value = true
+  message.value = ''
+  messageType.value = ''
+  
+  try {
+    // 先获取当前配置，避免覆盖其他设置
+    const configResponse = await request.get('/api/config/one', { key: 'xiao_functions' })
+    let currentConfig = {}
+    if (configResponse.code === 200 && configResponse.data) {
+      currentConfig = configResponse.data.json || {}
+    }
+    
+    // 更新自定义代码配置
+    const updatedConfig = {
+      ...currentConfig,
+      custom_code: customCodeConfig.value
+    }
+    
+    // 保存到后端
+    const response = await request.post('/api/config/save', {
+      key: 'xiao_functions',
+      json: updatedConfig
+    })
+
+    if (response.code === 200) {
+      message.value = '自定义代码保存成功！'
+      messageType.value = 'success'
+      toast.success('自定义代码保存成功')
+    } else {
+      message.value = '自定义代码保存失败：' + (response.msg || '未知错误')
+      messageType.value = 'error'
+      toast.error('自定义代码保存失败')
+    }
+  } catch (error) {
+    console.error('保存自定义代码失败:', error)
+    message.value = '保存失败：网络错误'
+    messageType.value = 'error'
+    toast.error('保存失败：网络错误')
+  } finally {
+    saving.value = false
+  }
+}
+
+// 重置自定义代码配置
+function resetCustomCodeConfig() {
+  customCodeConfig.value = {
+    css: '',
+    js: '',
+    header: '',
+    footer: '',
+    analytics: ''
+  }
+}
+
 // 组件挂载
 onMounted(async () => {
   // 检查登录状态
@@ -875,7 +1088,8 @@ onMounted(async () => {
     await Promise.all([
       getCommentConfig(),
       getGlobalConfig(),
-      getHomepageConfig()
+      getHomepageConfig(),
+      getCustomCodeConfig()
     ])
   }
 })
