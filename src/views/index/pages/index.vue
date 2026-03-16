@@ -2,6 +2,62 @@
   <!-- 公告卡片 -->
   <i-notice />
 
+  <!-- 轮播图 -->
+  <div v-if="banners.length > 0" class="mt-2">
+    <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div 
+          v-for="(banner, index) in banners" 
+          :key="banner.id"
+          class="carousel-item" 
+          :class="{ active: index === 0 }"
+        >
+          <a :href="banner.url" :target="banner.target" class="d-block w-100">
+            <img 
+              :src="banner.image" 
+              :alt="banner.title" 
+              class="d-block w-100 carousel-img"
+            >
+          </a>
+          <div v-if="banner.title" class="carousel-caption d-none d-md-block">
+            <h5>{{ banner.title }}</h5>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 排序选项 -->
+  <div class="mt-2 mb-3">
+    <div class="card shadow-sm p-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 text-muted">文章排序</h6>
+        <div class="sort-controls">
+          <select 
+            id="sort-select" 
+            v-model="order" 
+            @change="handleSortChange"
+            class="form-select form-select-sm border-primary"
+            style="min-width: 160px;"
+          >
+            <option value="top desc, create_time desc">最新发布</option>
+            <option value="views desc">最多浏览</option>
+            <option value="update_time desc">最新更新</option>
+            <option value="id asc">按 ID 排序</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 加载状态 -->
   <div v-if="loading && articleList.length === 0" class="d-flex justify-content-center align-items-center py-5">
     <div class="spinner-border text-info" role="status">
@@ -217,6 +273,8 @@ const total = ref(0)
 const order = ref('top desc, create_time desc')
 // 显示模式：true为有图模式（网格布局），false为无图模式（列表布局）
 const hasImageMode = ref(true)
+// 轮播图数据
+const banners = ref([])
 
 // 从后端API获取显示模式设置
 const loadDisplayMode = async () => {
@@ -271,6 +329,12 @@ const changePage = (page) => {
   if (page < 1 || page > pageCount.value) return
   currentPage.value = page
   getArticleList(page, false)
+}
+
+// 处理排序变化
+const handleSortChange = () => {
+  currentPage.value = 1
+  getArticleList(1)
 }
 
 const formatTime = (timestamp) => {
@@ -411,12 +475,28 @@ const toArticleDetail = (id) => {
   router.push(`/archives/${id}`) 
 }
 
+// 获取轮播图数据
+const getBanners = async () => {
+  try {
+    const res = await request.get('/api/banner/all', { limit: 5, order: 'create_time desc' })
+    if (res.code === 200) {
+      banners.value = res.data.data || []
+    }
+  } catch (error) {
+    console.error('获取轮播图数据失败:', error)
+    banners.value = []
+  }
+}
+
 onMounted(async () => {
   // 加载显示模式设置
   await loadDisplayMode()
   
   // 初始化Intersection Observer
   initIntersectionObserver()
+  
+  // 获取轮播图数据
+  getBanners()
   
   // 获取文章列表
   getArticleList(1)
@@ -643,10 +723,86 @@ img {
   }
 }
 
+/* 轮播图样式 */
+.carousel-img {
+  height: 400px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.carousel-caption {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+/* 排序控件样式 */
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sort-controls .form-select {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.sort-controls .form-select:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
 /* 分页样式 */
 .pagination-container {
   margin-top: 2rem;
   margin-bottom: 2rem;
+}
+
+/* 分页响应式设计 */
+@media (max-width: 768px) {
+  .pagination-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .page-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  /* 轮播图响应式 */
+  .carousel-img {
+    height: 250px;
+  }
+}
+
+@media (max-width: 576px) {
+  /* 轮播图响应式 */
+  .carousel-img {
+    height: 200px;
+  }
+  
+  .carousel-caption {
+    padding: 0.5rem;
+  }
+  
+  .carousel-caption h5 {
+    font-size: 1rem;
+  }
+  
+  /* 排序控件响应式 */
+  .sort-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .sort-controls .form-select {
+    width: 100%;
+  }
 }
 
 /* 动画 */

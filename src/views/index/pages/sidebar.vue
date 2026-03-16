@@ -1037,6 +1037,8 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.5rem 0;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .tag-item {
@@ -1046,9 +1048,17 @@ onMounted(() => {
   color: var(--bs-body-color);
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 1rem;
+  border-radius: 0.375rem;
   text-decoration: none;
   border: 1px solid var(--bs-border-color);
+  transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+  background-color: var(--bs-primary);
+  color: var(--bs-white);
+  border-color: var(--bs-primary);
+  transform: translateY(-1px);
 }
 
 /* 快捷导航样式 */

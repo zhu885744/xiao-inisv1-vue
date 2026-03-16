@@ -15,6 +15,25 @@
 
     <!-- 文章主体 -->
     <div v-else class="article-main">
+      <!-- 面包屑导航 -->
+      <div class="card shadow-sm p-3 mt-2">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 breadcrumb-custom">
+            <li class="breadcrumb-item">
+              <router-link to="/" class="text-decoration-none">首页</router-link>
+            </li>
+            <li v-if="articleInfo.result?.group[0]?.name" class="breadcrumb-item">
+              <router-link :to="`/category/${articleInfo.result.group[0].id}`" class="text-decoration-none">
+                {{ articleInfo.result.group[0].name }}
+              </router-link>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              {{ articleInfo.title }}
+            </li>
+          </ol>
+        </nav>
+      </div>
+
       <!-- 文章内容区：核心阅读区，重写样式 -->
       <main class="card shadow-sm mt-2">
         <div class="p-3">
@@ -286,18 +305,36 @@ const isLogin = computed(() => store.comm.login.finish && Object.keys(store.comm
 // 获取文章评论
 const getComments = async (articleId, page = 1) => {
   try {
-    const res = await request.get('/api/comment/flat', {
-      bind_id: articleId,
-      bind_type: 'article',
-      page: page,
-      limit: pageSize.value,
-      order: 'create_time desc'
-    })
+    // 缓存键
+    const cacheKey = `article_comments_${articleId}_${page}`
+    const cacheExpire = 5 // 缓存5分钟
     
-    if (res.code === 200) {
-      commentCount.value = res.data?.count || 0
-      totalComments.value = res.data?.count || 0
-      staticCommentList.value = res.data?.data || []
+    // 尝试从缓存获取评论数据
+    let cachedComments = cache.get(cacheKey)
+    
+    if (!cachedComments) {
+      const res = await request.get('/api/comment/flat', {
+        bind_id: articleId,
+        bind_type: 'article',
+        page: page,
+        limit: pageSize.value,
+        order: 'create_time desc'
+      })
+      
+      if (res.code === 200) {
+        commentCount.value = res.data?.count || 0
+        totalComments.value = res.data?.count || 0
+        staticCommentList.value = res.data?.data || []
+        // 缓存评论数据
+        cache.set(cacheKey, {
+          count: res.data?.count || 0,
+          data: res.data?.data || []
+        }, cacheExpire)
+      }
+    } else {
+      commentCount.value = cachedComments.count || 0
+      totalComments.value = cachedComments.count || 0
+      staticCommentList.value = cachedComments.data || []
     }
   } catch (error) {
     // console.error('获取评论失败：', error)
@@ -314,6 +351,9 @@ const handlePublishComment = async (data) => {
     })
     
     if (res.code === 200) {
+      // 清除评论缓存
+      const articleId = articleInfo.value.id
+      cache.delMultiple([`article_comments_${articleId}_1`, `article_comments_${articleId}_${currentPage.value}`])
       // 重新获取评论列表
 await getComments(articleInfo.value.id, currentPage.value)
       // 显示成功提示
@@ -345,8 +385,11 @@ const handleReplyComment = async (data) => {
     })
     
     if (res.code === 200) {
+      // 清除评论缓存
+      const articleId = articleInfo.value.id
+      cache.delMultiple([`article_comments_${articleId}_1`, `article_comments_${articleId}_${currentPage.value}`])
       // 重新获取评论列表
-      await getComments(articleInfo.value.id, currentPage.value)
+await getComments(articleInfo.value.id, currentPage.value)
       // 显示成功提示
       if (window.Toast) {
         window.Toast.success('回复发布成功！')
@@ -677,6 +720,31 @@ watch(
   justify-content: center;
   align-items: center;
   min-height: 60vh;
+}
+
+/* 面包屑导航自定义样式 */
+.breadcrumb-custom {
+  font-size: 0.85rem;
+}
+
+.breadcrumb-custom .breadcrumb-item a {
+  color: #333;
+  text-decoration: none;
+}
+
+.breadcrumb-custom .breadcrumb-item.active {
+  color: #666;
+}
+
+/* 暗黑模式适配 */
+[data-bs-theme=dark] {
+  .breadcrumb-custom .breadcrumb-item a {
+    color: #fff;
+  }
+  
+  .breadcrumb-custom .breadcrumb-item.active {
+    color: #ccc;
+  }
 }
 
 /* 文章标题：响应式字号、优化行高、居中 */

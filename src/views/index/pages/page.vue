@@ -15,6 +15,26 @@
 
     <!-- 独立页面主体：核心UI重写 -->
     <div v-else class="article-main">
+      <!-- 面包屑导航 -->
+      <div class="card shadow-sm p-3 mt-2">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0 breadcrumb-custom">
+            <li class="breadcrumb-item">
+              <a href="/" class="text-decoration-none">首页</a>
+            </li>
+            <li v-if="isArchivePage" class="breadcrumb-item active" aria-current="page">
+              归档
+            </li>
+            <li v-else-if="isLinksPage" class="breadcrumb-item active" aria-current="page">
+              友链
+            </li>
+            <li v-else class="breadcrumb-item active" aria-current="page">
+              {{ pageInfo.title }}
+            </li>
+          </ol>
+        </nav>
+      </div>
+      
       <!-- 归档页面统计信息 -->
       <div v-if="isArchivePage">
         <!-- 统计信息卡片区域 -->
@@ -353,6 +373,7 @@ import iComment from '@/comps/custom/i-comment.vue'
 import utils from '@/utils/utils'
 import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
+import { goBack } from '@/utils/route'
 
 // 状态管理
 const store = useCommStore()
@@ -571,7 +592,7 @@ const initPage = async () => {
     error.value = true
     loading.value = false
     setDynamicTitle('页面标识不合法')
-    setTimeout(() => router.go(-1), 3000)
+    setTimeout(() => goBack(), 3000)
   }
 }
 
@@ -596,20 +617,42 @@ watch(
 // 获取页面评论
 const getComments = async (pageId, page = 1, limit = 10) => {
   try {
-    const res = await request.get('/api/comment/flat', {
-      bind_id: pageId,
-      bind_type: 'page',
-      page: page,
-      limit: limit,
-      order: 'create_time desc'
-    })
+    // 缓存键
+    const cacheKey = `page_comments_${pageId}_${page}_${limit}`
+    const cacheExpire = 5 // 缓存5分钟
     
-    if (res.code === 200) {
-      commentCount.value = res.data?.count || 0
-      commentList.value = res.data?.data || []
-      totalComments.value = res.data?.count || 0
-      currentPage.value = page
-      pageSize.value = limit
+    // 尝试从缓存获取评论数据
+    let cachedComments = cache.get(cacheKey)
+    
+    if (!cachedComments) {
+      const res = await request.get('/api/comment/flat', {
+        bind_id: pageId,
+        bind_type: 'page',
+        page: page,
+        limit: limit,
+        order: 'create_time desc'
+      })
+      
+      if (res.code === 200) {
+        commentCount.value = res.data?.count || 0
+        commentList.value = res.data?.data || []
+        totalComments.value = res.data?.count || 0
+        currentPage.value = page
+        pageSize.value = limit
+        // 缓存评论数据
+        cache.set(cacheKey, {
+          count: res.data?.count || 0,
+          data: res.data?.data || [],
+          page: page,
+          limit: limit
+        }, cacheExpire)
+      }
+    } else {
+      commentCount.value = cachedComments.count || 0
+      commentList.value = cachedComments.data || []
+      totalComments.value = cachedComments.count || 0
+      currentPage.value = cachedComments.page || page
+      pageSize.value = cachedComments.limit || limit
     }
   } catch (error) {
     // console.error('获取评论失败：', error)
@@ -647,6 +690,23 @@ const handlePublishComment = async (data) => {
     const res = await request.post('/api/comment/create', commentData)
     
     if (res.code === 200) {
+      // 清除评论缓存
+      const pageId = pageInfo.value.id
+      const cacheKeys = []
+      
+      if (isLinksPage) {
+        cacheKeys.push(
+          `links_comments_${pageId}_1_10`,
+          `links_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+        )
+      } else {
+        cacheKeys.push(
+          `page_comments_${pageId}_1_10`,
+          `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+        )
+      }
+      
+      cache.delMultiple(cacheKeys)
       // 重新获取评论列表
       if (isLinksPage) {
         await getLinksComments(currentPage.value, pageSize.value)
@@ -688,6 +748,23 @@ const handleReplyComment = async (data) => {
     const res = await request.post('/api/comment/create', commentData)
     
     if (res.code === 200) {
+      // 清除评论缓存
+      const pageId = pageInfo.value.id
+      const cacheKeys = []
+      
+      if (isLinksPage) {
+        cacheKeys.push(
+          `links_comments_${pageId}_1_10`,
+          `links_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+        )
+      } else {
+        cacheKeys.push(
+          `page_comments_${pageId}_1_10`,
+          `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+        )
+      }
+      
+      cache.delMultiple(cacheKeys)
       // 重新获取评论列表
       if (isLinksPage) {
         await getLinksComments(currentPage.value, pageSize.value)
@@ -1030,20 +1107,42 @@ const fetchLinks = async () => {
 // 获取友链页面评论
 const getLinksComments = async (page = 1, limit = 10) => {
   try {
-    const res = await request.get('/api/comment/flat', {
-      bind_id: pageInfo.value.id,
-      bind_type: 'page',
-      page: page,
-      limit: limit,
-      order: 'create_time desc'
-    })
+    // 缓存键
+    const cacheKey = `links_comments_${pageInfo.value.id}_${page}_${limit}`
+    const cacheExpire = 5 // 缓存5分钟
     
-    if (res.code === 200) {
-      commentCount.value = res.data?.count || 0
-      commentList.value = res.data?.data || []
-      totalComments.value = res.data?.count || 0
-      currentPage.value = page
-      pageSize.value = limit
+    // 尝试从缓存获取评论数据
+    let cachedComments = cache.get(cacheKey)
+    
+    if (!cachedComments) {
+      const res = await request.get('/api/comment/flat', {
+        bind_id: pageInfo.value.id,
+        bind_type: 'page',
+        page: page,
+        limit: limit,
+        order: 'create_time desc'
+      })
+      
+      if (res.code === 200) {
+        commentCount.value = res.data?.count || 0
+        commentList.value = res.data?.data || []
+        totalComments.value = res.data?.count || 0
+        currentPage.value = page
+        pageSize.value = limit
+        // 缓存评论数据
+        cache.set(cacheKey, {
+          count: res.data?.count || 0,
+          data: res.data?.data || [],
+          page: page,
+          limit: limit
+        }, cacheExpire)
+      }
+    } else {
+      commentCount.value = cachedComments.count || 0
+      commentList.value = cachedComments.data || []
+      totalComments.value = cachedComments.count || 0
+      currentPage.value = cachedComments.page || page
+      pageSize.value = cachedComments.limit || limit
     }
   } catch (error) {
     console.error('获取评论失败：', error)
@@ -1106,6 +1205,31 @@ watch(
   justify-content: center;
   align-items: center;
   min-height: 60vh;
+}
+
+/* 面包屑导航自定义样式 */
+.breadcrumb-custom {
+  font-size: 0.85rem;
+}
+
+.breadcrumb-custom .breadcrumb-item a {
+  color: #333;
+  text-decoration: none;
+}
+
+.breadcrumb-custom .breadcrumb-item.active {
+  color: #666;
+}
+
+/* 暗黑模式适配 */
+[data-bs-theme=dark] {
+  .breadcrumb-custom .breadcrumb-item a {
+    color: #fff;
+  }
+  
+  .breadcrumb-custom .breadcrumb-item.active {
+    color: #ccc;
+  }
 }
 
 /* 错误状态 */
