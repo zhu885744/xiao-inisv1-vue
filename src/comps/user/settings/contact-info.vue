@@ -1,189 +1,266 @@
 <!-- 联系方式设置组件 -->
 <template>
   <div class="contact-info-settings">
-    <!-- 个人网站设置 -->
-    <div class="card mb-4">
-      <div class="card-body">
-        <h6 class="card-title mb-3">个人网站设置</h6>
-        <form @submit.prevent="updateWebsite">
-          <!-- 网站名称 -->
-          <div class="mb-3">
-            <label for="websiteName" class="form-label">网站名称</label>
-            <input 
-              type="text" 
-              id="websiteName" 
-              v-model="(websiteForm || {}).name" 
-              class="form-control"
-              placeholder="请输入网站名称"
-              maxlength="50"
-            >
-          </div>
-
-          <!-- 网站网址 -->
-          <div class="mb-3">
-            <label for="websiteUrl" class="form-label">网站网址</label>
-            <input 
-              type="url" 
-              id="websiteUrl" 
-              v-model="(websiteForm || {}).url" 
-              class="form-control"
-              placeholder="请输入网站网址（例如：https://blog.example.com）"
-              maxlength="100"
-            >
-          </div>
-
-          <!-- 提交按钮 -->
-          <button 
-            type="submit" 
-            class="btn btn-primary"
-            :disabled="websiteLoading"
-          >
-            <i class="bi bi-save me-2"></i>
-            {{ websiteLoading ? '保存中...' : '保存网站信息' }}
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div class="row">
-      <!-- 邮箱设置 -->
-      <div class="col-md-6 mb-4">
-        <div class="card">
-          <div class="card-body">
-            <h6 class="card-title mb-3">邮箱设置</h6>
-            <form @submit.prevent="updateEmail">
-              <!-- 邮箱 -->
-              <div class="mb-3">
-                <label for="email" class="form-label">新邮箱</label>
-                <input 
-                  type="email" 
-                  id="email" 
-                  v-model="emailForm.email" 
-                  class="form-control"
-                  placeholder="请输入新邮箱"
-                  maxlength="50"
-                >
-              </div>
-
-              <!-- 验证码 -->
-              <div class="mb-3">
-                <label for="emailCode" class="form-label">验证码</label>
-                <div class="input-group">
-                  <input 
-                    type="text" 
-                    id="emailCode" 
-                    v-model="emailForm.code" 
-                    class="form-control"
-                    placeholder="请输入6位数字验证码"
-                    maxlength="6"
-                    pattern="^\d{6}$"
-                  >
-                  <button 
-                    type="button" 
-                    class="btn btn-outline-secondary"
-                    @click="sendEmailCode"
-                    :disabled="emailSending || emailLoading || emailCountdown > 0"
-                  >
-                    {{ emailSending ? '发送中...' : emailCountdown > 0 ? emailCountdown + '秒后重试' : '发送验证码' }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- 提交按钮 -->
-              <button 
-                type="submit" 
-                class="btn btn-primary"
-                :disabled="emailLoading"
-              >
-                <i class="bi bi-save me-2"></i>
-                {{ emailLoading ? '保存中...' : '修改邮箱' }}
-              </button>
-            </form>
+    <div v-if="loading" class="space-y-4">
+      <!-- 个人网站设置骨架 -->
+      <div class="card">
+        <div class="card-body">
+          <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            </div>
+            <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
           </div>
         </div>
       </div>
 
-      <!-- 手机号设置 -->
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h6 class="card-title mb-3">手机号设置</h6>
-            <form @submit.prevent="updatePhone">
-              <!-- 手机号 -->
-              <div class="mb-3">
-                <label for="phone" class="form-label">新手机号</label>
-                <input 
-                  type="tel" 
-                  id="phone" 
-                  v-model="phoneForm.phone" 
-                  class="form-control"
-                  placeholder="请输入新手机号"
-                  maxlength="11"
-                  pattern="^1[3-9]\d{9}$"
-                >
-              </div>
-
-              <!-- 验证码 -->
-              <div class="mb-3">
-                <label for="phoneCode" class="form-label">验证码</label>
-                <div class="input-group">
-                  <input 
-                    type="text" 
-                    id="phoneCode" 
-                    v-model="phoneForm.code" 
-                    class="form-control"
-                    placeholder="请输入6位数字验证码"
-                    maxlength="6"
-                    pattern="^\d{6}$"
-                  >
-                  <button 
-                    type="button" 
-                    class="btn btn-outline-secondary"
-                    @click="sendPhoneCode"
-                    :disabled="phoneSending || phoneLoading || phoneCountdown > 0"
-                  >
-                    {{ phoneSending ? '发送中...' : phoneCountdown > 0 ? phoneCountdown + '秒后重试' : '发送验证码' }}
-                  </button>
+      <div class="row">
+        <!-- 邮箱设置骨架 -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-body">
+              <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                  <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
                 </div>
+                <div class="space-y-2">
+                  <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                  <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+                </div>
+                <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <!-- 提交按钮 -->
-              <button 
-                type="submit" 
-                class="btn btn-primary"
-                :disabled="phoneLoading"
-              >
-                <i class="bi bi-save me-2"></i>
-                {{ phoneLoading ? '保存中...' : '修改手机号' }}
-              </button>
-            </form>
+        <!-- 手机号设置骨架 -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                  <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+                </div>
+                <div class="space-y-2">
+                  <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                  <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+                </div>
+                <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 安全提示骨架 -->
+      <div class="card">
+        <div class="card-body">
+          <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+          <div class="space-y-3">
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 安全提示 -->
-    <div class="card mt-4">
-      <div class="card-body">
-        <h6 class="card-title mb-3">安全提示</h6>
-        <ul class="list-group list-group-flush">
-          <li class="list-group-item">
-            <i class="bi bi-shield-check text-success me-2"></i>
-            邮箱和手机号用于账号找回和安全验证
-          </li>
-          <li class="list-group-item">
-            <i class="bi bi-clock-history text-warning me-2"></i>
-            验证码有效期为5分钟，请及时输入
-          </li>
-          <li class="list-group-item">
-            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
-            请勿将验证码透露给他人
-          </li>
-          <li class="list-group-item">
-            <i class="bi bi-lock text-info me-2"></i>
-            修改联系方式后，系统会自动同步用户信息
-          </li>
-        </ul>
+    <div v-else class="space-y-4">
+      <!-- 个人网站设置 -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h6 class="card-title mb-3">个人网站设置</h6>
+          <form @submit.prevent="updateWebsite">
+            <!-- 网站名称 -->
+            <div class="mb-3">
+              <label for="websiteName" class="form-label">网站名称</label>
+              <input 
+                type="text" 
+                id="websiteName" 
+                v-model="(websiteForm || {}).name" 
+                class="form-control"
+                placeholder="请输入网站名称"
+                maxlength="50"
+              >
+            </div>
+
+            <!-- 网站网址 -->
+            <div class="mb-3">
+              <label for="websiteUrl" class="form-label">网站网址</label>
+              <input 
+                type="url" 
+                id="websiteUrl" 
+                v-model="(websiteForm || {}).url" 
+                class="form-control"
+                placeholder="请输入网站网址（例如：https://blog.example.com）"
+                maxlength="100"
+              >
+            </div>
+
+            <!-- 提交按钮 -->
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              :disabled="websiteLoading"
+            >
+              <i class="bi bi-save me-2"></i>
+              {{ websiteLoading ? '保存中...' : '保存网站信息' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- 邮箱设置 -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title mb-3">邮箱设置</h6>
+              <form @submit.prevent="updateEmail">
+                <!-- 邮箱 -->
+                <div class="mb-3">
+                  <label for="email" class="form-label">新邮箱</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    v-model="emailForm.email" 
+                    class="form-control"
+                    placeholder="请输入新邮箱"
+                    maxlength="50"
+                  >
+                </div>
+
+                <!-- 验证码 -->
+                <div class="mb-3">
+                  <label for="emailCode" class="form-label">验证码</label>
+                  <div class="input-group">
+                    <input 
+                      type="text" 
+                      id="emailCode" 
+                      v-model="emailForm.code" 
+                      class="form-control"
+                      placeholder="请输入6位数字验证码"
+                      maxlength="6"
+                      pattern="^\d{6}$"
+                    >
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary"
+                      @click="sendEmailCode"
+                      :disabled="emailSending || emailLoading || emailCountdown > 0"
+                    >
+                      {{ emailSending ? '发送中...' : emailCountdown > 0 ? emailCountdown + '秒后重试' : '发送验证码' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <button 
+                  type="submit" 
+                  class="btn btn-primary"
+                  :disabled="emailLoading"
+                >
+                  <i class="bi bi-save me-2"></i>
+                  {{ emailLoading ? '保存中...' : '修改邮箱' }}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- 手机号设置 -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h6 class="card-title mb-3">手机号设置</h6>
+              <form @submit.prevent="updatePhone">
+                <!-- 手机号 -->
+                <div class="mb-3">
+                  <label for="phone" class="form-label">新手机号</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    v-model="phoneForm.phone" 
+                    class="form-control"
+                    placeholder="请输入新手机号"
+                    maxlength="11"
+                    pattern="^1[3-9]\d{9}$"
+                  >
+                </div>
+
+                <!-- 验证码 -->
+                <div class="mb-3">
+                  <label for="phoneCode" class="form-label">验证码</label>
+                  <div class="input-group">
+                    <input 
+                      type="text" 
+                      id="phoneCode" 
+                      v-model="phoneForm.code" 
+                      class="form-control"
+                      placeholder="请输入6位数字验证码"
+                      maxlength="6"
+                      pattern="^\d{6}$"
+                    >
+                    <button 
+                      type="button" 
+                      class="btn btn-outline-secondary"
+                      @click="sendPhoneCode"
+                      :disabled="phoneSending || phoneLoading || phoneCountdown > 0"
+                    >
+                      {{ phoneSending ? '发送中...' : phoneCountdown > 0 ? phoneCountdown + '秒后重试' : '发送验证码' }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <button 
+                  type="submit" 
+                  class="btn btn-primary"
+                  :disabled="phoneLoading"
+                >
+                  <i class="bi bi-save me-2"></i>
+                  {{ phoneLoading ? '保存中...' : '修改手机号' }}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 安全提示 -->
+      <div class="card mt-4">
+        <div class="card-body">
+          <h6 class="card-title mb-3">安全提示</h6>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <i class="bi bi-shield-check text-success me-2"></i>
+              邮箱和手机号用于账号找回和安全验证
+            </li>
+            <li class="list-group-item">
+              <i class="bi bi-clock-history text-warning me-2"></i>
+              验证码有效期为5分钟，请及时输入
+            </li>
+            <li class="list-group-item">
+              <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+              请勿将验证码透露给他人
+            </li>
+            <li class="list-group-item">
+              <i class="bi bi-lock text-info me-2"></i>
+              修改联系方式后，系统会自动同步用户信息
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -219,6 +296,7 @@ const websiteForm = reactive({
 const emailLoading = ref(false)
 const phoneLoading = ref(false)
 const websiteLoading = ref(false)
+const loading = ref(true)
 
 // 发送状态
 const emailSending = ref(false)
@@ -652,6 +730,7 @@ onMounted(() => {
       websiteForm.url = userInfo.json.website.url || ''
     }
   }
+  loading.value = false
 })
 
 // 组件卸载时清理定时器
@@ -726,6 +805,29 @@ onUnmounted(() => {
 
 .list-group-item:last-child {
   border-bottom: 0;
+}
+
+/* 骨架加载器样式 */
+.skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.1) 50%, var(--bs-tertiary-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 深色模式适配 */
+.dark .skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
+  background-size: 200% 100%;
 }
 
 /* 响应式调整 */

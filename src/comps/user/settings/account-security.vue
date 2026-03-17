@@ -1,7 +1,48 @@
 <!-- 账号安全设置组件 -->
 <template>
   <div class="account-security-settings">
-    <div class="row">
+    <div v-if="loading" class="space-y-4">
+      <!-- 密码设置骨架 -->
+      <div class="card">
+        <div class="card-body">
+          <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            </div>
+            <div class="space-y-2">
+              <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+              <div class="skeleton-loader" style="height: 6px; width: 100%; border-radius: 3px;"></div>
+            </div>
+            <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 安全提示骨架 -->
+      <div class="card">
+        <div class="card-body">
+          <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+          <div class="space-y-3">
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+            <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="row">
       <!-- 密码设置 -->
       <div class="col-md-12">
         <div class="card mb-4">
@@ -95,7 +136,7 @@
     </div>
 
     <!-- 安全提示 -->
-    <div class="card mt-4">
+    <div v-if="!loading" class="card mt-4">
       <div class="card-body">
         <h6 class="card-title mb-3">安全提示</h6>
         <ul class="list-group list-group-flush">
@@ -139,6 +180,7 @@ const passwordForm = reactive({
 
 // 加载状态
 const passwordLoading = ref(false)
+const loading = ref(true)
 
 // 密码强度计算
 const calculatePasswordStrength = (password) => {
@@ -261,6 +303,7 @@ const fetchUserInfo = () => {
   if (userInfo) {
     passwordForm.id = userInfo.id
   }
+  loading.value = false
 }
 
 // 组件挂载时获取用户信息
@@ -317,6 +360,29 @@ onMounted(() => {
 
 .list-group-item:last-child {
   border-bottom: 0;
+}
+
+/* 骨架加载器样式 */
+.skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.1) 50%, var(--bs-tertiary-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 深色模式适配 */
+.dark .skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
+  background-size: 200% 100%;
 }
 
 /* 响应式调整 */

@@ -1,11 +1,63 @@
 <template>
   <!-- 全局外层容器：居中、收窄宽度、统一留白 -->
   <div class="article-page-wrapper">
-    <!-- 加载状态：优化尺寸、间距，更协调 -->
-    <div v-if="loading" class="page-loading">
-      <div class="spinner-border text-info fs-4" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <!-- 加载状态：骨架加载器 -->
+    <div v-if="loading">
+      <!-- 面包屑导航骨架 -->
+      <div class="card shadow-sm p-3 mt-2">
+        <div class="skeleton skeleton-breadcrumb mb-2"></div>
+        <div class="skeleton skeleton-breadcrumb-item"></div>
       </div>
+      
+      <!-- 文章内容骨架 -->
+      <main class="card shadow-sm mt-2">
+        <div class="p-3">
+          <!-- 文章头部骨架 -->
+          <header class="article-header">
+            <div class="skeleton skeleton-article-title mb-3"></div>
+            <div class="d-flex flex-wrap gap-4 mb-4">
+              <div class="skeleton skeleton-meta-item"></div>
+              <div class="skeleton skeleton-meta-item"></div>
+              <div class="skeleton skeleton-meta-item"></div>
+              <div class="skeleton skeleton-meta-item"></div>
+            </div>
+          </header>
+          
+          <!-- 文章内容骨架 -->
+          <div class="article-content mt-4">
+            <div class="skeleton skeleton-content-block mb-4"></div>
+            <div class="skeleton skeleton-content-block mb-4"></div>
+            <div class="skeleton skeleton-content-block mb-4"></div>
+            <div class="skeleton skeleton-content-block mb-4"></div>
+          </div>
+          
+          <!-- 版权信息骨架 -->
+          <div class="border rounded mt-3 p-2">
+            <div class="skeleton skeleton-copyright-item mb-2"></div>
+            <div class="skeleton skeleton-copyright-item mb-2"></div>
+            <div class="skeleton skeleton-copyright-item mb-2"></div>
+            <div class="skeleton skeleton-copyright-item"></div>
+          </div>
+          
+          <!-- 操作按钮骨架 -->
+          <div class="mt-4 mb-4 d-flex justify-content-center">
+            <div class="d-flex gap-2">
+              <div class="skeleton skeleton-btn"></div>
+              <div class="skeleton skeleton-btn"></div>
+              <div class="skeleton skeleton-btn"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <!-- 评论区骨架 -->
+      <section class="article-comment mt-2 mb-8">
+        <div class="card shadow-sm p-3">
+          <div class="skeleton skeleton-comment-title mb-3"></div>
+          <div class="skeleton skeleton-comment-form mb-4"></div>
+          <div v-for="i in 3" :key="`comment-${i}`" class="skeleton skeleton-comment-item mb-3"></div>
+        </div>
+      </section>
     </div>
 
     <!-- 错误状态 -->
@@ -714,12 +766,76 @@ watch(
 </script>
 
 <style scoped>
-/* 加载状态：居中、占满视口高度 */
-.page-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
+/* 骨架加载器样式 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* 骨架加载器动画 */
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 骨架加载器各部分尺寸 */
+.skeleton-breadcrumb {
+  height: 1rem;
+  width: 60%;
+}
+
+.skeleton-breadcrumb-item {
+  height: 1rem;
+  width: 80%;
+}
+
+.skeleton-article-title {
+  height: 2.5rem;
+  width: 100%;
+}
+
+.skeleton-meta-item {
+  height: 1rem;
+  width: 120px;
+}
+
+.skeleton-content-block {
+  height: 1.2rem;
+  width: 100%;
+}
+
+.skeleton-copyright-item {
+  height: 1rem;
+  width: 100%;
+}
+
+.skeleton-btn {
+  height: 2.5rem;
+  width: 80px;
+  border-radius: 0.375rem;
+}
+
+.skeleton-comment-title {
+  height: 1.5rem;
+  width: 50%;
+}
+
+.skeleton-comment-form {
+  height: 100px;
+  width: 100%;
+  border-radius: 0.375rem;
+}
+
+.skeleton-comment-item {
+  height: 80px;
+  width: 100%;
+  border-radius: 0.375rem;
 }
 
 /* 面包屑导航自定义样式 */
@@ -930,6 +1046,12 @@ watch(
   /* 加载状态 */
   .spinner-border {
     color: var(--bs-info);
+  }
+  
+  /* 骨架加载器暗黑模式 */
+  .skeleton {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background-size: 200% 100%;
   }
   
   /* 错误状态 */

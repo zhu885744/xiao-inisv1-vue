@@ -1,9 +1,41 @@
 <template>
   <div class="tags-page-wrapper">
     <!-- 加载状态 -->
-    <div v-if="loading" class="page-loading">
-      <div class="spinner-border text-info fs-4" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div v-if="loading">
+      <!-- 标签列表页骨架 -->
+      <div class="tags-list-page">
+        <!-- 标签总数统计骨架 -->
+        <div class="tags-count card  shadow-sm p-4 mt-2">
+          <div class="tags-count-header">
+            <div class="skeleton skeleton-tags-count-title mb-3"></div>
+          </div>
+        </div>
+        <!-- 标签卡片网格骨架 -->
+        <div class="tags-grid card  shadow-sm p-4 mt-2">
+          <div class="tags-grid-container">
+            <div v-for="i in 6" :key="`tag-skeleton-${i}`" class="tag-card">
+              <div class="tag-card-inner">
+                <!-- 标签头像骨架 -->
+                <div class="tag-avatar">
+                  <div class="skeleton skeleton-tag-avatar"></div>
+                </div>
+                <!-- 标签信息骨架 -->
+                <div class="tag-card-body">
+                  <div class="skeleton skeleton-tag-card-title mb-2"></div>
+                  <div class="skeleton skeleton-tag-card-description mb-3"></div>
+                  <div class="tag-card-footer">
+                    <div class="skeleton skeleton-tag-article-count"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 标签分页骨架 -->
+        <div class="tag-pagination-container mt-4">
+          <div class="skeleton skeleton-pagination"></div>
+        </div>
       </div>
     </div>
 
@@ -718,12 +750,49 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 加载状态 */
-.page-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
+/* 骨架加载器样式 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* 骨架加载器各部分尺寸 */
+.skeleton-tags-count-title {
+  height: 2rem;
+  width: 60%;
+}
+
+.skeleton-tag-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+}
+
+.skeleton-tag-card-title {
+  height: 1.2rem;
+  width: 70%;
+  margin: 0 auto;
+}
+
+.skeleton-tag-card-description {
+  height: 0.9rem;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.skeleton-tag-article-count {
+  height: 0.85rem;
+  width: 60%;
+  margin: 0 auto;
+}
+
+.skeleton-pagination {
+  height: 2.5rem;
+  width: 200px;
+  margin: 0 auto;
+  border-radius: 0.375rem;
 }
 
 /* 标签标题 */
@@ -1233,6 +1302,12 @@ img {
   /* 加载动画 */
   .article-cover-img:not([src]) {
     background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  }
+  
+  /* 骨架加载器暗黑模式 */
+  .skeleton {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background-size: 200% 100%;
   }
   
   /* 悬停效果 */

@@ -1,7 +1,64 @@
 <!-- 基础信息设置组件 -->
 <template>
   <div class="basic-info-settings">
-    <div class="row">
+    <div v-if="loading" class="row">
+      <!-- 头像设置骨架 -->
+      <div class="col-md-4 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+            <div class="text-center mb-4">
+              <div class="skeleton-loader" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 1rem;"></div>
+              <div class="skeleton-loader" style="height: 36px; width: 80%; margin: 0 auto 0.5rem;"></div>
+              <div class="skeleton-loader" style="height: 14px; width: 90%; margin: 0 auto;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 基本信息表单骨架 -->
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-body">
+            <div class="skeleton-loader" style="height: 20px; width: 60%; margin-bottom: 1.5rem;"></div>
+            <div class="space-y-4">
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+              <div class="space-y-2">
+                <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                <div class="d-flex gap-4">
+                  <div class="skeleton-loader" style="height: 20px; width: 20%;"></div>
+                  <div class="skeleton-loader" style="height: 20px; width: 20%;"></div>
+                  <div class="skeleton-loader" style="height: 20px; width: 20%;"></div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                <div class="skeleton-loader" style="height: 100px; width: 100%;"></div>
+                <div class="skeleton-loader" style="height: 14px; width: 20%; margin-left: auto;"></div>
+              </div>
+              <div class="space-y-2">
+                <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
+                <div class="row">
+                  <div class="col-md-6 mb-2">
+                    <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="skeleton-loader" style="height: 14px; width: 80%;"></div>
+              </div>
+              <div class="d-flex gap-2">
+                <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
+                <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="row">
       <!-- 头像设置 -->
       <div class="col-md-4 mb-4">
         <div class="card">
@@ -134,8 +191,6 @@
                   手机号和邮箱可在"联系方式"标签页中修改
                 </div>
               </div>
-
-
 
               <!-- 提交按钮 -->
               <div class="d-flex gap-2">
@@ -317,6 +372,29 @@ onMounted(() => {
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.375rem;
+}
+
+/* 骨架加载器样式 */
+.skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.1) 50%, var(--bs-tertiary-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 深色模式适配 */
+.dark .skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
+  background-size: 200% 100%;
 }
 
 /* 响应式调整 */

@@ -1,7 +1,4 @@
 <template>
-  <!-- 公告卡片 -->
-  <i-notice />
-
   <!-- 轮播图 -->
   <div v-if="banners.length > 0" class="mt-2">
     <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
@@ -34,34 +31,63 @@
       </button>
     </div>
   </div>
+  
+  <!-- 首页公告模块 -->
+  <i-notice /> 
 
   <!-- 排序选项 -->
   <div class="mt-2 mb-3">
     <div class="card shadow-sm p-3">
-      <div class="d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 text-muted">文章排序</h6>
-        <div class="sort-controls">
-          <select 
-            id="sort-select" 
-            v-model="order" 
-            @change="handleSortChange"
-            class="form-select form-select-sm border-primary"
-            style="min-width: 160px;"
+      <div class="d-flex flex-column">
+        <div class="sort-tabs d-flex border rounded-lg overflow-hidden">
+          <button 
+            v-for="(option, index) in sortOptions" 
+            :key="index"
+            :class="['sort-tab-btn', { active: order === option.value }]"
+            @click="setSortOption(option.value)"
           >
-            <option value="top desc, create_time desc">最新发布</option>
-            <option value="views desc">最多浏览</option>
-            <option value="update_time desc">最新更新</option>
-            <option value="id asc">按 ID 排序</option>
-          </select>
+            {{ option.label }}
+          </button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 加载状态 -->
-  <div v-if="loading && articleList.length === 0" class="d-flex justify-content-center align-items-center py-5">
-    <div class="spinner-border text-info" role="status">
-      <span class="visually-hidden">Loading...</span>
+  <div v-if="loading && articleList.length === 0" class="article-list-container mt-2">
+    <!-- 骨架加载器 -->
+    <div v-for="i in 6" :key="`skeleton-${i}`" :class="['card', hasImageMode ? 'article-item-card shadow-sm' : 'article-item-list shadow-sm mt-2']">
+      <!-- 有图模式骨架 -->
+      <div v-if="hasImageMode" class="card-body p-0 d-flex flex-column h-100">
+        <!-- 封面骨架 -->
+        <div class="article-cover flex-shrink-0">
+          <div class="skeleton skeleton-cover"></div>
+        </div>
+        <!-- 内容骨架 -->
+        <div class="article-content p-2 flex-grow-1 d-flex flex-column">
+          <!-- 标题骨架 -->
+          <div class="skeleton skeleton-title mb-1"></div>
+          <!-- 摘要骨架 -->
+          <div class="skeleton skeleton-desc mt-auto mb-1"></div>
+          <!-- 元信息骨架 -->
+          <div class="d-flex justify-content-between mt-2">
+            <div class="skeleton skeleton-meta-left"></div>
+            <div class="skeleton skeleton-meta-right"></div>
+          </div>
+        </div>
+      </div>
+      <!-- 无图模式骨架 -->
+      <div v-else class="card-body p-2">
+        <!-- 标题骨架 -->
+        <div class="skeleton skeleton-title-list mb-2"></div>
+        <!-- 摘要骨架 -->
+        <div class="skeleton skeleton-desc-list mb-3"></div>
+        <!-- 元信息骨架 -->
+        <div class="d-flex justify-content-between">
+          <div class="skeleton skeleton-meta-left"></div>
+          <div class="skeleton skeleton-meta-right"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -271,6 +297,13 @@ const currentPage = ref(1)
 const limit = ref(9)
 const total = ref(0)
 const order = ref('top desc, create_time desc')
+// 排序选项
+const sortOptions = [
+  { label: '最新发布', value: 'top desc, create_time desc' },
+  { label: '最多浏览', value: 'views desc' },
+  { label: '最新更新', value: 'update_time desc' },
+  { label: '按 ID 排序', value: 'id asc' }
+]
 // 显示模式：true为有图模式（网格布局），false为无图模式（列表布局）
 const hasImageMode = ref(true)
 // 轮播图数据
@@ -333,6 +366,13 @@ const changePage = (page) => {
 
 // 处理排序变化
 const handleSortChange = () => {
+  currentPage.value = 1
+  getArticleList(1)
+}
+
+// 设置排序选项
+const setSortOption = (value) => {
+  order.value = value
   currentPage.value = 1
   getArticleList(1)
 }
@@ -736,23 +776,49 @@ img {
   padding: 1rem;
 }
 
-/* 排序控件样式 */
-.sort-controls {
+/* 排序Tab样式 */
+.sort-tabs {
+  width: 100%;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #f8f9fa;
 }
 
-.sort-controls .form-select {
+.sort-tab-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: #6c757d;
   font-size: 0.875rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
   transition: all 0.2s ease;
+  text-align: center;
+  position: relative;
 }
 
-.sort-controls .form-select:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+.sort-tab-btn:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+}
+
+.sort-tab-btn.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: 600;
+}
+
+.sort-tab-btn:first-child {
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+}
+
+.sort-tab-btn:last-child {
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
 }
 
 /* 分页样式 */
@@ -793,15 +859,17 @@ img {
     font-size: 1rem;
   }
   
-  /* 排序控件响应式 */
-  .sort-controls {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
+  /* 排序Tab响应式 */
+  .sort-tab-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
   }
   
-  .sort-controls .form-select {
-    width: 100%;
+  @media (max-width: 360px) {
+    .sort-tab-btn {
+      padding: 0.3rem 0.5rem;
+      font-size: 0.7rem;
+    }
   }
 }
 
@@ -831,6 +899,55 @@ img {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
+}
+
+/* 骨架加载器样式 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* 骨架加载器各部分尺寸 */
+.skeleton-cover {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 0;
+}
+
+.skeleton-title {
+  height: 1.2rem;
+  width: 80%;
+}
+
+.skeleton-desc {
+  height: 0.6rem;
+  width: 100%;
+}
+
+.skeleton-meta-left {
+  height: 0.7rem;
+  width: 40%;
+}
+
+.skeleton-meta-right {
+  height: 0.7rem;
+  width: 30%;
+}
+
+.skeleton-title-list {
+  height: 1.5rem;
+  width: 90%;
+}
+
+.skeleton-desc-list {
+  height: 0.9rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
 }
 
 /* 暗黑模式适配 */
@@ -874,6 +991,32 @@ img {
   /* 加载动画 */
   .article-cover-img:not([src]) {
     background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  }
+  
+  /* 骨架加载器暗黑模式 */
+  .skeleton {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background-size: 200% 100%;
+  }
+  
+  /* 排序Tab暗黑模式 */
+  .sort-tabs {
+    border-color: var(--bs-border-color);
+    background-color: var(--bs-body-bg);
+  }
+  
+  .sort-tab-btn {
+    color: var(--bs-secondary-color);
+  }
+  
+  .sort-tab-btn:hover {
+    background-color: rgba(0, 123, 255, 0.2);
+    color: var(--bs-primary);
+  }
+  
+  .sort-tab-btn.active {
+    background-color: var(--bs-primary);
+    color: white;
   }
   
   /* 悬停效果 */

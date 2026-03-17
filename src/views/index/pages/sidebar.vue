@@ -128,9 +128,20 @@
         </div>
         
         <!-- 加载状态 -->
-        <div v-if="levelLoading" class="text-center py-4">
-          <div class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div v-if="levelLoading" class="py-4">
+          <div class="skeleton-loader mb-3" style="height: 40px; border-radius: 0.375rem;"></div>
+          <div class="space-y-2">
+            <div v-for="i in 3" :key="i" class="d-flex align-items-center gap-3">
+              <div class="skeleton-loader" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+              <div class="flex-grow-1 space-y-2">
+                <div class="skeleton-loader" style="height: 16px; width: 70%;"></div>
+                <div class="skeleton-loader" style="height: 5px; width: 100%;"></div>
+                <div class="d-flex justify-content-between">
+                  <div class="skeleton-loader" style="height: 14px; width: 40%;"></div>
+                  <div class="skeleton-loader" style="height: 14px; width: 30%;"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -200,9 +211,18 @@
       </div>
       <div class="card-body">
         <!-- 加载状态 -->
-        <div v-if="loading" class="text-center py-4">
-          <div class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div v-if="loading" class="py-4">
+          <div class="space-y-3">
+            <div v-for="i in 5" :key="i" class="d-flex align-items-start gap-3">
+              <div class="skeleton-loader" style="width: 28px; height: 28px; border-radius: 50%;"></div>
+              <div class="flex-grow-1 space-y-2">
+                <div class="skeleton-loader" style="height: 16px; width: 80%;"></div>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="skeleton-loader" style="height: 14px; width: 40%;"></div>
+                  <div class="skeleton-loader" style="height: 14px; width: 30%;"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -265,9 +285,20 @@
       </div>
       <div class="card-body">
         <!-- 加载状态 -->
-        <div v-if="commentLoading" class="text-center py-4">
-          <div class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div v-if="commentLoading" class="py-4">
+          <div class="space-y-4">
+            <div v-for="i in 3" :key="i" class="space-y-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="skeleton-loader" style="width: 36px; height: 36px; border-radius: 50%;"></div>
+                <div class="flex-grow-1 space-y-1">
+                  <div class="skeleton-loader" style="height: 14px; width: 60%;"></div>
+                  <div class="skeleton-loader" style="height: 12px; width: 40%;"></div>
+                </div>
+              </div>
+              <div class="skeleton-loader" style="height: 16px; width: 100%;"></div>
+              <div class="skeleton-loader" style="height: 16px; width: 90%;"></div>
+              <div class="skeleton-loader" style="height: 32px; width: 100%; border-radius: 0.375rem;"></div>
+            </div>
           </div>
         </div>
 
@@ -331,9 +362,9 @@
       </div>
       <div class="card-body">
         <!-- 加载状态 -->
-        <div v-if="tagLoading" class="text-center py-4">
-          <div class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Loading...</span>
+        <div v-if="tagLoading" class="py-4">
+          <div class="d-flex flex-wrap gap-2">
+            <div v-for="i in 10" :key="i" class="skeleton-loader" style="height: 32px; padding: 0 16px; border-radius: 0.375rem;"></div>
           </div>
         </div>
 
@@ -1189,6 +1220,23 @@ onMounted(() => {
   }
 }
 
+/* 骨架加载器样式 */
+.skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.1) 50%, var(--bs-tertiary-bg) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* 深色模式适配 */
 .dark-mode {
   border-color: var(--bs-border-color-dark);
@@ -1224,5 +1272,10 @@ onMounted(() => {
 
 .dark-mode .nav-item:hover {
   background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.dark-mode .skeleton-loader {
+  background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
+  background-size: 200% 100%;
 }
 </style>

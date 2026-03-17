@@ -1,9 +1,62 @@
 <template>
   <div class="category-page-wrapper">
     <!-- 加载状态 -->
-    <div v-if="loading" class="page-loading">
-      <div class="spinner-border text-info fs-4" role="status">
-        <span class="visually-hidden">Loading...</span>
+    <div v-if="loading">
+      <!-- 分类信息卡片骨架 -->
+      <div class="category-info card shadow-sm p-4 mt-2">
+        <div class="category-info-inner">
+          <!-- 分类头像骨架 -->
+          <div class="category-info-avatar">
+            <div class="skeleton skeleton-avatar"></div>
+          </div>
+          <!-- 分类信息骨架 -->
+          <div class="category-info-content">
+            <div class="skeleton skeleton-category-title mb-3"></div>
+            <div class="skeleton skeleton-category-description mb-4"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 文章列表骨架 -->
+      <div :class="['article-list-container mt-2', hasImageMode ? 'grid-article-list' : 'list-article-list']">
+        <div v-for="i in 6" :key="`skeleton-${i}`" :class="['card', hasImageMode ? 'article-item-card shadow-sm' : 'article-item-list shadow-sm mt-2']">
+          <!-- 有图模式骨架 -->
+          <div v-if="hasImageMode" class="card-body p-0 d-flex flex-column h-100">
+            <!-- 封面骨架 -->
+            <div class="article-cover flex-shrink-0">
+              <div class="skeleton skeleton-cover"></div>
+            </div>
+            <!-- 内容骨架 -->
+            <div class="article-content p-2 flex-grow-1 d-flex flex-column">
+              <!-- 标题骨架 -->
+              <div class="skeleton skeleton-title mb-1"></div>
+              <!-- 摘要骨架 -->
+              <div class="skeleton skeleton-desc mt-auto mb-1"></div>
+              <!-- 元信息骨架 -->
+              <div class="d-flex justify-content-between mt-2">
+                <div class="skeleton skeleton-meta-left"></div>
+                <div class="skeleton skeleton-meta-right"></div>
+              </div>
+            </div>
+          </div>
+          <!-- 无图模式骨架 -->
+          <div v-else class="card-body p-2">
+            <!-- 标题骨架 -->
+            <div class="skeleton skeleton-title-list mb-2"></div>
+            <!-- 摘要骨架 -->
+            <div class="skeleton skeleton-desc-list mb-3"></div>
+            <!-- 元信息骨架 -->
+            <div class="d-flex justify-content-between">
+              <div class="skeleton skeleton-meta-left"></div>
+              <div class="skeleton skeleton-meta-right"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 分页骨架 -->
+      <div class="pagination-container mt-4">
+        <div class="skeleton skeleton-pagination"></div>
       </div>
     </div>
 
@@ -534,12 +587,76 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 加载状态 */
-.page-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 60vh;
+/* 骨架加载器样式 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* 骨架加载器各部分尺寸 */
+.skeleton-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+}
+
+.skeleton-category-title {
+  height: 2.5rem;
+  width: 70%;
+}
+
+.skeleton-category-description {
+  height: 1.1rem;
+  width: 100%;
+}
+
+.skeleton-cover {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 0;
+}
+
+.skeleton-title {
+  height: 1.2rem;
+  width: 80%;
+}
+
+.skeleton-desc {
+  height: 0.6rem;
+  width: 100%;
+}
+
+.skeleton-meta-left {
+  height: 0.7rem;
+  width: 40%;
+}
+
+.skeleton-meta-right {
+  height: 0.7rem;
+  width: 30%;
+}
+
+.skeleton-title-list {
+  height: 1.5rem;
+  width: 90%;
+}
+
+.skeleton-desc-list {
+  height: 0.9rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-pagination {
+  height: 2.5rem;
+  width: 200px;
+  margin: 0 auto;
+  border-radius: 0.375rem;
 }
 
 /* 分类信息卡片 */
@@ -880,6 +997,12 @@ img {
   /* 加载动画 */
   .article-cover-img:not([src]) {
     background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+  }
+  
+  /* 骨架加载器暗黑模式 */
+  .skeleton {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background-size: 200% 100%;
   }
   
   /* 悬停效果 */

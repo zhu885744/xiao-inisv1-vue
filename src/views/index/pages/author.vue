@@ -18,11 +18,103 @@
     </div>
 
     <!-- 加载状态 -->
-    <div v-if="loading" class="card-body text-center py-10">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">加载中...</span>
+    <div v-if="loading" class="card-body p-4">
+      <!-- 用户基本信息骨架 -->
+      <div class="user-basic-info mb-4">
+        <div class="d-flex align-items-start gap-4 mb-4">
+          <div class="position-relative">
+            <div class="skeleton skeleton-avatar"></div>
+          </div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="skeleton skeleton-nickname"></div>
+              <div class="skeleton skeleton-badge"></div>
+              <div class="skeleton skeleton-badge"></div>
+            </div>
+            <!-- 个人网站骨架 -->
+            <div class="skeleton skeleton-website mb-3 mt-3"></div>
+            <!-- 用户信息骨架 -->
+            <div class="d-flex align-items-center gap-4 flex-wrap text-sm mb-2">
+              <div class="skeleton skeleton-info-item"></div>
+              <div class="skeleton skeleton-info-item"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 个人简介骨架 -->
+        <div class="user-description mb-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
+          <div class="skeleton skeleton-description"></div>
+        </div>
+
+        <!-- 用户标签骨架 -->
+        <div class="user-tags mb-4">
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="skeleton skeleton-tag"></div>
+            <div class="skeleton skeleton-tag"></div>
+            <div class="skeleton skeleton-tag"></div>
+            <div class="skeleton skeleton-tag"></div>
+          </div>
+        </div>
       </div>
-      <p class="mt-3 text-muted">正在加载用户信息...</p>
+
+      <!-- 用户等级信息骨架 -->
+      <div class="user-level mb-5">
+        <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-section-title"></div>
+        </h6>
+        <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="skeleton skeleton-level-label"></div>
+            <div class="skeleton skeleton-level-value"></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="skeleton skeleton-level-label"></div>
+            <div class="skeleton skeleton-level-value"></div>
+          </div>
+          <!-- 经验值进度条骨架 -->
+          <div class="mb-1">
+            <div class="d-flex justify-content-between mb-2">
+              <div class="skeleton skeleton-progress-label"></div>
+              <div class="skeleton skeleton-progress-value"></div>
+            </div>
+            <div class="skeleton skeleton-progress-bar"></div>
+          </div>
+          <!-- 等级描述骨架 -->
+          <div class="mt-4">
+            <div class="skeleton skeleton-level-description"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户权限信息骨架 -->
+      <div class="user-auth mb-5">
+        <h6 class="mb-3 d-flex align-items-center gap-2 text-lg font-medium">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-section-title"></div>
+        </h6>
+        <div class="p-4 bg-gradient-to-r from-success/10 to-secondary/10 border border-success/20">
+          <div class="mb-3">
+            <div class="skeleton skeleton-auth-label"></div>
+            <div class="d-flex gap-2 mt-2">
+              <div class="skeleton skeleton-auth-badge"></div>
+              <div class="skeleton skeleton-auth-badge"></div>
+            </div>
+          </div>
+          <div>
+            <div class="skeleton skeleton-auth-label"></div>
+            <div class="mt-2">
+              <div class="skeleton skeleton-auth-badge"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 交互按钮骨架 -->
+      <div class="user-actions d-flex gap-2 flex-wrap">
+        <div class="skeleton skeleton-button"></div>
+        <div class="skeleton skeleton-button"></div>
+      </div>
     </div>
 
     <!-- 错误状态 -->
@@ -462,6 +554,122 @@ watch(
 </script>
 
 <style scoped>
+/* 骨架加载器样式 */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+/* 骨架加载器动画 */
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 骨架加载器各部分尺寸 */
+.skeleton-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+}
+
+.skeleton-nickname {
+  height: 1.5rem;
+  width: 150px;
+}
+
+.skeleton-badge {
+  height: 1.2rem;
+  width: 80px;
+  border-radius: 1rem;
+}
+
+.skeleton-website {
+  height: 1rem;
+  width: 200px;
+}
+
+.skeleton-info-item {
+  height: 1rem;
+  width: 120px;
+}
+
+.skeleton-description {
+  height: 6rem;
+  width: 100%;
+}
+
+.skeleton-tag {
+  height: 1.5rem;
+  width: 100px;
+  border-radius: 1rem;
+}
+
+.skeleton-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+}
+
+.skeleton-section-title {
+  height: 1.2rem;
+  width: 100px;
+}
+
+.skeleton-level-label {
+  height: 1rem;
+  width: 80px;
+}
+
+.skeleton-level-value {
+  height: 1rem;
+  width: 120px;
+}
+
+.skeleton-progress-label {
+  height: 0.8rem;
+  width: 100px;
+}
+
+.skeleton-progress-value {
+  height: 0.8rem;
+  width: 80px;
+}
+
+.skeleton-progress-bar {
+  height: 10px;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.skeleton-level-description {
+  height: 2rem;
+  width: 100%;
+}
+
+.skeleton-auth-label {
+  height: 1rem;
+  width: 80px;
+}
+
+.skeleton-auth-badge {
+  height: 1.2rem;
+  width: 100px;
+  border-radius: 1rem;
+}
+
+.skeleton-button {
+  height: 2rem;
+  width: 120px;
+  border-radius: 0.375rem;
+}
+
 /* 加载动画 */
 .spin {
   animation: spin 1s linear infinite;
@@ -738,6 +946,12 @@ watch(
   /* 加载状态 */
   .spinner-border {
     --bs-spinner-color: var(--bs-link-color);
+  }
+  
+  /* 骨架加载器暗黑模式 */
+  .skeleton {
+    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background-size: 200% 100%;
   }
 }
 </style>
