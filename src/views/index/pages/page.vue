@@ -227,41 +227,26 @@
             <div v-else class="link-list-container">
               <div v-for="(groupLinks, groupName) in groupLinkMap" :key="groupName" class="mb-6">
                 <h3 class="link-cate mt-3">{{ groupName }}</h3>
-                <!-- 调整列布局：长方形卡片适合更少的列数 -->
-                <div class="row g-4">
-                  <!-- 响应式调整：PC端2列，平板2列，手机1列 -->
-                  <div v-for="link in groupLinks" :key="link.id" class="col-lg-6 col-md-6 col-sm-6 col-12">
-                    <!-- 现代化友链卡片：横向布局 -->
-                    <div class="link-card h-100 d-flex align-items-center p-4 transition-all duration-300">
-                      <!-- 头像区域 -->
-                      <div class="link-avatar-wrapper me-4 flex-shrink-0">
-                        <img 
-                          :src="link.avatar" 
-                          :alt="link.nickname" 
-                          class="link-avatar transition-transform duration-300 hover:scale-110"
-                          @error="handleLinkAvatarError"
-                        >
+                <!-- 友链小卡片网格布局 -->
+                <div class="row g-3">
+                  <!-- 友链小卡片 -->
+                  <div v-for="link in groupLinks" :key="link.id" class="col-lg-4 col-md-6 col-sm-6 col-12">
+                    <a 
+                      :href="link.url" 
+                      :target="link.target || '_blank'" 
+                      class="link-card-small text-decoration-none d-block h-100"
+                    >
+                      <div class="link-card-inner h-100">
+                        <!-- 友链名称 -->
+                        <h4 class="link-name mb-2">{{ link.nickname }}</h4>
+                        <!-- 友链简介 -->
+                        <p class="link-desc mb-2">{{ link.description || '暂无介绍' }}</p>
+                        <!-- 友链链接 -->
+                        <small class="link-url text-muted text-truncate d-block">
+                          <i class="bi bi-link-45deg me-1"></i>{{ link.url }}
+                        </small>
                       </div>
-                      
-                      <!-- 信息区域（占主要宽度） -->
-                      <div class="link-info flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                          <h4 class="link-name mb-0 transition-colors duration-200">
-                            {{ link.nickname }}
-                          </h4>
-                          <a 
-                            :href="link.url" 
-                            :target="link.target || '_blank'" 
-                            class="btn btn-primary btn-sm rounded-full px-4 py-1 text-sm font-medium transition-all duration-200"
-                          >
-                            访问
-                          </a>
-                        </div>
-                        <p class="link-desc mb-0 line-clamp-2">
-                          {{ link.description || '无介绍' }}
-                        </p>
-                      </div>
-                    </div>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -2680,6 +2665,42 @@ onUnmounted(() => {
     flex: 0 0 100%;
     max-width: 100%;
   }
+}
+
+/* 友链小卡片样式 */
+.link-card-small {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: var(--bs-card-bg);
+  transition: all 0.3s ease;
+}
+
+.link-card-small:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--bs-shadow-lg);
+  border-color: var(--bs-primary);
+}
+
+.link-card-small .link-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+.link-card-small .link-desc {
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.link-card-small .link-url {
+  font-size: 0.75rem;
+  color: var(--bs-tertiary-color);
 }
 
 /* 留言板页面样式 */
