@@ -277,13 +277,6 @@ const toggleSidebar = () => {
   overflow-y: auto;
 }
 
-/* 页脚 */
-.footer {
-  border-top: 1px solid var(--bs-border-color);
-  padding: 1rem 0;
-  margin-top: auto;
-}
-
 /* 响应式设计 */
 @media (max-width: 991.98px) {
   .page-content {

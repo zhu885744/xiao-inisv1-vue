@@ -72,6 +72,11 @@
             <i class="bi bi-search"></i>
           </button>
           
+          <!-- 消息中心按钮 -->
+          <router-link class="btn btn-outline-secondary me-2" to="/messages">
+            <i class="bi bi-bell"></i>
+          </router-link>
+          
           <!-- 深色/浅色模式切换按钮 -->
           <button 
             class="btn btn-outline-secondary me-2" 
@@ -223,6 +228,19 @@
               暂无分类数据
             </li>
           </ul>
+        </li>
+
+        <!-- 消息中心 -->
+        <li class="nav-item mb-2">
+          <router-link 
+            class="nav-link" 
+            to="/messages" 
+            active-class="active" 
+            exact-active-class="active"
+            @click="closeSidebar"
+          >
+            <i class="bi bi-bell me-2"></i>消息中心
+          </router-link>
         </li>
 
         <!-- 动态导航项 -->

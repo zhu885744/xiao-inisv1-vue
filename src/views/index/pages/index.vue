@@ -31,12 +31,9 @@
       </button>
     </div>
   </div>
-  
-  <!-- 首页公告模块 -->
-  <i-notice /> 
 
   <!-- 排序选项 -->
-  <div class="mt-2 mb-3">
+  <div class="mt-2">
     <div class="card shadow-sm p-3">
       <div class="d-flex flex-column">
         <div class="sort-tabs d-flex border rounded-lg overflow-hidden">
@@ -277,8 +274,6 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/utils/request' 
-// 导入公告组件
-import INotice from '@/comps/custom/i-notice.vue'
 import { usePageTitle } from '@/utils/usePageTitle'
 
 // 使用页面标题管理

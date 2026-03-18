@@ -41,6 +41,15 @@ const routes = [
       keepAlive: true
     }
   },
+  {
+    path: '/messages',
+    name: '消息通知',
+    component: () => import('@/views/index/pages/messages.vue'),
+    meta: { 
+      title: '消息通知', 
+      requiresAuth: false
+    }
+  },
   // 用户相关路由
   {
     path: '/user',
