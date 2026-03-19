@@ -47,13 +47,10 @@
                     </div>
                 </div>
             </nav>
-            
-            <!-- 内容内边距容器 -->
-            <div class="px-3">
-                <!-- 业务内容容器 -->
-                <div class="container-fluid">
-                    <router-view></router-view>
-                </div>
+
+            <!-- 业务内容容器 -->
+            <div class="container-fluid">
+              <router-view></router-view>
             </div>
             
             <!-- 页脚（底部） -->

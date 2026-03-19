@@ -650,13 +650,10 @@ const processedCommentList = computed(() => {
     // 判断是否为文章作者
     const isCommentAuthor = commentAuthorId && articleAuthorId && String(commentAuthorId) === String(articleAuthorId);
     
-    // 处理@提及的函数，添加颜色效果和换行支持
-    const handleAtMentions = (content) => {
+    // 一级评论：仅处理换行，不渲染@颜色
+    const handleContent = (content) => {
       if (!content) return ''
-      // 先将换行符转换为<br>标签
-      let processedContent = content.replace(/\n/g, '<br>')
-      // 匹配@用户名格式，替换为带颜色的HTML
-      return processedContent.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
+      return content.replace(/\n/g, '<br>')
     }
     
     return {
@@ -667,7 +664,7 @@ const processedCommentList = computed(() => {
       level: item.result?.author?.result?.level?.current?.value || item.result?.author?.level?.current?.value || item.author?.result?.level?.current?.value || item.level?.current?.value || item.level || null,
       levelName: levelName,
       time: formatTime(item.create_time || item.time || item.update_time),
-      content: handleAtMentions(item.content || ''),
+      content: handleContent(item.content || ''),
       isAuthor: isCommentAuthor || item.result?.author?.result?.isAuthor || item.result?.author?.isAuthor || item.author?.result?.isAuthor || item.isAuthor || false,
       replies: processReplies(item.replies)
     }
@@ -1384,7 +1381,7 @@ watch(
   
   .emoji-button {
     bottom: 1rem !important;
-    end: 1rem !important;
+    right: 1rem !important;
   }
 }
 

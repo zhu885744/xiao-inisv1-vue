@@ -20,7 +20,7 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb mb-0 breadcrumb-custom">
             <li class="breadcrumb-item">
-              <a href="/" class="text-decoration-none">首页</a>
+              <router-link to="/" class="text-decoration-none">首页</router-link>
             </li>
             <li v-if="isArchivePage" class="breadcrumb-item active" aria-current="page">
               归档
@@ -281,7 +281,7 @@
           <div class="pb-2">
             <!-- 留言统计 -->
             <div class="message-stats mb-6">
-              <div class="card p-4 rounded-lg">
+              <div class="card p-4 rounded-3">
                 <div class="row">
                   <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                     <div class="text-center">
@@ -2563,12 +2563,12 @@ onUnmounted(() => {
   /* 标准属性 + 多浏览器前缀兼容 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   display: -moz-box;
   -moz-line-clamp: 2;
   -moz-box-orient: vertical;
   display: box;
-  line-clamp: 2;
   box-orient: vertical;
 }
 
@@ -2694,6 +2694,7 @@ onUnmounted(() => {
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -2707,7 +2708,6 @@ onUnmounted(() => {
 /* 留言统计区域 */
 .message-stats .card {
   border: 1px solid var(--bs-border-color);
-  border-radius: 0.875rem;
   transition: all 0.3s ease;
 }
 
@@ -2773,7 +2773,6 @@ onUnmounted(() => {
 
 .message-display .card {
   border: 1px solid var(--bs-border-color);
-  border-radius: 0.875rem;
   transition: all 0.3s ease;
 }
 
@@ -2930,7 +2929,6 @@ onUnmounted(() => {
 
 /* 回复弹窗样式 */
 #replyModal .modal-content {
-  border-radius: 0.875rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 

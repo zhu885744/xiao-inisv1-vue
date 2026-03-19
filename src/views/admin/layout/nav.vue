@@ -79,13 +79,53 @@
         </li>
       </ul>
     </nav>
+    
+    <!-- 用户信息卡片 - 固定在侧边栏底部 -->
+    <div class="user">
+      <div class="card border-0 shadow-sm text-bg-light">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+              <img 
+                  :src="userInfo?.avatar || defaultAvatar" 
+                  alt="用户头像" 
+                  class="rounded-circle"
+                  style="width: 40px; height: 40px; object-fit: cover;"
+                  @error="handleAvatarError"
+                >
+            </div>
+            <div class="flex-grow-1 ms-3 overflow-hidden">
+              <div class="text-truncate fw-semibold">
+                {{ userInfo?.nickname || userInfo?.username || '用户' }}
+              </div>
+              <small class="text-muted text-truncate d-block">
+                {{ userGroups[0]?.name || '普通用户' }}
+              </small>
+            </div>
+            <div class="flex-shrink-0">
+              <button 
+                class="btn btn-sm btn-outline-danger rounded-3" 
+                title="退出登录"
+                @click="handleLogout"
+              >
+                <i class="bi bi-box-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </aside>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from '@/utils/request'
 import { list as getMenuList } from '@/utils/menu'
 import { useCommStore } from '@/store/comm'
+import Toast from '@/utils/toast'
+import defaultAvatar from '@/assets/img/avatar.png'
 
 // 导航项数据
 const props = defineProps({
@@ -104,6 +144,61 @@ const dropdownOpen = ref({})
 // 存储
 const store = {
   comm: useCommStore()
+}
+
+// 用户信息
+const userInfo = computed(() => {
+  return store.comm.login.user || {}
+})
+
+// 用户组信息
+const userGroups = computed(() => {
+  const authInfo = userInfo.value?.result?.auth
+  if (!authInfo) {
+    return [{ name: '普通用户' }]
+  }
+  
+  if (authInfo.group?.list && authInfo.group.list.length > 0) {
+    return authInfo.group.list
+  }
+  
+  return [{ name: '普通用户' }]
+})
+
+// 路由
+const router = useRouter()
+
+// 处理头像错误
+const handleAvatarError = (event) => {
+  event.target.src = defaultAvatar
+}
+
+// 退出登录
+const handleLogout = async () => {
+  try {
+    const response = await axios.del('/api/comm/logout')
+    
+    if (response.code === 200) {
+      // 清理状态
+      store.comm.login.finish = false
+      store.comm.login.user = null
+      
+      // 清理缓存
+      localStorage.removeItem('user-info')
+      
+      Toast.success('已退出登录')
+      // 跳转到首页
+      router.push('/')
+    } else {
+      Toast.error(response.msg || '退出登录失败')
+    }
+  } catch (error) {
+    Toast.error('网络异常，已本地退出登录')
+    // 兜底清理
+    store.comm.login.finish = false
+    store.comm.login.user = null
+    router.push('/')
+  }
 }
 
 // 初始化下拉菜单状态
@@ -177,7 +272,9 @@ onMounted(async () => {
   top: 0;
   left: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   transition: all 0.3s ease;
   z-index: 1000;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -228,6 +325,8 @@ onMounted(async () => {
 
 /* 侧边栏导航 */
 .menu-nav {
+  flex: 1;
+  overflow-y: auto;
   padding: 1rem 0;
 }
 
