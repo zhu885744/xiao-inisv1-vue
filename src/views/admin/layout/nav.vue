@@ -80,38 +80,34 @@
       </ul>
     </nav>
     
-    <!-- 用户信息卡片 - 固定在侧边栏底部 -->
+    <!-- 用户信息卡片 -->
     <div class="user">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body p-3">
-          <div class="d-flex align-items-center">
-            <div class="flex-shrink-0">
-              <img 
-                  :src="userInfo?.avatar || defaultAvatar" 
-                  alt="用户头像" 
-                  class="rounded-circle"
-                  style="width: 40px; height: 40px; object-fit: cover;"
-                  @error="handleAvatarError"
-                >
-            </div>
-            <div class="flex-grow-1 ms-3 overflow-hidden">
-              <div class="text-truncate fw-semibold">
-                {{ userInfo?.nickname || userInfo?.username || '用户' }}
-              </div>
-              <small class="text-muted text-truncate d-block">
-                {{ userGroups[0]?.name || '普通用户' }}
-              </small>
-            </div>
-            <div class="flex-shrink-0">
-              <button 
-                class="btn btn-sm btn-outline-danger rounded-3" 
-                title="退出登录"
-                @click="handleLogout"
-              >
-                <i class="bi bi-box-arrow-right"></i>
-              </button>
-            </div>
+      <div class="d-flex align-items-center">
+        <div class="flex-shrink-0">
+          <img 
+            :src="userInfo?.avatar || defaultAvatar" 
+            alt="用户头像" 
+            class="rounded-circle"
+            style="width: 40px; height: 40px; object-fit: cover;"
+            @error="handleAvatarError"
+          >
+        </div>
+        <div class="flex-grow-1 ms-3 overflow-hidden">
+          <div class="text-truncate fw-semibold">
+            {{ userInfo?.nickname || userInfo?.username || '用户' }}
           </div>
+          <small class="text-muted text-truncate d-block">
+            {{ userGroups[0]?.name || '普通用户' }}
+          </small>
+        </div>
+        <div class="flex-shrink-0">
+          <button 
+            class="btn btn-sm btn-outline-danger rounded-3" 
+            title="退出登录"
+            @click="handleLogout"
+          >
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -434,16 +430,6 @@ onMounted(async () => {
   padding: 1rem;
   border-top: 1px solid var(--bs-border-color);
   background-color: var(--bs-body-bg);
-}
-
-.user .card {
-  background-color: var(--bs-card-bg);
-  color: var(--bs-card-color);
-  transition: all 0.3s ease;
-}
-
-.user .card:hover {
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 }
 
 /* 暗黑模式适配 */
