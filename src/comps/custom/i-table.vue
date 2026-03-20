@@ -144,8 +144,8 @@
                 <!-- 分页导航 -->
                 <nav v-if="state.item.page.total > 1" aria-label="Page navigation">
                     <ul class="pagination mb-0">
-                        <li class="page-item" :class="{ disabled: state.item.page.code === 1 }">
-                            <button class="page-link" @click="() => handle.currentChange(state.item.page.code - 1)" :disabled="state.item.page.code === 1">
+                        <li class="page-item" :class="{ disabled: (state.item.page.code || 1) === 1 }">
+                            <button class="page-link" @click="() => handle.currentChange((state.item.page.code || 1) - 1)" :disabled="(state.item.page.code || 1) === 1">
                                 上一页
                             </button>
                         </li>
@@ -154,15 +154,15 @@
                             v-for="page in pageRange" 
                             :key="page"
                             class="page-item" 
-                            :class="{ active: page === state.item.page.code }"
+                            :class="{ active: page === (state.item.page.code || 1) }"
                         >
                             <button class="page-link" @click="() => handle.currentChange(page)">
                                 {{ page }}
                             </button>
                         </li>
                         
-                        <li class="page-item" :class="{ disabled: state.item.page.code === state.item.page.total }">
-                            <button class="page-link" @click="() => handle.currentChange(state.item.page.code + 1)" :disabled="state.item.page.code === state.item.page.total">
+                        <li class="page-item" :class="{ disabled: (state.item.page.code || 1) === (state.item.page.total || 1) }">
+                            <button class="page-link" @click="() => handle.currentChange((state.item.page.code || 1) + 1)" :disabled="(state.item.page.code || 1) === (state.item.page.total || 1)">
                                 下一页
                             </button>
                         </li>
@@ -296,11 +296,18 @@ const isSelected = (row) => {
 
 // 计算页码范围
 const pageRange = computed(() => {
-    const total = state.item.page.total
-    const current = state.item.page.code
+    const total = state.item.page.total || 1
+    const current = state.item.page.code || 1
     const count = state.config.pagination.count || 5 // 显示5个页码
     
+    // 处理总页数为0的情况
+    if (total <= 0) {
+        return []
+    }
+    
+    // 计算起始页码
     let start = Math.max(1, current - Math.floor(count / 2))
+    // 计算结束页码
     let end = Math.min(total, start + count - 1)
     
     // 调整起始位置，确保显示足够的页码
@@ -308,6 +315,7 @@ const pageRange = computed(() => {
         start = Math.max(1, end - count + 1)
     }
     
+    // 生成页码数组
     const range = []
     for (let i = start; i <= end; i++) {
         range.push(i)
@@ -356,7 +364,8 @@ const method = {
 
             state.item.data       = data.data || []
             state.item.count      = data.count || 0
-            state.item.page.total = data.page || 1
+            // 计算总页数，如果后端没有返回 page 字段
+            state.item.page.total = data.page || Math.ceil((data.count || 0) / limit) || 1
 
             // 更新页码
             state.item.page.code   = page
@@ -583,7 +592,7 @@ method.init()
 /* 响应式调整 */
 @media (max-width: 768px) {
     .table-container {
-        padding: 1rem;
+        padding: 0.75rem;
         border-radius: 0.5rem;
     }
     
@@ -591,29 +600,75 @@ method.init()
         border: 1px solid var(--bs-border-color);
         border-radius: 0.5rem;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    /* 优化滚动条样式 */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-track {
+        background: var(--bs-tertiary-bg);
+        border-radius: 3px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: var(--bs-border-color);
+        border-radius: 3px;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: var(--bs-secondary-color);
     }
     
     .table-footer {
         flex-direction: column;
         align-items: flex-start !important;
-        gap: 1rem !important;
+        gap: 0.75rem !important;
+        padding-top: 0.75rem;
     }
     
     .pagination {
         width: 100%;
         justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .page-item {
+        margin: 0 2px;
+    }
+    
+    .page-link {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
     }
     
     .loading-state,
     .error-state {
-        min-height: 150px;
-        padding: 4rem 2rem;
+        min-height: 120px;
+        padding: 3rem 1.5rem;
     }
     
     .table td,
     .table th {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
+        padding: 0.5rem 0.625rem;
+        font-size: 0.8125rem;
+    }
+    
+    .batch-operation {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* 优化空数据状态 */
+    .empty-state {
+        padding: 2rem 0;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
     }
 }
 

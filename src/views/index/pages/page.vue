@@ -196,7 +196,6 @@
         <main v-else class="card shadow-sm mt-2">
           <div class="p-3">
           <h2 class="timeline-title mb-4">友情链接</h2>
-          
           <!-- 核心内容区 -->
           <div class="pb-2">
             <!-- 友链介绍 -->
@@ -250,6 +249,28 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- 友链申请按钮 -->
+            <div class="m-4 text-center">
+              <button 
+                v-if="isLogin" 
+                @click="openLinkApplyModal"
+                :disabled="isSubmitting || isCoolingDown"
+                class="btn btn-primary btn-sm"
+              >
+                <i class="bi bi-link-45deg me-1"></i>
+                {{ isCoolingDown ? `冷却中 (${coolingDownTime}s)` : '申请友链' }}
+              </button>
+              <button 
+                v-else 
+                @click="handleLogin"
+                class="btn btn-outline-primary btn-sm"
+                disabled
+              >
+                <i class="bi bi-person me-1"></i>登录后申请
+              </button>
+              <p class="text-muted mt-2">请勿重复申请，每个用户只能申请一次</p>
             </div>
           </div>
           </div>
@@ -643,6 +664,107 @@
       </div>
     </div>
   </div>
+
+  <!-- 友链申请弹窗 -->
+  <div class="modal fade" id="linkApplyModal" tabindex="-1" aria-labelledby="linkApplyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="linkApplyModalLabel">
+            <i class="bi bi-link-45deg me-2"></i>申请友链
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="handleLinkApply">
+            <div class="mb-3">
+              <label for="linkNickname" class="form-label">网站名称</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="linkNickname" 
+                v-model="linkForm.nickname"
+                required
+                placeholder="请输入您的网站名称"
+              >
+            </div>
+            <div class="mb-3">
+              <label for="linkUrl" class="form-label">网站链接</label>
+              <input 
+                type="url" 
+                class="form-control" 
+                id="linkUrl" 
+                v-model="linkForm.url"
+                required
+                placeholder="请输入您的网站链接"
+              >
+            </div>
+            <div class="mb-3">
+              <label for="linkAvatar" class="form-label">网站图标</label>
+              <div class="input-group">
+                <input 
+                  type="url" 
+                  class="form-control" 
+                  id="linkAvatar" 
+                  v-model="linkForm.avatar"
+                  placeholder="请输入您的网站图标链接"
+                >
+                <button 
+                  type="button" 
+                  class="btn btn-outline-secondary"
+                  @click="handleUploadAvatar"
+                >
+                  上传
+                </button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="linkDescription" class="form-label">网站描述</label>
+              <textarea 
+                class="form-control" 
+                id="linkDescription" 
+                v-model="linkForm.description"
+                rows="3"
+                placeholder="请输入您的网站描述"
+              ></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="linkGroup" class="form-label">友链分组</label>
+              <div v-if="linkGroupsLoading" class="form-control-plaintext">
+                <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                  <span class="visually-hidden">加载中...</span>
+                </div>
+                加载分组中...
+              </div>
+              <select 
+                v-else 
+                class="form-select" 
+                id="linkGroup" 
+                v-model="linkForm.group"
+              >
+                <option value="">请选择友链分组</option>
+                <option v-for="group in linkGroups" :key="group.id" :value="group.name">
+                  {{ group.name }}
+                </option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            @click="handleLinkApply"
+            :disabled="isSubmitting"
+          >
+            <i v-if="isSubmitting" class="bi bi-arrow-clockwise spin me-1"></i>
+            {{ isSubmitting ? '提交中...' : '提交申请' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -656,6 +778,8 @@ import utils from '@/utils/utils'
 import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
 import { goBack } from '@/utils/route'
+import { uploadImage } from '@/utils/upload'
+import toast from '@/utils/toast'
 
 // 状态管理
 const store = useCommStore()
@@ -678,6 +802,25 @@ const loading = ref(true)
 const error = ref(false)
 const errorMsg = ref('')
 const pageInfo = ref({})
+
+// 友链申请相关
+const linkForm = ref({
+  nickname: '',
+  url: '',
+  description: '',
+  avatar: '',
+  target: '_blank',
+  group: ''
+})
+const linkApplyModal = ref(null)
+const isSubmitting = ref(false)
+const isCoolingDown = ref(false)
+const coolingDownTime = ref(0)
+let coolingDownTimer = null
+
+// 友链分组相关
+const linkGroups = ref([])
+const linkGroupsLoading = ref(false)
 
 // 路由实例
 const router = useRouter()
@@ -1556,6 +1699,147 @@ const detectDarkMode = () => {
     window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
+// 友链申请相关方法
+// 打开友链申请弹窗
+const openLinkApplyModal = async () => {
+  // 检查是否在冷却期
+  if (isCoolingDown.value) {
+    toast.warning('请稍后再申请友链')
+    return
+  }
+  
+  // 重置表单
+  linkForm.value = {
+    nickname: '',
+    url: '',
+    description: '',
+    avatar: '',
+    target: '_blank', // 固定为新窗口打开
+    group: ''
+  }
+  
+  // 获取友链分组
+  await fetchLinkGroups()
+  
+  // 打开弹窗
+  if (window.bootstrap) {
+    const modal = new window.bootstrap.Modal(document.getElementById('linkApplyModal'))
+    modal.show()
+  }
+}
+
+// 获取友链分组
+const fetchLinkGroups = async () => {
+  linkGroupsLoading.value = true
+  try {
+    const res = await request.get('/api/links-group/all', {
+      limit: 100, // 获取足够多的分组
+      order: 'create_time desc'
+    })
+    
+    if (res.code === 200) {
+      // 检查数据结构
+      if (res.data && Array.isArray(res.data)) {
+        // 如果直接返回数组
+        linkGroups.value = res.data
+      } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        // 如果返回的数据包含 data 字段
+        linkGroups.value = res.data.data
+      } else {
+        // 空数组作为默认值
+        linkGroups.value = []
+      }
+    }
+  } catch (error) {
+    console.error('获取友链分组失败:', error)
+    linkGroups.value = []
+  } finally {
+    linkGroupsLoading.value = false
+  }
+}
+
+// 上传网站图标
+const handleUploadAvatar = () => {
+  uploadImage('avatar', (path) => {
+    linkForm.value.avatar = path
+  })
+}
+
+// 提交友链申请
+const handleLinkApply = async () => {
+  // 验证必填字段
+  if (!linkForm.value.nickname.trim() || !linkForm.value.url.trim()) {
+    toast.warning('请填写必填字段')
+    return
+  }
+  
+  // 验证URL格式
+  try {
+    new URL(linkForm.value.url)
+  } catch {
+    toast.warning('请输入正确的网站链接')
+    return
+  }
+  
+  isSubmitting.value = true
+  
+  try {
+    // 自动设置为新窗口打开
+    const submitData = {
+      ...linkForm.value,
+      target: '_blank' // 固定为新窗口打开
+    }
+    
+    const res = await request.post('/api/links/create', submitData)
+    
+    if (res.code === 200) {
+      toast.success('友链申请已提交，请等待审核，审核通过后即可在友链中显示')
+      
+      // 关闭弹窗
+      if (window.bootstrap) {
+        const modal = window.bootstrap.Modal.getInstance(document.getElementById('linkApplyModal'))
+        modal.hide()
+      }
+      
+      // 开始冷却期
+      startCoolingDown()
+    } else {
+      toast.error(res.msg || '提交失败，请重试')
+    }
+  } catch (err) {
+    toast.error('网络错误，请稍后重试')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// 开始冷却期
+const startCoolingDown = () => {
+  const COOLDOWN_SECONDS = 300 // 5分钟冷却期
+  isCoolingDown.value = true
+  coolingDownTime.value = COOLDOWN_SECONDS
+  
+  // 清除之前的定时器
+  if (coolingDownTimer) {
+    clearInterval(coolingDownTimer)
+  }
+  
+  // 设置新的定时器
+  coolingDownTimer = setInterval(() => {
+    coolingDownTime.value--
+    if (coolingDownTime.value <= 0) {
+      clearInterval(coolingDownTimer)
+      isCoolingDown.value = false
+      coolingDownTime.value = 0
+    }
+  }, 1000)
+}
+
+// 处理登录
+const handleLogin = () => {
+  router.push('/login')
+}
+
 // 页面挂载初始化
 onMounted(() => {
   initPage()
@@ -1570,6 +1854,11 @@ onUnmounted(() => {
   // 清除归档页面自动刷新定时器
   if (archiveRefreshTimer) {
     clearInterval(archiveRefreshTimer)
+  }
+  
+  // 清除友链申请冷却定时器
+  if (coolingDownTimer) {
+    clearInterval(coolingDownTimer)
   }
   
   // 移除深色模式监听

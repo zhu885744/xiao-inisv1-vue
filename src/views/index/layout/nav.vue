@@ -230,7 +230,7 @@
           </ul>
         </li>
 
-        <!-- 消息中心 -->
+        <!-- 通知中心 -->
         <li class="nav-item mb-2">
           <router-link 
             class="nav-link" 
@@ -239,7 +239,7 @@
             exact-active-class="active"
             @click="closeSidebar"
           >
-            <i class="bi bi-bell me-2"></i>消息中心
+            通知
           </router-link>
         </li>
 

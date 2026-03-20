@@ -5,7 +5,7 @@
       <div class="card-body py-3">
         <h5 class="card-title mb-0 d-flex align-items-center gap-2">
           <i class="bi bi-bell-fill text-primary"></i>
-          消息中心
+          通知中心
         </h5>
       </div>
     </div>
@@ -216,7 +216,7 @@ import { usePageTitle } from '@/utils/usePageTitle'
 
 // 设置页面标题
 const { setDynamicTitle } = usePageTitle()
-setDynamicTitle('消息中心')
+setDynamicTitle('通知中心')
 
 // 响应式数据
 const noticeList = ref([])

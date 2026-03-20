@@ -82,7 +82,7 @@
     
     <!-- 用户信息卡片 - 固定在侧边栏底部 -->
     <div class="user">
-      <div class="card border-0 shadow-sm text-bg-light">
+      <div class="card border-0 shadow-sm">
         <div class="card-body p-3">
           <div class="d-flex align-items-center">
             <div class="flex-shrink-0">
@@ -429,10 +429,31 @@ onMounted(async () => {
   background-color: var(--bs-secondary-color);
 }
 
+/* 用户信息卡片 */
+.user {
+  padding: 1rem;
+  border-top: 1px solid var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+}
+
+.user .card {
+  background-color: var(--bs-card-bg);
+  color: var(--bs-card-color);
+  transition: all 0.3s ease;
+}
+
+.user .card:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
 /* 暗黑模式适配 */
 @media (prefers-color-scheme: dark) {
   .main-menu {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+  
+  .user .card:hover {
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
   }
 }
 </style>

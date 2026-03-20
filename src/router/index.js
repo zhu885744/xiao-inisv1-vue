@@ -43,10 +43,10 @@ const routes = [
   },
   {
     path: '/messages',
-    name: '消息通知',
+    name: '通知中心',
     component: () => import('@/views/index/pages/messages.vue'),
     meta: { 
-      title: '消息通知', 
+      title: '通知中心', 
       requiresAuth: false
     }
   },
