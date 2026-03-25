@@ -1,3 +1,4 @@
+// 通用状态管理
 import { defineStore } from 'pinia'
 import cache from '@/utils/cache'
 import utils from '@/utils/utils'

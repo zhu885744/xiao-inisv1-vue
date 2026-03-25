@@ -1,7 +1,7 @@
 <template>
   <!-- 顶部导航栏 -->
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container d-flex align-items-center">
+    <div class="container d-flex justify-content-between">
       <!-- 移动端侧边栏触发按钮 -->
       <button 
         class="navbar-toggler d-lg-none me-3 border-0" 
@@ -42,12 +42,12 @@
 
           <!-- 分类下拉列表 -->
           <li class="nav-item dropdown" ref="pcDropdownRef">
-            <a class="nav-link dropdown-toggle" role="button" aria-expanded="false" data-bs-toggle="dropdown">
+            <a class="nav-link dropdown-toggle" role="button" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static">
               分类
             </a>
-            <ul class="dropdown-menu">
-              <li v-for="category in categories" :key="category.id" class="dropdown-item p-0">
-                <router-link class="nav-link d-block w-100 h-100 py-2 px-4 text-decoration-none" :to="`/category/${category.key}`">
+            <ul class="dropdown-menu dropdown-menu-start">
+              <li v-for="category in categories" :key="category.id">
+                <router-link class="dropdown-item" :to="`/category/${category.key}`">
                   {{ category.name }}
                 </router-link>
               </li>
@@ -96,15 +96,15 @@
                 type="button" 
                 id="userDropdownMenu"
                 data-bs-toggle="dropdown" 
+                data-bs-display="static"
                 aria-expanded="false"
-                @click="toggleUserDropdown"
               >
                 <i class="bi bi-person-circle me-1"></i>
                 <span class="text-truncate" style="max-width: 100px;">
                   {{ store.comm.login.user.nickname || store.comm.login.user.account }}
                 </span>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdownMenu" :class="{ 'show': userDropdownOpen }">
+              <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="userDropdownMenu">
                 <li>
                   <button class="dropdown-item" type="button" @click="method.showPublishNotification()">
                     <i class="bi bi-plus-circle me-1"></i>发布文章
@@ -366,7 +366,6 @@ const navItems = ref([])
 const categories = ref([])
 const sidebarOpen = ref(false)
 const categoryDropdownOpen = ref(false)
-const userDropdownOpen = ref(false)
 
 // 签到相关数据
 const hasSigned = ref(false)
@@ -589,38 +588,13 @@ defineExpose({
   store
 })
 
-// 初始化下拉菜单
+// 初始化下拉菜单 - 由于使用了 data-bs-toggle 属性，Bootstrap 会自动初始化下拉菜单
+// 此函数保留以备将来需要自定义配置时使用
 const initDropdowns = () => {
   // 等待 DOM 更新完成
   nextTick(() => {
-    // 初始化分类下拉菜单
-    if (pcDropdownRef.value && window.bootstrap) {
-      const trigger = pcDropdownRef.value.querySelector('.dropdown-toggle')
-      if (trigger) {
-        try {
-          // 确保每个下拉菜单只初始化一次
-          if (!trigger._dropdown) {
-            trigger._dropdown = new window.bootstrap.Dropdown(trigger)
-          }
-        } catch (e) {
-          console.warn('分类下拉初始化失败:', e)
-        }
-      }
-    }
-    
-    // 初始化用户下拉菜单
-    if (userDropdownRef.value && window.bootstrap) {
-      const trigger = userDropdownRef.value.querySelector('.dropdown-toggle')
-      if (trigger) {
-        try {
-          if (!trigger._dropdown) {
-            trigger._dropdown = new window.bootstrap.Dropdown(trigger)
-          }
-        } catch (e) {
-          console.warn('用户下拉初始化失败:', e)
-        }
-      }
-    }
+    // 下拉菜单已通过 data-bs-toggle 属性自动初始化
+    // 如需自定义配置，可在此添加
   })
 }
 
@@ -714,11 +688,6 @@ const closeSidebar = () => {
 // 切换移动端分类下拉
 const toggleCategoryDropdown = () => {
   categoryDropdownOpen.value = !categoryDropdownOpen.value
-}
-
-// 切换用户下拉列表
-const toggleUserDropdown = () => {
-  userDropdownOpen.value = !userDropdownOpen.value
 }
 
 // 从API获取导航数据
@@ -992,6 +961,10 @@ watch(
 /* 适配不同主题 */
 :deep(.dropdown-menu) {
   background-color: var(--bs-dropdown-bg);
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: absolute !important;
+  z-index: 1050;
 }
 
 :deep(.dropdown-item:hover) {

@@ -1,3 +1,4 @@
+// 权限页面状态管理
 import { defineStore } from 'pinia'
 import cache from '@/utils/cache'
 import axios from '@/utils/request'

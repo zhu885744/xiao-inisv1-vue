@@ -1,5 +1,5 @@
+<!-- 搜索组件 -->
 <template>
-  <!-- 搜索组件 -->
   <div>
     <!-- 搜索模态框 -->
     <transition name="modal-fade" mode="out-in">

@@ -1,3 +1,4 @@
+<!-- 主题首次初始化配置弹窗 -->
 <template>
   <Teleport to="body">
     <div v-if="showConfigModal" class="config-init-modal">

@@ -1,3 +1,4 @@
+<!-- 后台管理自定义表格组件 -->
 <template>
     <div class="table-container">
         <!-- 加载状态 -->

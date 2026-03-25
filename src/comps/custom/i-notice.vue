@@ -1,5 +1,6 @@
+<!-- 自定义公告组件 -->
 <template>
-  <!-- 首页顶部公告卡片 -->
+  <!-- 公告卡片 -->
   <div class="alert alert-danger alert-dismissible fade show mb-3 border-0 shadow-sm" v-if="noticeList.length > 0" role="alert">
     <div class="container">
       <div class="d-flex flex-wrap align-items-center justify-content-between">

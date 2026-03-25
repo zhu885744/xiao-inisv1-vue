@@ -354,15 +354,29 @@
                     
                     <!-- 表情选择面板 -->
                     <div v-if="showMessageEmojiPicker" class="emoji-picker-container mt-2 p-3 border bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+                      <!-- 表情分类切换 -->
+                      <div class="emoji-categories mb-3">
+                        <button 
+                          v-for="(emojis, category) in owoEmojis" 
+                          :key="category"
+                          @click="activeEmojiCategory = category"
+                          class="btn btn-sm me-2 mb-2"
+                          :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
+                        >
+                          {{ category }}
+                        </button>
+                      </div>
+                      <!-- 表情列表 -->
                       <div class="d-flex flex-wrap gap-2">
                         <button 
-                          v-for="(emoji, index) in emojis" 
+                          v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                           :key="index"
-                          @click="insertMessageEmoji(emoji)"
+                          @click="insertMessageEmoji(emoji.icon)"
                           class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
                           :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                          :title="emoji.text"
                         >
-                          {{ emoji }}
+                          {{ emoji.icon }}
                         </button>
                       </div>
                     </div>
@@ -429,7 +443,7 @@
                                 >
                                 <div>
                                   <h6 class="fw-semibold mb-0">
-                                    <router-link v-if="message.result?.author?.id || message.author?.id" :to="`/author/${message.result?.author?.id || message.author?.id}`" class="text-decoration-none ">
+                                    <router-link v-if="message.result?.author?.id || message.author?.id" :to="`/author/${message.result?.author?.id || message.author?.id}`" class="text-decoration-none " @click="closeReplyModal()">
                                       {{ message.result?.author?.nickname || message.author?.nickname || message.nickname || '匿名用户' }}
                                     </router-link>
                                     <span v-else>{{ message.result?.author?.nickname || message.author?.nickname || message.nickname || '匿名用户' }}</span>
@@ -485,15 +499,29 @@
                               
                               <!-- 回复表情选择面板 -->
                               <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+                                <!-- 表情分类切换 -->
+                                <div class="emoji-categories mb-3">
+                                  <button 
+                                    v-for="(emojis, category) in owoEmojis" 
+                                    :key="category"
+                                    @click="activeEmojiCategory = category"
+                                    class="btn btn-sm me-2 mb-2"
+                                    :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
+                                  >
+                                    {{ category }}
+                                  </button>
+                                </div>
+                                <!-- 表情列表 -->
                                 <div class="d-flex flex-wrap gap-2">
                                   <button 
-                                    v-for="(emoji, index) in emojis" 
+                                    v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                                     :key="index"
-                                    @click="insertReplyEmoji(emoji)"
+                                    @click="insertReplyEmoji(emoji.icon)"
                                     class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
                                     :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                                    :title="emoji.text"
                                   >
-                                    {{ emoji }}
+                                    {{ emoji.icon }}
                                   </button>
                                 </div>
                               </div>
@@ -558,7 +586,7 @@
                                 >
                                 <div class="flex-grow-1">
                                   <h6 class="fw-semibold mb-0">
-                                    <router-link v-if="reply.result?.author?.id || reply.author?.id" :to="`/author/${reply.result?.author?.id || reply.author?.id}`" class="text-decoration-none ">
+                                    <router-link v-if="reply.result?.author?.id || reply.author?.id" :to="`/author/${reply.result?.author?.id || reply.author?.id}`" class="text-decoration-none " @click="closeReplyModal()">
                                       {{ reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户' }}
                                     </router-link>
                                     <span v-else>{{ reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户' }}</span>
@@ -780,6 +808,7 @@ import { usePageTitle } from '@/utils/usePageTitle'
 import { goBack } from '@/utils/route'
 import { uploadImage } from '@/utils/upload'
 import toast from '@/utils/toast'
+import OwOData from '@/assets/json/OwO.json'
 
 // 状态管理
 const store = useCommStore()
@@ -909,15 +938,9 @@ const showReplyEmojiPicker = ref(false)
 // 发布状态
 const isPublishingMessage = ref(false)
 
-// 常用表情
-const emojis = [
-  // 颜文字
-  '😊', '😂', '😍', '🤔', '😎', '😢', '😡', '👍', '👎', '👏',
-  // Emoji表情
-  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
-  '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😙', '😚',
-  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩'
-]
+// 表情数据
+const owoEmojis = ref(OwOData)
+const activeEmojiCategory = ref('颜文字')
 
 // 友链分组聚合
 const groupLinkMap = computed(() => {
@@ -2068,6 +2091,16 @@ const openReplyModal = (message) => {
   selectedMessage.value = message
 }
 
+// 关闭回复弹窗
+const closeReplyModal = () => {
+  if (window.bootstrap) {
+    const modal = window.bootstrap.Modal.getInstance(document.getElementById('replyModal'))
+    if (modal) {
+      modal.hide()
+    }
+  }
+}
+
 // 监听页面信息变化，获取评论和作者信息
 watch(
   () => pageInfo.value.id,
@@ -3077,23 +3110,18 @@ onUnmounted(() => {
   background-color: #fff9c4;
   border: 1px solid #f5f5f5;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  transform: rotate(-1deg);
 }
 
 .sticky-note:hover {
-  transform: rotate(0deg) translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* 留言头像 */
 .message-avatar {
-  transition: transform 0.2s ease;
   border: 2px solid rgba(var(--bs-primary-rgb), 0.1);
 }
 
 .message-avatar:hover {
-  transform: scale(1.05);
   border-color: rgba(var(--bs-primary-rgb), 0.3);
 }
 
@@ -3104,11 +3132,10 @@ onUnmounted(() => {
   padding: 0.75rem;
   border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.5);
-  transition: all 0.3s ease;
 }
 
 .message-content:hover {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* 暗黑模式适配 */
@@ -3120,7 +3147,7 @@ onUnmounted(() => {
   }
   
   .sticky-note:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
   
   .message-content {
@@ -3128,7 +3155,7 @@ onUnmounted(() => {
   }
   
   .message-content:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.1);
   }
   
   .message-avatar {
@@ -3293,7 +3320,7 @@ onUnmounted(() => {
 }
 
 .emoji-button:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
   border-color: var(--bs-primary);
 }
 
@@ -3317,7 +3344,7 @@ onUnmounted(() => {
 }
 
 .emoji-item:hover {
-  transform: scale(1.2);
+  transform: scale(1.05);
   border-color: var(--bs-primary);
   background-color: rgba(var(--bs-primary-rgb), 0.1);
 }

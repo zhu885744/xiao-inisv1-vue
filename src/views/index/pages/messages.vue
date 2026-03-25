@@ -10,162 +10,181 @@
       </div>
     </div>
 
-    <!-- 标签页导航 -->
-    <div class="mt-2">
-      <div class="card shadow-sm">
-        <div class="card-body p-0">
-          <ul class="nav nav-tabs" id="messageTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button 
-                class="nav-link" 
-                :class="{ active: activeTab === 'comments' }"
-                id="comments-tab" 
-                data-bs-toggle="tab" 
-                data-bs-target="#comments" 
-                type="button" 
-                role="tab" 
-                aria-controls="comments" 
-                :aria-selected="activeTab === 'comments'"
-                @click="activeTab = 'comments'"
-              >
-                <i class="bi bi-chat-dots me-1"></i>评论
-                <span v-if="unreadComments > 0" class="badge bg-primary ms-1">{{ unreadComments }}</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button 
-                class="nav-link" 
-                :class="{ active: activeTab === 'likes' }"
-                id="likes-tab" 
-                data-bs-toggle="tab" 
-                data-bs-target="#likes" 
-                type="button" 
-                role="tab" 
-                aria-controls="likes" 
-                :aria-selected="activeTab === 'likes'"
-                @click="activeTab = 'likes'"
-              >
-                <i class="bi bi-heart me-1"></i>点赞
-                <span v-if="unreadLikes > 0" class="badge bg-danger ms-1">{{ unreadLikes }}</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button 
-                class="nav-link" 
-                :class="{ active: activeTab === 'private' }"
-                id="private-tab" 
-                data-bs-toggle="tab" 
-                data-bs-target="#private" 
-                type="button" 
-                role="tab" 
-                aria-controls="private" 
-                :aria-selected="activeTab === 'private'"
-                @click="activeTab = 'private'"
-              >
-                <i class="bi bi-envelope me-1"></i>私信
-                <span v-if="unreadMessages > 0" class="badge bg-success ms-1">{{ unreadMessages }}</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button 
-                class="nav-link" 
-                :class="{ active: activeTab === 'system' }"
-                id="system-tab" 
-                data-bs-toggle="tab" 
-                data-bs-target="#system" 
-                type="button" 
-                role="tab" 
-                aria-controls="system" 
-                :aria-selected="activeTab === 'system'"
-                @click="activeTab = 'system'"
-              >
-                <i class="bi bi-bell me-1"></i>系统通知
-                <span v-if="unreadSystem > 0" class="badge bg-warning text-dark ms-1">{{ unreadSystem }}</span>
-              </button>
-            </li>
-          </ul>
+    <!-- 登录提示 -->
+    <div v-if="!isLogin" class="card shadow-sm mt-2">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-person-circle text-muted fs-1 d-block mb-3"></i>
+        <p class="text-muted mb-4">登录后即可查看通知</p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button class="btn btn-primary" @click="store.auth.login = true">
+            登录
+          </button>
+          <button class="btn btn-outline-primary" @click="store.auth.register = true">
+            注册
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- 标签页内容 -->
-    <div class="tab-content mt-2" id="messageTabsContent">
-      <!-- 评论消息 -->
-      <div class="tab-pane fade" :class="{ 'show active': activeTab === 'comments' }" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+    <!-- 通知内容 -->
+    <div v-else>
+      <!-- 标签页导航 -->
+      <div class="mt-2">
         <div class="card shadow-sm">
-          <div class="card-body text-center py-5">
-            <i class="bi bi-chat-dots text-muted fs-1 d-block mb-3"></i>
-            <p class="text-muted mb-0">暂无评论消息</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 点赞消息 -->
-      <div class="tab-pane fade" :class="{ 'show active': activeTab === 'likes' }" id="likes" role="tabpanel" aria-labelledby="likes-tab">
-        <div class="card shadow-sm">
-          <div class="card-body text-center py-5">
-            <i class="bi bi-heart text-muted fs-1 d-block mb-3"></i>
-            <p class="text-muted mb-0">暂无点赞消息</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 私信消息 -->
-      <div class="tab-pane fade" :class="{ 'show active': activeTab === 'private' }" id="private" role="tabpanel" aria-labelledby="private-tab">
-        <div class="card shadow-sm">
-          <div class="card-body text-center py-5">
-            <i class="bi bi-envelope text-muted fs-1 d-block mb-3"></i>
-            <p class="text-muted mb-0">暂无私信消息</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 系统通知 -->
-      <div class="tab-pane fade" :class="{ 'show active': activeTab === 'system' }" id="system" role="tabpanel" aria-labelledby="system-tab">
-        <div class="card shadow-sm">
-          <div class="card-header d-flex justify-content-between align-items-center py-2">
-            <span class="fw-semibold">系统通知</span>
-            <button class="btn btn-sm btn-outline-secondary" @click="markAllAsRead">
-              <i class="bi bi-check-all me-1"></i>全部已读
-            </button>
-          </div>
           <div class="card-body p-0">
-            <!-- 加载状态 -->
-            <div v-if="loading" class="text-center py-4">
-              <div class="spinner-border spinner-border-sm text-secondary" role="status">
-                <span class="visually-hidden">加载中...</span>
-              </div>
+            <ul class="nav nav-tabs" id="messageTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button 
+                  class="nav-link" 
+                  :class="{ active: activeTab === 'comments' }"
+                  id="comments-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#comments" 
+                  type="button" 
+                  role="tab" 
+                  aria-controls="comments" 
+                  :aria-selected="activeTab === 'comments'"
+                  @click="activeTab = 'comments'"
+                >
+                  <i class="bi bi-chat-dots me-1"></i>评论
+                  <span v-if="unreadComments > 0" class="badge bg-primary ms-1">{{ unreadComments }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button 
+                  class="nav-link" 
+                  :class="{ active: activeTab === 'likes' }"
+                  id="likes-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#likes" 
+                  type="button" 
+                  role="tab" 
+                  aria-controls="likes" 
+                  :aria-selected="activeTab === 'likes'"
+                  @click="activeTab = 'likes'"
+                >
+                  <i class="bi bi-heart me-1"></i>点赞
+                  <span v-if="unreadLikes > 0" class="badge bg-danger ms-1">{{ unreadLikes }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button 
+                  class="nav-link" 
+                  :class="{ active: activeTab === 'private' }"
+                  id="private-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#private" 
+                  type="button" 
+                  role="tab" 
+                  aria-controls="private" 
+                  :aria-selected="activeTab === 'private'"
+                  @click="activeTab = 'private'"
+                >
+                  <i class="bi bi-envelope me-1"></i>私信
+                  <span v-if="unreadMessages > 0" class="badge bg-success ms-1">{{ unreadMessages }}</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button 
+                  class="nav-link" 
+                  :class="{ active: activeTab === 'system' }"
+                  id="system-tab" 
+                  data-bs-toggle="tab" 
+                  data-bs-target="#system" 
+                  type="button" 
+                  role="tab" 
+                  aria-controls="system" 
+                  :aria-selected="activeTab === 'system'"
+                  @click="activeTab = 'system'"
+                >
+                  <i class="bi bi-bell me-1"></i>系统通知
+                  <span v-if="unreadSystem > 0" class="badge bg-warning text-dark ms-1">{{ unreadSystem }}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 标签页内容 -->
+      <div class="tab-content mt-2" id="messageTabsContent">
+        <!-- 评论消息 -->
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'comments' }" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+          <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-chat-dots text-muted fs-1 d-block mb-3"></i>
+              <p class="text-muted mb-0">暂无评论消息</p>
             </div>
-            
-            <!-- 通知列表 -->
-            <div v-else-if="noticeList.length > 0" class="list-group list-group-flush">
-              <div 
-                v-for="notice in noticeList" 
-                :key="notice.id"
-                class="list-group-item list-group-item-action p-3"
-                style="cursor: pointer;"
-                @click="openNoticeModal(notice)"
-              >
-                <div class="d-flex justify-content-between align-items-start">
-                  <div class="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden">
-                    <div class="bg-primary bg-opacity-10 p-2 rounded flex-shrink-0">
-                      <i class="bi bi-bell-fill text-primary"></i>
-                    </div>
-                    <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
-                      <h6 class="mb-1 text-truncate">{{ notice.title }}</h6>
-                      <p class="mb-1 text-muted small text-truncate">{{ formatContentPreview(notice.content) }}</p>
-                      <small class="text-muted">{{ formatDate(notice.create_time) }}</small>
-                    </div>
-                  </div>
-                  <span class="badge bg-warning text-dark flex-shrink-0 ms-2">公告</span>
+          </div>
+        </div>
+
+        <!-- 点赞消息 -->
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'likes' }" id="likes" role="tabpanel" aria-labelledby="likes-tab">
+          <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-heart text-muted fs-1 d-block mb-3"></i>
+              <p class="text-muted mb-0">暂无点赞消息</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 私信消息 -->
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'private' }" id="private" role="tabpanel" aria-labelledby="private-tab">
+          <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-envelope text-muted fs-1 d-block mb-3"></i>
+              <p class="text-muted mb-0">暂无私信消息</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 系统通知 -->
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'system' }" id="system" role="tabpanel" aria-labelledby="system-tab">
+          <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+              <span class="fw-semibold">系统通知</span>
+              <button class="btn btn-sm btn-outline-secondary" @click="markAllAsRead">
+                <i class="bi bi-check-all me-1"></i>全部已读
+              </button>
+            </div>
+            <div class="card-body p-0">
+              <!-- 加载状态 -->
+              <div v-if="loading" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                  <span class="visually-hidden">加载中...</span>
                 </div>
               </div>
-            </div>
-            
-            <!-- 空状态 -->
-            <div v-else class="text-center py-5">
-              <i class="bi bi-bell-slash text-muted fs-1 d-block mb-3"></i>
-              <p class="text-muted mb-0">暂无系统通知</p>
+              
+              <!-- 通知列表 -->
+              <div v-else-if="noticeList.length > 0" class="list-group list-group-flush">
+                <div 
+                  v-for="notice in noticeList" 
+                  :key="notice.id"
+                  class="list-group-item list-group-item-action p-3"
+                  style="cursor: pointer;"
+                  @click="openNoticeModal(notice)"
+                >
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden">
+                      <div class="bg-primary bg-opacity-10 p-2 rounded flex-shrink-0">
+                        <i class="bi bi-bell-fill text-primary"></i>
+                      </div>
+                      <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                        <h6 class="mb-1 text-truncate">{{ notice.title }}</h6>
+                        <p class="mb-1 text-muted small text-truncate">{{ formatContentPreview(notice.content) }}</p>
+                        <small class="text-muted">{{ formatDate(notice.create_time) }}</small>
+                      </div>
+                    </div>
+                    <span class="badge bg-warning text-dark flex-shrink-0 ms-2">公告</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 空状态 -->
+              <div v-else class="text-center py-5">
+                <i class="bi bi-bell-slash text-muted fs-1 d-block mb-3"></i>
+                <p class="text-muted mb-0">暂无系统通知</p>
+              </div>
             </div>
           </div>
         </div>
@@ -213,10 +232,15 @@ import { Modal } from 'bootstrap'
 import request from '@/utils/request'
 import utils from '@/utils/utils'
 import { usePageTitle } from '@/utils/usePageTitle'
+import { useCommStore } from '@/store/comm'
 
 // 设置页面标题
 const { setDynamicTitle } = usePageTitle()
 setDynamicTitle('通知中心')
+
+// 获取用户登录状态
+const store = useCommStore()
+const isLogin = ref(store.login.finish && store.login.user)
 
 // 响应式数据
 const noticeList = ref([])

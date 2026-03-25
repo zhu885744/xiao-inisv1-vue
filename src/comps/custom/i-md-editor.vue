@@ -1,3 +1,4 @@
+<!-- 自定义Markdown编辑器组件 -->
 <template>
     <!-- 上传进度条 -->
     <div v-if="state.progress.show" class="mb-3">

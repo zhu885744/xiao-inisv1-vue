@@ -1,3 +1,4 @@
+<!-- 忘记密码组件 -->
 <template>
     <transition name="modal-fade" mode="out-in">
         <div 

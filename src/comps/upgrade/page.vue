@@ -1,3 +1,4 @@
+<!-- 主题更新成功提示组件 -->
 <template>
 
 </template>

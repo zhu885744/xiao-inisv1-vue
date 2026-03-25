@@ -21,15 +21,29 @@
         
         <!-- 表情选择面板 -->
         <div v-if="showEmojiPicker" class="emoji-picker-container mt-2 p-3 border bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+          <!-- 表情分类切换 -->
+          <div class="emoji-categories mb-3">
+            <button 
+              v-for="(emojis, category) in owoEmojis" 
+              :key="category"
+              @click="activeEmojiCategory = category"
+              class="btn btn-sm me-2 mb-2"
+              :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
+            >
+              {{ category }}
+            </button>
+          </div>
+          <!-- 表情列表 -->
           <div class="d-flex flex-wrap gap-2">
             <button 
-              v-for="(emoji, index) in emojis" 
+              v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
               :key="index"
-              @click="insertEmoji(emoji)"
+              @click="insertEmoji(emoji.icon)"
               class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
               :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+              :title="emoji.text"
             >
-              {{ emoji }}
+              {{ emoji.icon }}
             </button>
           </div>
         </div>
@@ -154,15 +168,29 @@
             
             <!-- 回复表情选择面板 -->
             <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+              <!-- 表情分类切换 -->
+              <div class="emoji-categories mb-3">
+                <button 
+                  v-for="(emojis, category) in owoEmojis" 
+                  :key="category"
+                  @click="activeEmojiCategory = category"
+                  class="btn btn-sm me-2 mb-2"
+                  :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
+                >
+                  {{ category }}
+                </button>
+              </div>
+              <!-- 表情列表 -->
               <div class="d-flex flex-wrap gap-2">
                 <button 
-                  v-for="(emoji, index) in emojis" 
+                  v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                   :key="index"
-                  @click="insertReplyEmoji(emoji)"
+                  @click="insertReplyEmoji(emoji.icon)"
                   class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
                   :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                  :title="emoji.text"
                 >
-                  {{ emoji }}
+                  {{ emoji.icon }}
                 </button>
               </div>
             </div>
@@ -300,6 +328,7 @@ import { useCommStore } from '@/store/comm'
 import utils from '@/utils/utils'
 import request from '@/utils/request'
 import Toast from '@/utils/toast'
+import OwOData from '@/assets/json/OwO.json'
 
 // 🌟 1. 定义组件接收的props
 const props = defineProps({
@@ -410,15 +439,9 @@ const getLikeStatus = (commentId) => {
   return commentLikes.value.get(commentId) || false
 }
 
-// 定义常用表情
-const emojis = [
-  // 颜文字
-  '😊', '😂', '😍', '🤔', '😎', '😢', '😡', '👍', '👎', '👏',
-  // Emoji表情
-  '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
-  '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😙', '😚',
-  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩'
-]
+// 定义表情数据
+const owoEmojis = ref(OwOData)
+const activeEmojiCategory = ref('颜文字')
 
 // 获取评论配置
 async function getCommentConfig() {
@@ -1323,9 +1346,9 @@ watch(
 
 .emoji-item {
   transition: all 0.3s ease;
-  font-size: 1.2rem;
-  min-width: 36px;
-  height: 36px;
+  font-size: 1rem;
+  min-width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1333,7 +1356,7 @@ watch(
 }
 
 .emoji-item:hover {
-  transform: scale(1.2);
+  transform: scale(1);
   border-color: var(--bs-primary);
   background-color: rgba(var(--bs-primary-rgb), 0.1);
 }
