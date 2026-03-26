@@ -74,7 +74,7 @@
 
         <div class="modal-body">
           <!-- 公告内容 -->
-          <div class="p-3 bg-light rounded mb-4" style="max-height: 300px; overflow-y: auto;">
+          <div class="p-3 bg-light rounded-3 mb-4" style="max-height: 300px; overflow-y: auto;">
             <div v-html="formatContent(currentNotice?.content)" class="text-wrap"></div>
           </div>
 

@@ -36,7 +36,7 @@
   <div class="mt-2">
     <div class="card shadow-sm p-3">
       <div class="d-flex flex-column">
-        <div class="sort-tabs d-flex border rounded-lg overflow-hidden">
+        <div class="sort-tabs d-flex border rounded-3 overflow-hidden">
           <button 
             v-for="(option, index) in sortOptions" 
             :key="index"
@@ -146,7 +146,7 @@
               <span class="meta-item"><i class="bi bi-folder-fill"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
             </div>
             <div class="meta-right d-flex align-items-center gap-0.5 ms-auto">
-              <span class="meta-item"><i class="bi bi-calendar-fill"></i>{{ formatTime(article.create_time) }}</span>
+              <span class="meta-item"><i class="bi bi-calendar-fill"></i>{{ formatTime(article.publish_time) }}</span>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@
             <span class="text-sm text-secondary"><i class="bi bi-folder-fill me-1"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
           </div>
           <div class="d-flex align-items-center gap-3">
-            <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.create_time) }}</span>
+            <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.publish_time) }}</span>
           </div>
         </div>
       </div>
@@ -219,7 +219,7 @@
               <span class="meta-item"><i class="bi bi-folder-fill"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
             </div>
             <div class="meta-right d-flex align-items-center gap-0.5 ms-auto">
-              <span class="meta-item"><i class="bi bi-calendar-fill"></i>{{ formatTime(article.create_time) }}</span>
+              <span class="meta-item"><i class="bi bi-calendar-fill"></i>{{ formatTime(article.publish_time) }}</span>
             </div>
           </div>
         </div>
@@ -241,7 +241,7 @@
             <span class="text-sm text-secondary"><i class="bi bi-folder-fill me-1"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
           </div>
           <div class="d-flex align-items-center gap-3">
-            <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.create_time) }}</span>
+            <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.publish_time) }}</span>
           </div>
         </div>
       </div>

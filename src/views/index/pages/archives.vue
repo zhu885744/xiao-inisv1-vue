@@ -32,7 +32,7 @@
           </div>
           
           <!-- 版权信息骨架 -->
-          <div class="border rounded mt-3 p-2">
+          <div class="border rounded-3 mt-3 p-2">
             <div class="skeleton skeleton-copyright-item mb-2"></div>
             <div class="skeleton skeleton-copyright-item mb-2"></div>
             <div class="skeleton skeleton-copyright-item mb-2"></div>
@@ -100,7 +100,7 @@
               </span>
               <span class="meta-item d-flex align-items-center">
                 <i class="bi bi-calendar-fill me-2"></i>
-                {{ formatTime(articleInfo.create_time) }}
+                {{ formatTime(articleInfo.publish_time) }}
               </span>
               <span class="meta-item d-flex align-items-center">
                 <i class="bi bi-chat-fill me-2"></i>
@@ -118,8 +118,8 @@
           </div>
 
           <!-- 版权归属信息 -->
-          <div class="border rounded mt-3 p-2">
-          <!-- 版权归属信息 -->
+          <div class="border rounded-3 mt-3 p-2">
+            <!-- 版权归属信息 -->
             <div class="d-flex align-items-center gap-2 mb-1">
               <i class="bi bi-c-circle text-primary fs-6"></i>
               <span class="text-muted fs-6">版权属于：</span>
@@ -190,6 +190,15 @@
                 <span>{{ shareCount }}</span>
               </button>
             </div>
+          </div>
+        </div>
+        <!-- 文章底部栏：显示最后更新时间 -->
+        <div class="card-footer bg-light border-top">
+          <div class="d-flex justify-content-end">
+            <span class="text-muted d-flex align-items-center">
+              <i class="bi bi-clock-fill me-2"></i>
+              最后更新：{{ formatTime(articleInfo.update_time || articleInfo.last_update || articleInfo.publish_time || Date.now() / 1000) }}
+            </span>
           </div>
         </div>
       </main>

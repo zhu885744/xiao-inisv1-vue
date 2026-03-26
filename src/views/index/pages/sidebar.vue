@@ -265,7 +265,7 @@
                     {{ article.views || 0 }}
                   </span>
                   <span>
-                    {{ formatTime(article.createTime || article.create_time) }}
+                    {{ formatTime(article.publish_time) }}
                   </span>
                 </div>
               </div>

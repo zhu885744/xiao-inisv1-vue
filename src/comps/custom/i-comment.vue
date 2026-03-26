@@ -39,7 +39,7 @@
               v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
               :key="index"
               @click="insertEmoji(emoji.icon)"
-              class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+              class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
               :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
               :title="emoji.text"
             >
@@ -186,7 +186,7 @@
                   v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                   :key="index"
                   @click="insertReplyEmoji(emoji.icon)"
-                  class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+                  class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
                   :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
                   :title="emoji.text"
                 >

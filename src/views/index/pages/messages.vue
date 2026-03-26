@@ -166,7 +166,7 @@
                 >
                   <div class="d-flex justify-content-between align-items-start">
                     <div class="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden">
-                      <div class="bg-primary bg-opacity-10 p-2 rounded flex-shrink-0">
+                      <div class="bg-primary bg-opacity-10 p-2 rounded-3 flex-shrink-0">
                         <i class="bi bi-bell-fill text-primary"></i>
                       </div>
                       <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">

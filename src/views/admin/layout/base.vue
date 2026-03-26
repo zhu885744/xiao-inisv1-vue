@@ -39,11 +39,6 @@
                         >
                             <i :class="darkModeIcon"></i>
                         </button>
-                        
-                        <!-- 退出登录按钮 -->
-                        <button class="btn btn-outline-danger" @click="method.logout()">
-                            <i class="bi bi-box-arrow-right me-1"></i>退出登录
-                        </button>
                     </div>
                 </div>
             </nav>
@@ -67,9 +62,6 @@ import AdminNav from './nav.vue'
 import AdminFooter from './footer.vue'
 import { useCommStore } from '@/store/comm'
 import { useAuthPagesStore } from '@/store/auth-pages'
-import utils from '@/utils/utils'
-import Toast from '@/utils/toast'
-import axios from '@/utils/request'
 import { useRouter } from 'vue-router'
 
 // 初始化router
@@ -82,51 +74,6 @@ const sidebarOpen = ref(false)
 const store = {
   comm: useCommStore(),
   authPages: useAuthPagesStore()
-}
-
-// 方法定义
-const method = {
-  // 登出
-  logout: async () => {
-    try {
-      // 1. 调用后端退出登录接口（DELETE 请求）
-      const response = await axios.del('/api/comm/logout')
-      
-      // 2. 处理接口响应（根据后端返回状态码判断）
-      if (response.code === 200) {
-        // 接口调用成功 - 清理前端状态
-        utils.set.cookie(globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN', '', -1)
-        store.comm.login.finish = false
-        store.comm.login.user = null
-        
-        // 清理本地缓存的用户信息
-        if (utils.cache?.del) {
-          utils.cache.del('user-info')
-        } else if (localStorage) {
-          localStorage.removeItem('user-info')
-        }
-        
-        // 成功提示
-        Toast.success('已退出登录')
-      } else {
-        // 接口返回错误
-        Toast.error(response.msg || '退出登录失败')
-      }
-    } catch (error) {
-      // 网络错误/接口调用失败
-      
-      // 兜底清理前端状态（即使接口失败，也清理本地Token）
-      utils.set.cookie(globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN', '', -1)
-      store.comm.login.finish = false
-      store.comm.login.user = null
-      
-      // 错误提示
-      Toast.error('网络异常，已本地退出登录')
-    } finally {
-      // 跳转到前台首页
-      router.push('/')
-    }
-  },
 }
 
 // 计算属性

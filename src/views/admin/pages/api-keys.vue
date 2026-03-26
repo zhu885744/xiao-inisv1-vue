@@ -33,7 +33,7 @@
       </div>
         <div class="row mt-2">
             <div class="col-12">
-                <div class="border rounded-lg overflow-hidden">
+                <div class="border rounded-3 overflow-hidden">
                     <!-- 标签页导航 -->
                     <ul class="nav nav-tabs" id="apiKeysTabs" role="tablist">
                         <li class="nav-item" role="presentation">

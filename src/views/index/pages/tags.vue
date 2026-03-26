@@ -177,7 +177,7 @@
                   <span class="meta-item"><i class="bi bi-folder-fill"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
                 </div>
                 <div class="meta-right d-flex align-items-center gap-0.5 ms-auto">
-                  <span class="meta-item"><i class="bi bi-calendar-fill"></i>{{ formatTime(article.create_time) }}</span>
+                  <span class="meta-item"><i class="bi bi-calendar-fill"></i>{{ formatTime(article.publish_time) }}</span>
                 </div>
               </div>
             </div>
@@ -199,7 +199,7 @@
                 <span class="text-sm text-secondary"><i class="bi bi-folder-fill me-1"></i>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
               </div>
               <div class="d-flex align-items-center gap-3">
-                <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.create_time) }}</span>
+                <span class="text-sm text-secondary"><i class="bi bi-calendar-fill me-1"></i>{{ formatTime(article.publish_time) }}</span>
               </div>
             </div>
           </div>

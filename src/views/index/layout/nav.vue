@@ -135,6 +135,11 @@
                     <i class="bi bi-arrow-down-circle me-1"></i>版本更新
                   </router-link>
                 </li>
+                <li>
+                  <button class="dropdown-item" @click="clearCache()">
+                    <i class="bi bi-trash3 me-1"></i>清除缓存
+                  </button>
+                </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <button class="dropdown-item text-danger" @click="method.logout()">
@@ -310,6 +315,9 @@
             <button class="btn btn-outline-success text-center" type="button" @click="method.showPublishNotification()">
               <i class="bi bi-plus-circle me-1"></i>发布文章
             </button>
+            <button class="btn btn-outline-secondary text-center" type="button" @click="clearCache()">
+              <i class="bi bi-trash3 me-1"></i>清除缓存
+            </button>
             <button class="btn btn-outline-danger text-center" type="button" @click="method.logout()">
               <i class="bi bi-box-arrow-right me-1"></i>退出登录
             </button>
@@ -386,6 +394,37 @@ const searchDialog = ref(null)
 const store = {
   comm: useCommStore(),
   config: useConfigStore()
+}
+
+// 清除缓存方法
+const clearCache = () => {
+  // 二次确认弹窗
+  if (confirm('确定要清除所有缓存吗？此操作不会影响您的登录状态。')) {
+    // 保存用户登录相关的缓存
+    const userInfo = cache.get('user-info')
+    const uid = localStorage.getItem('uid')
+    
+    // 清除所有缓存
+    cache.clear()
+    // 清除localStorage中的相关缓存
+    localStorage.removeItem('search-history')
+    localStorage.removeItem('lastCommentTime')
+    
+    // 恢复用户登录相关的缓存
+    if (userInfo) {
+      cache.set('user-info', userInfo, 7 * 24 * 60) // 保持7天过期时间
+    }
+    if (uid) {
+      localStorage.setItem('uid', uid)
+    }
+    
+    // 显示成功提示
+    Toast.success('缓存已清除')
+    // 延迟刷新页面，让提示有足够时间显示
+    setTimeout(() => {
+      window.location.reload()
+    }, 1500)
+  }
 }
 
 // 状态管理

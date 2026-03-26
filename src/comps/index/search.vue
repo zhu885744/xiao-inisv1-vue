@@ -127,7 +127,7 @@
                     class="result-item"
                     :class="`result-${result.type}`"
                   >
-                    <div class="d-flex align-items-start p-3 rounded-lg transition-all duration-300 hover:bg-primary/5 hover:shadow-sm">
+                    <div class="d-flex align-items-start p-3 rounded-3 transition-all duration-300 hover:bg-primary/5 hover:shadow-sm">
                       <div class="result-icon-container">
                         <i :class="[getResultIcon(result.type), 'result-icon']"></i>
                       </div>

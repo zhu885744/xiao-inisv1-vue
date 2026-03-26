@@ -10,37 +10,37 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-md-2 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">应用名称</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemInfoParsed?.app_name || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">Go 版本</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemInfoParsed?.go_version || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">操作系统</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemInfoParsed?.os || '-' }} {{ systemInfoParsed?.arch || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">CPU 核心</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemInfoParsed?.cpu_count || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">协程数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemInfoParsed?.goroutines || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">当前时间</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemInfoParsed?.current_time || '-' }}</div>
                 </div>
@@ -61,7 +61,7 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">连接状态</div>
                   <div :class="['value fw-semibold', databaseStatusParsed?.connected ? 'text-success' : 'text-danger']">
                     {{ databaseStatusParsed?.connected ? '正常' : '异常' }}
@@ -69,55 +69,55 @@
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">响应时间</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.latency || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">用户数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.users || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">文章数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.articles || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">评论数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.comments || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">轮播数量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.banners || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">友链数量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.links || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">公告数量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.placards || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">标签数量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.tags || 0 }}</div>
                 </div>
               </div>
               <div class="col-md-2 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">独立页面数量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ databaseStatusParsed?.counts?.pages || 0 }}</div>
                 </div>
@@ -138,7 +138,7 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-md-4 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">启用状态</div>
                   <div :class="['value fw-semibold', cacheStatusParsed?.enabled ? 'text-success' : 'text-danger']">
                     {{ cacheStatusParsed?.enabled ? '已启用' : '未启用' }}
@@ -146,13 +146,13 @@
                 </div>
               </div>
               <div class="col-md-4 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">缓存类型</div>
                   <div class="value fw-semibold text-body-emphasis">{{ cacheStatusParsed?.type || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-4 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">工作状态</div>
                   <div :class="['value fw-semibold', cacheStatusParsed?.working ? 'text-success' : 'text-danger']">
                     {{ cacheStatusParsed?.working ? '正常' : '异常' }}
@@ -176,19 +176,19 @@
           <div class="card-body">
             <div class="row g-3 mb-3">
               <div class="col-md-4 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">使用率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.cpu?.usage || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-4 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">CPU 核心</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.cpu?.count || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-4 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">CPU 型号</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.cpu?.model || '-' }}</div>
                 </div>
@@ -196,25 +196,25 @@
             </div>
             <div class="row g-3 mb-3">
               <div class="col-md-4 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">1分钟负载</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.cpu?.load_1m || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-4 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">5分钟负载</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.cpu?.load_5m || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-4 col-sm-4">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">15分钟负载</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.cpu?.load_15m || '-' }}</div>
                 </div>
               </div>
             </div>
-            <div class="progress mb-2 rounded-2" style="height: 10px;">
+            <div class="progress mb-2 rounded-3" style="height: 10px;">
               <div 
                 class="progress-bar" 
                 role="progressbar" 
@@ -245,25 +245,25 @@
           <div class="card-body">
             <div class="row g-3 mb-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">上行速率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.up || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">下行速率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.down || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总发送量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.total_sent || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总接收量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.total_received || '-' }}</div>
                 </div>
@@ -271,25 +271,25 @@
             </div>
             <div class="row g-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">发送包数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.packets_sent || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">接收包数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.packets_recv || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">发送速率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.sent_per_sec || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">接收速率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.network?.recv_per_sec || '-' }}</div>
                 </div>
@@ -308,25 +308,25 @@
           <div class="card-body">
             <div class="row g-3 mb-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.system_total || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">已用</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.system_used || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">可用</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.system_free || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">使用率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.system_usage || '-' }}</div>
                 </div>
@@ -334,31 +334,31 @@
             </div>
             <div class="row g-3 mb-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">已分配内存</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.alloc || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总分配内存</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.total_alloc || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">系统内存</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.sys || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">GC次数</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.memory?.gc_count || '-' }}</div>
                 </div>
               </div>
             </div>
-            <div class="progress mb-2 rounded-2" style="height: 10px;">
+            <div class="progress mb-2 rounded-3" style="height: 10px;">
               <div 
                 class="progress-bar" 
                 role="progressbar" 
@@ -389,25 +389,25 @@
           <div class="card-body">
             <div class="row g-3 mb-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.total || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">已用</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.used || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">可用</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.free || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">使用率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.usage || '-' }}</div>
                 </div>
@@ -415,25 +415,25 @@
             </div>
             <div class="row g-3 mb-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">文件系统</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.fs_type || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">IO延迟</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.io_latency || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总读取量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.read || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">总写入量</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.write || '-' }}</div>
                 </div>
@@ -441,19 +441,19 @@
             </div>
             <div class="row g-3 mb-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">读取速率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.read_per_sec || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-3 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-3 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-1">写入速率</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.disk?.write_per_sec || '-' }}</div>
                 </div>
               </div>
             </div>
-            <div class="progress mb-2 rounded-2" style="height: 10px;">
+            <div class="progress mb-2 rounded-3" style="height: 10px;">
               <div 
                 class="progress-bar" 
                 role="progressbar" 
@@ -486,25 +486,25 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">操作系统</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.system?.os || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">操作系统版本</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.system?.os_version || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">内核版本</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.system?.kernel || '-' }}</div>
                 </div>
               </div>
               <div class="col-md-3 col-sm-6">
-                <div class="info-item bg-body-secondary rounded-2 p-4 text-center h-100">
+                <div class="info-item bg-body-secondary rounded-3 p-4 text-center h-100">
                   <div class="label text-body-secondary text-uppercase small fw-medium mb-2">启动时间</div>
                   <div class="value fw-semibold text-body-emphasis">{{ systemResourcesParsed?.system?.boot_time || '-' }}</div>
                 </div>

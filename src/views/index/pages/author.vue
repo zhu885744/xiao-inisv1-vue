@@ -8,7 +8,7 @@
         </h5>
         <button 
           @click="fetchUserInfo" 
-          class="btn btn-sm btn-outline-primary rounded-full px-4 py-1.5 transition-all hover:bg-primary hover:text-white"
+          class="btn btn-sm btn-outline-primary rounded-3 px-4 py-1.5 transition-all hover:bg-primary hover:text-white"
           :disabled="loading"
         >
           <i class="bi" :class="loading ? 'bi-arrow-clockwise spin' : 'bi-arrow-clockwise'"></i>

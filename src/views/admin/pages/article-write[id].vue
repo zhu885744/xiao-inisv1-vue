@@ -104,7 +104,7 @@
                                 <div class="tab-content" id="coverTabsContent">
                                     <!-- 预览上传 -->
                                     <div class="tab-pane" :class="{ active: state.item.tabs === 'preview', show: state.item.tabs === 'preview' }" id="preview" role="tabpanel" aria-labelledby="preview-tab">
-                                        <div class="border rounded p-3 mb-3">
+                                        <div class="border rounded-3 p-3 mb-3">
                                             <h6 class="mb-3">上传图片</h6>
                                             <input type="file" class="form-control mb-2" @change="method.cover.upload" multiple accept="image/*">
                                             <!-- 预览图 -->
@@ -112,7 +112,7 @@
                                                 <h6 class="mb-2">已上传图片：</h6>
                                                 <div class="d-flex flex-wrap gap-2">
                                                     <div v-for="(file, index) in state.item.cover.preview" :key="index" class="position-relative" style="width: 100px; height: 100px;">
-                                                        <img :src="file.url" class="img-fluid rounded" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        <img :src="file.url" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: cover;">
                                                         <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" @click="method.cover.remove(index)">
                                                             <i class="bi bi-x"></i>
                                                         </button>
@@ -123,7 +123,7 @@
                                     </div>
                                     <!-- 外链 -->
                                     <div class="tab-pane" :class="{ active: state.item.tabs === 'links', show: state.item.tabs === 'links' }" id="links" role="tabpanel" aria-labelledby="links-tab">
-                                        <div class="border rounded p-3">
+                                        <div class="border rounded-3 p-3">
                                             <h6 class="mb-3">外链图片地址</h6>
                                             <textarea v-model="state.item.cover.links" class="form-control" rows="4" placeholder="外链图片地址，一行一个" @change="method.cover.change"></textarea>
                                         </div>

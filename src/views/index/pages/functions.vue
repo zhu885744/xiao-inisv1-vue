@@ -25,7 +25,7 @@
           </div>
           <h3 class="error-title mb-3">权限不足</h3>
           <p class="error-description text-muted mb-6">您没有权限访问此页面，请联系管理员</p>
-          <router-link to="/" class="btn btn-primary rounded-full px-6 py-2">
+          <router-link to="/" class="btn btn-primary rounded-3 px-6 py-2">
             <i class="bi bi-house me-2"></i>
             返回首页
           </router-link>
@@ -124,7 +124,7 @@
                       <label for="site-title" class="form-label">网站标题</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="site-title"
                         v-model="globalConfig.title"
                         placeholder="输入您的网站标题"
@@ -135,7 +135,7 @@
                       <label for="site-description" class="form-label">网站描述</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="site-description"
                         v-model="globalConfig.description"
                         placeholder="输入您的网站描述"
@@ -146,7 +146,7 @@
                       <label for="site-keyword" class="form-label">网站关键词</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="site-keyword"
                         v-model="globalConfig.keyword"
                         placeholder="输入关键词，用逗号分隔"
@@ -157,7 +157,7 @@
                       <label for="site-avatar" class="form-label">网站LOGO</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="site-avatar"
                         v-model="globalConfig.avatar"
                         placeholder="输入LOGO URL"
@@ -168,7 +168,7 @@
                       <label for="site-favicon" class="form-label">网站图标</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="site-favicon"
                         v-model="globalConfig.favicon"
                         placeholder="输入favicon URL"
@@ -179,7 +179,7 @@
                       <label for="site-date" class="form-label">建站日期</label>
                       <input 
                         type="date" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="site-date"
                         :value="formatDate(globalConfig.date)"
                         @change="handleDateChange"
@@ -197,7 +197,7 @@
                       <label for="copy-code" class="form-label">ICP备案号</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="copy-code"
                         v-model="globalConfig.copy.code"
                         placeholder="输入ICP备案号"
@@ -208,7 +208,7 @@
                       <label for="copy-link" class="form-label">ICP备案链接</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="copy-link"
                         v-model="globalConfig.copy.link"
                         placeholder="输入备案链接"
@@ -219,7 +219,7 @@
                       <label for="police-code" class="form-label">公安备案号</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="police-code"
                         v-model="globalConfig.police.code"
                         placeholder="输入公安备案号"
@@ -230,7 +230,7 @@
                       <label for="police-link" class="form-label">公安备案链接</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-1 border-gray-300 shadow-sm"
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="police-link"
                         v-model="globalConfig.police.link"
                         placeholder="输入公安备案链接"
@@ -244,7 +244,7 @@
                 <div class="form-actions mt-8">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-full px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
                     @click="saveGlobalConfig"
                     :disabled="saving"
                   >
@@ -253,7 +253,7 @@
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
                     @click="resetGlobalConfig"
                     :disabled="saving"
                   >
@@ -299,13 +299,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          class="form-control rounded-3 border-gray-300 shadow-sm"
                           id="rate_limit_max_count"
                           v-model.number="commentConfig.rate_limit.max_count"
                           min="1"
                           max="100"
                         >
-                        <span class="input-group-text rounded-1 border-gray-300">条</span>
+                        <span class="input-group-text rounded-3 border-gray-300">条</span>
                       </div>
                       <div class="form-text text-muted mt-1">时间窗口内允许的最大评论数</div>
                     </div>
@@ -314,13 +314,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          class="form-control rounded-3 border-gray-300 shadow-sm"
                           id="rate_limit_time_window"
                           v-model.number="commentConfig.rate_limit.time_window"
                           min="1"
                           max="3600"
                         >
-                        <span class="input-group-text rounded-1 border-gray-300">秒</span>
+                        <span class="input-group-text rounded-3 border-gray-300">秒</span>
                       </div>
                       <div class="form-text text-muted mt-1">速率限制的时间窗口</div>
                     </div>
@@ -336,13 +336,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          class="form-control rounded-3 border-gray-300 shadow-sm"
                           id="max_length"
                           v-model.number="commentConfig.max_length"
                           min="1"
                           max="10000"
                         >
-                        <span class="input-group-text rounded-1 border-gray-300">字</span>
+                        <span class="input-group-text rounded-3 border-gray-300">字</span>
                       </div>
                       <div class="form-text text-muted mt-1">单条评论的最大长度</div>
                     </div>
@@ -382,7 +382,7 @@
                   <div class="mb-3">
                     <label for="sensitive_words" class="form-label">敏感词列表</label>
                     <textarea 
-                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
                       id="sensitive_words"
                       v-model="commentConfig.sensitive_words"
                       rows="4"
@@ -412,13 +412,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          class="form-control rounded-3 border-gray-300 shadow-sm"
                           id="email_notify_retry_count"
                           v-model.number="commentConfig.email_notify.retry_count"
                           min="1"
                           max="10"
                         >
-                        <span class="input-group-text rounded-1 border-gray-300">次</span>
+                        <span class="input-group-text rounded-3 border-gray-300">次</span>
                       </div>
                       <div class="form-text text-muted mt-1">发送失败时的重试次数</div>
                     </div>
@@ -427,13 +427,13 @@
                       <div class="input-group">
                         <input 
                           type="number" 
-                          class="form-control rounded-1 border-gray-300 shadow-sm"
+                          class="form-control rounded-3 border-gray-300 shadow-sm"
                           id="email_notify_retry_interval"
                           v-model.number="commentConfig.email_notify.retry_interval"
                           min="1"
                           max="60"
                         >
-                        <span class="input-group-text rounded-1 border-gray-300">秒</span>
+                        <span class="input-group-text rounded-3 border-gray-300">秒</span>
                       </div>
                       <div class="form-text text-muted mt-1">每次重试的时间间隔</div>
                     </div>
@@ -444,7 +444,7 @@
                 <div class="form-actions mt-8">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-full px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
                     @click="saveCommentConfig"
                     :disabled="saving"
                   >
@@ -453,7 +453,7 @@
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
                     @click="resetCommentConfig"
                     :disabled="saving"
                   >
@@ -509,7 +509,7 @@
                 <div class="form-actions mt-8">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-full px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
                     @click="saveHomepageConfig"
                     :disabled="saving"
                   >
@@ -518,7 +518,7 @@
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
                     @click="resetHomepageConfig"
                     :disabled="saving"
                   >
@@ -549,7 +549,7 @@
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">CSS代码</h3>
                   <div class="mb-3">
                     <textarea 
-                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
                       id="custom-css"
                       v-model="customCodeConfig.css"
                       rows="6"
@@ -564,7 +564,7 @@
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">JavaScript代码</h3>
                   <div class="mb-3">
                     <textarea 
-                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
                       id="custom-js"
                       v-model="customCodeConfig.js"
                       rows="6"
@@ -579,7 +579,7 @@
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">头部HTML代码</h3>
                   <div class="mb-3">
                     <textarea 
-                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
                       id="custom-header"
                       v-model="customCodeConfig.header"
                       rows="4"
@@ -594,7 +594,7 @@
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">底部HTML代码</h3>
                   <div class="mb-3">
                     <textarea 
-                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
                       id="custom-footer"
                       v-model="customCodeConfig.footer"
                       rows="4"
@@ -609,7 +609,7 @@
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">网站统计代码</h3>
                   <div class="mb-3">
                     <textarea 
-                      class="form-control rounded-1 border-gray-300 shadow-sm"
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
                       id="custom-analytics"
                       v-model="customCodeConfig.analytics"
                       rows="4"
@@ -623,7 +623,7 @@
                 <div class="form-actions mt-8">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-full px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
                     @click="saveCustomCodeConfig"
                     :disabled="saving"
                   >
@@ -632,7 +632,7 @@
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-full px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
                     @click="resetCustomCodeConfig"
                     :disabled="saving"
                   >

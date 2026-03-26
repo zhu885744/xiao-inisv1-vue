@@ -146,7 +146,7 @@
                       <router-link :to="`/archives/${article.id}`" class="timeline-article-title">{{ article.title }}</router-link>
                       <div class="timeline-article-meta">
                         <span class="timeline-article-date d-flex align-items-center">
-                          <i class="bi bi-calendar-date me-1"></i>{{ formatTime(article.create_time) }}
+                          <i class="bi bi-calendar-date me-1"></i>{{ formatTime(article.publish_time) }}
                         </span>
                         <span class="timeline-article-category d-flex align-items-center" v-if="article.result?.group && article.result.group.length > 0">
                           <i class="bi bi-folder me-1"></i>{{ article.result.group[0].name }}
@@ -199,7 +199,7 @@
           <!-- 核心内容区 -->
           <div class="pb-2">
             <!-- 友链介绍 -->
-            <div class="article-content text-secondary mb-5">
+            <div class="article-content text-secondary">
               <i-markdown :model-value="pageInfo.content || '暂无友链介绍，敬请期待～'" />
             </div>
 
@@ -372,7 +372,7 @@
                           v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                           :key="index"
                           @click="insertMessageEmoji(emoji.icon)"
-                          class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+                          class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
                           :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
                           :title="emoji.text"
                         >
@@ -517,7 +517,7 @@
                                     v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                                     :key="index"
                                     @click="insertReplyEmoji(emoji.icon)"
-                                    class="btn btn-sm btn-outline-secondary rounded-2 emoji-item"
+                                    class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
                                     :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
                                     :title="emoji.text"
                                   >
@@ -573,7 +573,7 @@
                         <div class="modal-body">
                           <div v-if="selectedMessage && selectedMessage.replies && selectedMessage.replies.length > 0">
                             <div 
-                              class="reply-item mb-3 p-3 border rounded" 
+                              class="reply-item mb-3 p-3 border rounded-3" 
                               v-for="(reply, index) in selectedMessage.replies" 
                               :key="reply.id || index"
                             >
@@ -644,31 +644,40 @@
         <main class="article-content-wrap card shadow-sm mt-2">
           <div class="p-3">
           <!-- 页面头部：标题+元信息 -->
-          <header class="article-header mt-2">
-            <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title }}</h1>
-            <!-- 文章元信息：居中布局、弱化样式 -->
-            <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-person-fill me-2"></i>
-                {{ authorInfo.nickname || '匿名' }}
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-calendar-fill me-2"></i>
-                {{ formatTime(pageInfo.last_update || Date.now() / 1000) }}
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-chat-fill me-2"></i>
-                {{ commentCount || 0 }} 评论
-              </span>
-              <span class="meta-item d-flex align-items-center">
-                <i class="bi bi-eye-fill me-2"></i>
-                {{ viewCount || 0 }} 浏览
+            <header class="article-header mt-2">
+              <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title }}</h1>
+              <!-- 文章元信息：居中布局、弱化样式 -->
+              <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
+                <span class="meta-item d-flex align-items-center">
+                  <i class="bi bi-person-fill me-2"></i>
+                  {{ authorInfo.nickname || '匿名' }}
+                </span>
+                <span class="meta-item d-flex align-items-center">
+                  <i class="bi bi-calendar-fill me-2"></i>
+                  {{ formatTime(pageInfo.publish_time || Date.now() / 1000) }}
+                </span>
+                <span class="meta-item d-flex align-items-center">
+                  <i class="bi bi-chat-fill me-2"></i>
+                  {{ commentCount || 0 }} 评论
+                </span>
+                <span class="meta-item d-flex align-items-center">
+                  <i class="bi bi-eye-fill me-2"></i>
+                  {{ viewCount || 0 }} 浏览
+                </span>
+              </div>
+            </header>
+            <div class="article-content mt-4">
+              <i-markdown :model-value="pageInfo.content || '暂无页面内容，敬请期待～'" />
+            </div>
+          </div>
+          <!-- 文章底部栏：显示最后更新时间 -->
+          <div class="card-footer">
+            <div class="d-flex justify-content-end">
+              <span class="text-muted d-flex align-items-center">
+                <i class="bi bi-clock-fill me-2"></i>
+                最后更新：{{ formatTime(pageInfo.update_time || pageInfo.last_update || Date.now() / 1000) }}
               </span>
             </div>
-          </header>
-          <div class="article-content mt-4">
-            <i-markdown :model-value="pageInfo.content || '暂无页面内容，敬请期待～'" />
-          </div>
           </div>
         </main>
         
@@ -1532,8 +1541,8 @@ const groupArticlesByYearMonth = (articlesData) => {
   const grouped = {}
   
   articlesData.forEach(article => {
-    if (article.create_time) {
-      const date = new Date(article.create_time * 1000)
+    if (article.publish_time) {
+      const date = new Date(article.publish_time * 1000)
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       const yearMonth = `${year}年${month}月`
@@ -2821,13 +2830,6 @@ onUnmounted(() => {
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
   font-weight: 700;
-}
-
-/* 友链介绍Markdown样式 */
-.article-content {
-  line-height: 1.8;
-  font-size: 1.05rem;
-  padding: 0.5rem 0;
 }
 
 /* 友链分组标题 */
