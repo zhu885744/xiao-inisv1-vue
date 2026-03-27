@@ -172,7 +172,6 @@
                 {{ refreshingArchive ? '刷新中...' : '刷新数据' }}
               </button>
             </div>
-
             </div>
           </div>
         </main>
@@ -3474,7 +3473,6 @@ onUnmounted(() => {
 .reply-item {
   border-left: 3px solid rgba(var(--bs-primary-rgb), 0.2);
   padding-left: 1rem;
-  margin-left: 1rem;
   margin-top: 0.75rem;
 }
 

@@ -157,10 +157,7 @@
 
         <!-- 初始状态 -->
         <div v-else-if="!loading && searchQuery === '' && searchHistory.length === 0" class="text-center py-12">
-          <div class="mb-4">
-            <i class="bi bi-search text-5xl text-muted"></i>
-          </div>
-          <p class="text-muted">请输入关键词开始搜索</p>
+          <p class="mt-4 text-muted">请输入关键词开始搜索</p>
         </div>
     </div>
   </div>

@@ -61,14 +61,14 @@
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="card shadow-sm p-4 mt-2">
+    <div v-else-if="error" class="card shadow-sm mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
     <!-- 分类页面主体 -->
     <div v-else class="category-main">
       <!-- 分类信息卡片 -->
-      <div class="category-info card shadow-sm p-4 mt-2 rounded-3">
+      <div class="category-info card shadow-sm mt-2 rounded-3">
         <div class="category-info-inner">
           <!-- 分类头像 -->
           <div class="category-info-avatar">

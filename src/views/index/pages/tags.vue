@@ -5,13 +5,13 @@
       <!-- 标签列表页骨架 -->
       <div class="tags-list-page">
         <!-- 标签总数统计骨架 -->
-        <div class="tags-count card  shadow-sm p-4 mt-2">
+        <div class="tags-count card shadow-sm mt-2">
           <div class="tags-count-header">
             <div class="skeleton skeleton-tags-count-title mb-3"></div>
           </div>
         </div>
         <!-- 标签卡片网格骨架 -->
-        <div class="tags-grid card  shadow-sm p-4 mt-2">
+        <div class="tags-grid card shadow-sm mt-2">
           <div class="tags-grid-container">
             <div v-for="i in 6" :key="`tag-skeleton-${i}`" class="tag-card">
               <div class="tag-card-inner">
@@ -40,7 +40,7 @@
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="card  shadow-sm p-4 mt-2">
+    <div v-else-if="error" class="card shadow-sm mt-2">
       <p class="mb-0 fw-normal">{{ errorMsg }}</p>
     </div>
 
@@ -49,13 +49,13 @@
       <!-- 标签列表页结构 -->
       <div v-if="!currentTag" class="tags-list-page">
         <!-- 标签总数统计 -->
-        <div class="tags-count card shadow-sm p-4 mt-2 bg-body rounded-3">
+        <div class="tags-count card shadow-sm mt-2 bg-body rounded-3">
           <div class="tags-count-header">
             <h2 class="tags-count-title fw-bold">标签 <span class="text-sm text-muted">({{ totalTags }})</span></h2>
           </div>
         </div>
         <!-- 标签卡片网格 -->
-        <div class="tags-grid card shadow-sm p-4 mt-2 bg-body rounded-3">
+        <div class="tags-grid card shadow-sm mt-2 bg-body rounded-3">
           <div class="tags-grid-container">
             <div 
               v-for="tag in tags" 
@@ -111,7 +111,7 @@
       <!-- 单个标签页结构 -->
       <div v-else class="single-tag-page">
         <!-- 标签详情 -->
-        <div class="tag-info card shadow-sm p-4 mt-2">
+        <div class="tag-info card shadow-sm mt-2">
           <div class="tag-info-inner">
             <!-- 标签头像 -->
             <div class="tag-info-avatar">

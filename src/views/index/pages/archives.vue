@@ -193,7 +193,7 @@
           </div>
         </div>
         <!-- 文章底部栏：显示最后更新时间 -->
-        <div class="card-footer bg-light border-top">
+        <div class="card-footer border-top">
           <div class="d-flex justify-content-end">
             <span class="text-muted d-flex align-items-center">
               <i class="bi bi-clock-fill me-2"></i>
