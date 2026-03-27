@@ -28,9 +28,10 @@
 
     <!-- 通知内容 -->
     <div v-else>
-      <!-- 标签页导航 -->
+      <!-- 标签页导航和内容 -->
       <div class="mt-2">
         <div class="card shadow-sm">
+          <!-- 标签页导航 -->
           <div class="card-body p-0">
             <ul class="nav nav-tabs" id="messageTabs" role="tablist">
               <li class="nav-item" role="presentation">
@@ -103,87 +104,79 @@
               </li>
             </ul>
           </div>
-        </div>
-      </div>
 
-      <!-- 标签页内容 -->
-      <div class="tab-content mt-2" id="messageTabsContent">
-        <!-- 评论消息 -->
-        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'comments' }" id="comments" role="tabpanel" aria-labelledby="comments-tab">
-          <div class="card shadow-sm">
-            <div class="card-body text-center py-5">
-              <i class="bi bi-chat-dots text-muted fs-1 d-block mb-3"></i>
-              <p class="text-muted mb-0">暂无评论消息</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 点赞消息 -->
-        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'likes' }" id="likes" role="tabpanel" aria-labelledby="likes-tab">
-          <div class="card shadow-sm">
-            <div class="card-body text-center py-5">
-              <i class="bi bi-heart text-muted fs-1 d-block mb-3"></i>
-              <p class="text-muted mb-0">暂无点赞消息</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 私信消息 -->
-        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'private' }" id="private" role="tabpanel" aria-labelledby="private-tab">
-          <div class="card shadow-sm">
-            <div class="card-body text-center py-5">
-              <i class="bi bi-envelope text-muted fs-1 d-block mb-3"></i>
-              <p class="text-muted mb-0">暂无私信消息</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 系统通知 -->
-        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'system' }" id="system" role="tabpanel" aria-labelledby="system-tab">
-          <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center py-2">
-              <span class="fw-semibold">系统通知</span>
-              <button class="btn btn-sm btn-outline-secondary" @click="markAllAsRead">
-                <i class="bi bi-check-all me-1"></i>全部已读
-              </button>
-            </div>
-            <div class="card-body p-0">
-              <!-- 加载状态 -->
-              <div v-if="loading" class="text-center py-4">
-                <div class="spinner-border spinner-border-sm text-secondary" role="status">
-                  <span class="visually-hidden">加载中...</span>
-                </div>
+          <!-- 标签页内容 -->
+          <div class="tab-content" id="messageTabsContent">
+            <!-- 评论消息 -->
+            <div class="tab-pane fade" :class="{ 'show active': activeTab === 'comments' }" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+              <div class="card-body text-center py-5">
+                <i class="bi bi-chat-dots text-muted fs-1 d-block mb-3"></i>
+                <p class="text-muted mb-0">暂无评论消息</p>
               </div>
-              
-              <!-- 通知列表 -->
-              <div v-else-if="noticeList.length > 0" class="list-group list-group-flush">
-                <div 
-                  v-for="notice in noticeList" 
-                  :key="notice.id"
-                  class="list-group-item list-group-item-action p-3"
-                  style="cursor: pointer;"
-                  @click="openNoticeModal(notice)"
-                >
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden">
-                      <div class="bg-primary bg-opacity-10 p-2 rounded-3 flex-shrink-0">
-                        <i class="bi bi-bell-fill text-primary"></i>
-                      </div>
-                      <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
-                        <h6 class="mb-1 text-truncate">{{ notice.title }}</h6>
-                        <p class="mb-1 text-muted small text-truncate">{{ formatContentPreview(notice.content) }}</p>
-                        <small class="text-muted">{{ formatDate(notice.create_time) }}</small>
-                      </div>
-                    </div>
-                    <span class="badge bg-warning text-dark flex-shrink-0 ms-2">公告</span>
+            </div>
+
+            <!-- 点赞消息 -->
+            <div class="tab-pane fade" :class="{ 'show active': activeTab === 'likes' }" id="likes" role="tabpanel" aria-labelledby="likes-tab">
+              <div class="card-body text-center py-5">
+                <i class="bi bi-heart text-muted fs-1 d-block mb-3"></i>
+                <p class="text-muted mb-0">暂无点赞消息</p>
+              </div>
+            </div>
+
+            <!-- 私信消息 -->
+            <div class="tab-pane fade" :class="{ 'show active': activeTab === 'private' }" id="private" role="tabpanel" aria-labelledby="private-tab">
+              <div class="card-body text-center py-5">
+                <i class="bi bi-envelope text-muted fs-1 d-block mb-3"></i>
+                <p class="text-muted mb-0">暂无私信消息</p>
+              </div>
+            </div>
+
+            <!-- 系统通知 -->
+            <div class="tab-pane fade" :class="{ 'show active': activeTab === 'system' }" id="system" role="tabpanel" aria-labelledby="system-tab">
+              <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <span class="fw-semibold">系统通知</span>
+                <button class="btn btn-sm btn-outline-secondary" @click="markAllAsRead">
+                  <i class="bi bi-check-all me-1"></i>全部已读
+                </button>
+              </div>
+              <div class="card-body p-0">
+                <!-- 加载状态 -->
+                <div v-if="loading" class="text-center py-4">
+                  <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                    <span class="visually-hidden">加载中...</span>
                   </div>
                 </div>
-              </div>
-              
-              <!-- 空状态 -->
-              <div v-else class="text-center py-5">
-                <i class="bi bi-bell-slash text-muted fs-1 d-block mb-3"></i>
-                <p class="text-muted mb-0">暂无系统通知</p>
+                
+                <!-- 通知列表 -->
+                <div v-else-if="noticeList.length > 0" class="list-group list-group-flush">
+                  <div 
+                    v-for="notice in noticeList" 
+                    :key="notice.id"
+                    class="list-group-item list-group-item-action p-3"
+                    style="cursor: pointer;"
+                    @click="openNoticeModal(notice)"
+                  >
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="d-flex align-items-start gap-3 flex-grow-1 overflow-hidden">
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-3 flex-shrink-0">
+                          <i class="bi bi-bell-fill text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
+                          <h6 class="mb-1 text-truncate">{{ notice.title }}</h6>
+                          <p class="mb-1 text-muted small text-truncate">{{ formatContentPreview(notice.content) }}</p>
+                          <small class="text-muted">{{ formatDate(notice.create_time) }}</small>
+                        </div>
+                      </div>
+                      <span class="badge bg-warning text-dark flex-shrink-0 ms-2">公告</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 空状态 -->
+                <div v-else class="text-center py-5">
+                  <i class="bi bi-bell-slash text-muted fs-1 d-block mb-3"></i>
+                  <p class="text-muted mb-0">暂无系统通知</p>
+                </div>
               </div>
             </div>
           </div>
@@ -340,242 +333,3 @@ onUnmounted(() => {
   cleanup()
 })
 </script>
-
-<style scoped>
-.min-width-0 {
-  min-width: 0;
-}
-
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 导航标签 */
-.nav-tabs {
-  border-bottom: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  border-radius: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.nav-tabs .nav-link {
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  color: var(--bs-text-muted);
-  transition: all 0.3s ease;
-  margin-bottom: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-}
-
-.nav-tabs .nav-link:hover {
-  color: var(--bs-primary);
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.15);
-}
-
-.nav-tabs .nav-link.active {
-  color: white;
-  background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark));
-  box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
-  transform: translateY(-2px);
-  font-weight: 600;
-  border-bottom: none;
-}
-
-/* 通知列表项 */
-.list-group-item {
-  transition: all 0.3s ease;
-  border-radius: 0.75rem !important;
-  margin: 0.5rem !important;
-  border: 1px solid var(--bs-border-color) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.list-group-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.05);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 通知图标容器 */
-.bg-primary.bg-opacity-10 {
-  background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-.list-group-item:hover .bg-primary.bg-opacity-10 {
-  background-color: rgba(var(--bs-primary-rgb), 0.2) !important;
-  transform: scale(1.05);
-}
-
-/* 徽章样式 */
-.badge {
-  font-weight: 500;
-  border-radius: 1rem;
-  padding: 0.25rem 0.75rem;
-  transition: all 0.3s ease;
-}
-
-/* 页面标题卡片 */
-.card.shadow-sm.mt-2:first-child {
-  background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-/* 登录提示卡片 */
-.card.shadow-sm.mt-2:nth-child(2) {
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.card.shadow-sm.mt-2:nth-child(2):hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-/* 空状态卡片 */
-.card.shadow-sm {
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.card.shadow-sm:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-/* 系统通知卡片 */
-.card.shadow-sm:nth-child(2) {
-  border-radius: 1rem;
-  overflow: hidden;
-}
-
-.card.shadow-sm:nth-child(2) .card-header {
-  background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  border-bottom: 1px solid var(--bs-border-color);
-  border-radius: 1rem 1rem 0 0;
-}
-
-/* 模态框样式 */
-.modal-content {
-  border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  border: none;
-}
-
-.modal-header {
-  background: linear-gradient(135deg, #f8f9fa, #ffffff);
-  border-bottom: 1px solid var(--bs-border-color);
-  border-radius: 1rem 1rem 0 0;
-}
-
-.modal-footer {
-  background: #f8f9fa;
-  border-top: 1px solid var(--bs-border-color);
-  border-radius: 0 0 1rem 1rem;
-}
-
-/* 深色模式适配 */
-[data-bs-theme=dark] {
-  /* 导航标签 */
-  .nav-tabs {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  .nav-tabs .nav-link {
-    color: var(--bs-secondary-color);
-  }
-  
-  .nav-tabs .nav-link:hover {
-    color: var(--bs-primary);
-    background-color: rgba(var(--bs-primary-rgb), 0.2);
-    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.25);
-  }
-  
-  .nav-tabs .nav-link.active {
-    background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark));
-    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.4);
-  }
-  
-  /* 卡片样式 */
-  .card {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  .card.shadow-sm.mt-2:first-child {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-  
-  .card.shadow-sm:nth-child(2) .card-header {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
-    border-bottom: 1px solid var(--bs-border-color);
-  }
-  
-  /* 通知列表项 */
-  .list-group-item {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .list-group-item:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* 通知图标容器 */
-  .bg-primary.bg-opacity-10 {
-    background-color: rgba(var(--bs-primary-rgb), 0.2) !important;
-  }
-  
-  .list-group-item:hover .bg-primary.bg-opacity-10 {
-    background-color: rgba(var(--bs-primary-rgb), 0.3) !important;
-  }
-  
-  /* 模态框样式 */
-  .modal-content {
-    background-color: var(--bs-body-bg);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  }
-  
-  .modal-header {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
-    border-bottom: 1px solid var(--bs-border-color);
-  }
-  
-  .modal-footer {
-    background: var(--bs-tertiary-bg);
-    border-top: 1px solid var(--bs-border-color);
-  }
-  
-  /* 文本颜色 */
-  .text-muted {
-    color: var(--bs-tertiary-color) !important;
-  }
-  
-  h6 {
-    color: var(--bs-heading-color);
-  }
-}
-</style>

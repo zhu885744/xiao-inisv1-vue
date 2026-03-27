@@ -12,12 +12,16 @@
         <!-- 已登录用户信息 -->
         <div v-if="store.comm.login.finish && store.comm.login.user" class="user-info-container">
           <div class="position-relative d-inline-block mb-3">
-            <img
-              :src="store.comm.login.user.avatar || defaultAvatar"
-              :alt="store.comm.login.user.nickname || '用户头像'"
-              class="rounded-3 user-avatar"
-            >
-            <span class="position-absolute bottom-0 right-0 w-6 h-6 bg-success rounded-full border border-2 border-white"></span>
+            <div class="avatar-container position-relative">
+              <img
+                :src="store.comm.login.user.avatar || defaultAvatar"
+                :alt="store.comm.login.user.nickname || '用户头像'"
+                class="rounded-3 user-avatar"
+              >
+              <div class="avatar-overlay rounded-3">
+                <div class="avatar-status" :class="{ 'online': store.comm.login.user.login_time && (Date.now() / 1000 - store.comm.login.user.login_time < 86400) }"></div>
+              </div>
+            </div>
           </div>
           
           <h6 class="fw-bold mb-1 user-nickname">{{ store.comm.login.user.nickname || store.comm.login.user.account }}</h6>
@@ -1189,6 +1193,63 @@ onMounted(() => {
 
 
 
+/* 头像容器样式 */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0.75rem;
+  pointer-events: none;
+}
+
+.avatar-status {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ccc;
+  border: 3px solid white;
+  transition: all 0.3s ease;
+}
+
+.avatar-status.online {
+  background-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+  }
+}
+
+/* 深色模式动画 */
+@keyframes pulse-dark {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.9);
+  }
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
   .sidebar-container {
@@ -1217,6 +1278,13 @@ onMounted(() => {
   
   .nav-item-icon {
     font-size: 1.25rem;
+  }
+  
+  /* 响应式头像状态指示器 */
+  .avatar-status {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
   }
 }
 
@@ -1277,5 +1345,15 @@ onMounted(() => {
 .dark-mode .skeleton-loader {
   background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
   background-size: 200% 100%;
+}
+
+/* 深色模式下的头像状态指示器 */
+.dark-mode .avatar-status {
+  border-color: var(--bs-secondary-bg) !important;
+}
+
+.dark-mode .avatar-status.online {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  animation: pulse-dark 2s infinite;
 }
 </style>

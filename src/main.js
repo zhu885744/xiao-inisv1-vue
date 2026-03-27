@@ -6,7 +6,7 @@ import { useCommStore } from './store/comm'
 
 // ========== 样式引入（按「第三方 → 自定义」顺序） ==========
 // Bootstrap 5 样式 + 图标
-import 'bootstrap/dist/css/bootstrap.min.css'
+import './assets/css/bootstrap.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 // 自定义全局样式
 import './assets/css/buyu.style.css'

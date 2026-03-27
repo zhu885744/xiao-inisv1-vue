@@ -25,7 +25,7 @@
 
       <!-- 移动端右侧搜索按钮 -->
       <div class="d-flex align-items-center ms-3">
-        <button class="btn d-lg-none border-0 bg-transparent" type="button" @click="method.showSearch()">
+        <button class="btn d-lg-none border-0 bg-transparent" type="button" @click="router.push('/search')">
           <i class="bi bi-search"></i>
         </button>
       </div>
@@ -68,7 +68,7 @@
         <!-- 右侧功能区域 -->
         <div class="d-flex align-items-center">
           <!-- 搜索按钮 -->
-          <button class="btn btn-outline-secondary me-2" type="button" @click="method.showSearch()">
+          <button class="btn btn-outline-secondary me-2" type="button" @click="router.push('/search')">
             <i class="bi bi-search"></i>
           </button>
           
@@ -326,7 +326,7 @@
         
         <!-- 其他功能按钮 -->
         <div class="d-flex gap-2 mt-3">
-          <button class="btn btn-outline-secondary flex-grow-1" type="button" @click="method.showSearch()">
+          <button class="btn btn-outline-secondary flex-grow-1" type="button" @click="router.push('/search')">
             <i class="bi bi-search me-1"></i>搜索
           </button>
           <button 
@@ -345,9 +345,6 @@
   <DialogLogin ref="loginDialog" @finish="method.onLoginFinish" />
   <DialogRegister ref="registerDialog" @finish="method.onRegisterFinish" />
   <DialogResetPassword ref="resetDialog" @finish="method.onResetFinish" />
-  
-  <!-- 搜索组件 -->
-  <Search ref="searchDialog" />
 </template>
 
 <script setup>
@@ -364,7 +361,6 @@ import { useConfigStore } from '@/store/config'
 import DialogLogin from '@/comps/index/dialog/login.vue'
 import DialogRegister from '@/comps/index/dialog/register.vue'
 import DialogResetPassword from '@/comps/index/dialog/reset-password.vue'
-import Search from '@/comps/index/search.vue'
 
 // 初始化router
 const router = useRouter()
@@ -388,7 +384,6 @@ const userDropdownRef = ref(null)
 const loginDialog = ref(null)
 const registerDialog = ref(null)
 const resetDialog = ref(null)
-const searchDialog = ref(null)
 
 // 存储
 const store = {
@@ -491,38 +486,6 @@ const method = {
           resetDialog.value.show()
         }
       }, 100)
-    }
-  },
-  
-  // 搜索相关方法
-  showSearch: () => {
-    // 先关闭侧边栏
-    closeSidebar()
-    
-    console.log('搜索按钮被点击，searchDialog.value:', searchDialog.value)
-    
-    // 显示搜索弹窗
-    if (searchDialog.value && searchDialog.value.show) {
-      console.log('调用searchDialog.value.show()')
-      searchDialog.value.show()
-    } else {
-      console.log('搜索对话框引用未就绪，等待100ms后重试')
-      // 延迟一下，确保对话框引用被正确初始化
-      setTimeout(() => {
-        if (searchDialog.value && searchDialog.value.show) {
-          console.log('延迟后调用searchDialog.value.show()')
-          searchDialog.value.show()
-        } else {
-          console.log('延迟后搜索对话框引用仍未就绪:', searchDialog.value)
-        }
-      }, 100)
-    }
-  },
-  
-  hideSearch: () => {
-    // 隐藏搜索弹窗
-    if (searchDialog.value && searchDialog.value.hide) {
-      searchDialog.value.hide()
     }
   },
   
@@ -953,18 +916,41 @@ watch(
   color: var(--bs-primary) !important;
   font-weight: 500;
   position: relative;
+  border: 1px solid var(--bs-primary) !important;
+  border-radius: 0.375rem !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
 }
 
-:deep(.nav-link.active::after) {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 2px;
-  background-color: var(--bs-primary);
-  border-radius: 1px;
+/* 移除PC端的下划线效果 */
+@media (min-width: 992px) {
+  :deep(.nav-link.active) {
+    border: none !important;
+    background-color: transparent !important;
+  }
+  
+  :deep(.nav-link.active::after) {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 2px;
+    background-color: var(--bs-primary);
+    border-radius: 1px;
+  }
+}
+
+/* 移动端的激活状态 */
+@media (max-width: 991.98px) {
+  :deep(.nav-link.active) {
+    padding: 0.5rem 1rem !important;
+    margin: 0.25rem 0 !important;
+  }
+  
+  :deep(.nav-link.active::after) {
+    display: none;
+  }
 }
 
 /* 导航栏图标样式 */
@@ -1036,6 +1022,10 @@ watch(
   transition: all 0.2s ease;
   border-radius: 0.25rem;
   margin: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
 }
 
 :deep(.dropdown-item:hover) {
@@ -1060,6 +1050,33 @@ watch(
 
 :deep(.btn:active) {
   transform: translateY(0);
+}
+
+/* 用户相关功能UI优化 */
+:deep(.btn-outline-secondary.dropdown-toggle) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+:deep(.btn-outline-secondary.dropdown-toggle:hover) {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* 登录/注册按钮样式优化 */
+:deep(.btn-outline-primary),
+:deep(.btn-outline-success) {
+  transition: all 0.3s ease;
+}
+
+:deep(.btn-outline-primary:hover) {
+  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
+}
+
+:deep(.btn-outline-success:hover) {
+  box-shadow: 0 0 0 3px rgba(var(--bs-success-rgb), 0.1);
 }
 
 /* 搜索容器样式 */

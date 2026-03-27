@@ -2,6 +2,11 @@
   <footer id="footer" class="fs-6 py-3 mt-2 bg-body-tertiary text-body-secondary">
     <div class="container">
       <div class="text-center">
+        <!-- 版权年份 -->
+        <div class="text">
+          Copyright © {{ startYear || '2020' }} ~ {{ currentYear }} {{ siteTitle }} 版权所有
+        </div>
+        
         <!-- ICP备案号 -->
         <div class="test" v-if="hasIcp">
           <a 

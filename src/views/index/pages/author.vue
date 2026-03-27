@@ -210,7 +210,7 @@
         <div class="user-tags mb-4">
           <div class="d-flex align-items-center gap-3 flex-wrap">
             <!-- 用户组标识 -->
-            <span v-for="(group, index) in userGroups" :key="index" class="badge bg-warning text-dark px-4 py-2 fw-medium cursor-pointer">
+            <span v-for="(group, index) in userGroups" :key="index" class="badge bg-warning px-4 py-2 fw-medium cursor-pointer">
               {{ group.name }}
             </span>
             <!-- 性别标签 -->

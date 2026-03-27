@@ -303,26 +303,26 @@
             <!-- 留言统计 -->
             <div class="message-stats mb-6">
               <div class="card p-4 rounded-3">
-                <div class="row">
-                  <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                <div class="row flex-nowrap">
+                  <div class="col-md-3 col-sm-6 col-3">
                     <div class="text-center">
                       <div class="fs-3 font-bold">{{ commentCount || 0 }}</div>
                       <div class="text-muted">总留言数</div>
                     </div>
                   </div>
-                  <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                  <div class="col-md-3 col-sm-6 col-3">
                     <div class="text-center">
                       <div class="fs-3 font-bold">{{ uniqueCommenters || 0 }}</div>
                       <div class="text-muted">留言人数</div>
                     </div>
                   </div>
-                  <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                  <div class="col-md-3 col-sm-6 col-3">
                     <div class="text-center">
                       <div class="fs-3 font-bold">{{ recentMessagesCount || 0 }}</div>
                       <div class="text-muted">最近留言</div>
                     </div>
                   </div>
-                  <div class="col-md-3 col-sm-6">
+                  <div class="col-md-3 col-sm-6 col-3">
                     <div class="text-center">
                       <div class="fs-3 font-bold">{{ viewCount || 0 }}</div>
                       <div class="text-muted">页面浏览</div>
@@ -423,9 +423,9 @@
 
                   <!-- 留言列表 -->
                   <div v-if="commentList.length > 0">
-                    <div class="messages-list">
+                    <div ref="messagesGrid" class="messages-grid">
                       <div 
-                        class="message-item mb-4" 
+                        class="message-item" 
                         v-for="(message, index) in commentList" 
                         :key="message.id || index"
                       >
@@ -473,7 +473,9 @@
                             <div class="message-actions">
                               <button 
                                 class="btn btn-sm btn-outline-primary reply-btn" 
-                                @click="toggleReplyForm(index)"
+                                @click="openReplyModal(message)"
+                                data-bs-toggle="modal"
+                                data-bs-target="#replyModal"
                                 v-if="isLogin"
                               >
                                 <i class="bi bi-reply-fill me-1"></i> 回复
@@ -487,70 +489,7 @@
                                 <i class="bi bi-reply-fill me-1"></i> 回复
                               </button>
                             </div>
-                            <!-- 回复输入框 -->
-                            <div v-if="showReplyIndex === index" class="mt-3 reply-form">
-                              <textarea 
-                                v-model="replyInput"
-                                class="form-control border border-secondary-subtle bg-body" 
-                                rows="2" 
-                                placeholder="请输入你的回复..."
-                                :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
-                              ></textarea>
-                              
-                              <!-- 回复表情选择面板 -->
-                              <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
-                                <!-- 表情分类切换 -->
-                                <div class="emoji-categories mb-3">
-                                  <button 
-                                    v-for="(emojis, category) in owoEmojis" 
-                                    :key="category"
-                                    @click="activeEmojiCategory = category"
-                                    class="btn btn-sm me-2 mb-2"
-                                    :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
-                                  >
-                                    {{ category }}
-                                  </button>
-                                </div>
-                                <!-- 表情列表 -->
-                                <div class="d-flex flex-wrap gap-2">
-                                  <button 
-                                    v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
-                                    :key="index"
-                                    @click="insertReplyEmoji(emoji.icon)"
-                                    class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
-                                    :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
-                                    :title="emoji.text"
-                                  >
-                                    {{ emoji.icon }}
-                                  </button>
-                                </div>
-                              </div>
-                              
-                              <!-- 按钮区域 -->
-                              <div class="d-flex gap-2 mt-2">
-                                <button 
-                                  @click="toggleReplyEmojiPicker"
-                                  class="btn btn-sm btn-outline-secondary px-3 emoji-button"
-                                  :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
-                                >
-                                  <i class="bi bi-emoji-smile me-1"></i> 表情
-                                </button>
-                                <button 
-                                  @click="handleSubmitReply(message.id)"
-                                  class="btn btn-sm btn-primary px-3 flex-grow-1"
-                                  :disabled="!replyInput.trim() || isPublishingMessage"
-                                >
-                                  <i class="bi" :class="isPublishingMessage ? 'bi-arrow-clockwise spin' : ''"></i>
-                                  {{ isPublishingMessage ? ' 发送中...' : ' 发送回复' }}
-                                </button>
-                                <button 
-                                  @click="cancelReply"
-                                  class="btn btn-sm btn-outline-secondary px-3"
-                                >
-                                  取消
-                                </button>
-                              </div>
-                            </div>
+
                           </div>
                         </div>
                       </div>
@@ -571,6 +510,7 @@
                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                          <!-- 回复列表 -->
                           <div v-if="selectedMessage && selectedMessage.replies && selectedMessage.replies.length > 0">
                             <div 
                               class="reply-item mb-3 p-3 border rounded-3" 
@@ -601,9 +541,70 @@
                           <div v-else class="text-center py-3 text-muted">
                             <p class="mb-0">暂无回复</p>
                           </div>
+                          
+                          <!-- 回复输入框 -->
+                          <div class="mt-4" v-if="isLogin">
+                            <h6 class="mb-2">回复 {{ selectedMessage?.result?.author?.nickname || selectedMessage?.author?.nickname || selectedMessage?.nickname || '用户' }}:</h6>
+                            <textarea 
+                              v-model="replyInput"
+                              class="form-control border border-secondary-subtle bg-body" 
+                              rows="3" 
+                              placeholder="请输入你的回复..."
+                              :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                            ></textarea>
+                            
+                            <!-- 回复表情选择面板 -->
+                            <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
+                              <!-- 表情分类切换 -->
+                              <div class="emoji-categories mb-3">
+                                <button 
+                                  v-for="(emojis, category) in owoEmojis" 
+                                  :key="category"
+                                  @click="activeEmojiCategory = category"
+                                  class="btn btn-sm me-2 mb-2"
+                                  :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
+                                >
+                                  {{ category }}
+                                </button>
+                              </div>
+                              <!-- 表情列表 -->
+                              <div class="d-flex flex-wrap gap-2">
+                                <button 
+                                  v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
+                                  :key="index"
+                                  @click="insertReplyEmoji(emoji.icon)"
+                                  class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
+                                  :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                                  :title="emoji.text"
+                                >
+                                  {{ emoji.icon }}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                          <div class="w-100" v-if="isLogin">
+                            <div class="d-flex gap-2">
+                              <button 
+                                @click="toggleReplyEmojiPicker"
+                                class="btn btn-sm btn-outline-secondary px-3 emoji-button"
+                                :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                              >
+                                <i class="bi bi-emoji-smile me-1"></i> 表情
+                              </button>
+                              <button 
+                                @click="handleSubmitReply(selectedMessage.id)"
+                                class="btn btn-sm btn-primary px-3 flex-grow-1"
+                                :disabled="!replyInput.trim() || isPublishingMessage"
+                              >
+                                <i class="bi" :class="isPublishingMessage ? 'bi-arrow-clockwise spin' : ''"></i>
+                                {{ isPublishingMessage ? ' 发送中...' : ' 发送回复' }}
+                              </button>
+                              <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">关闭</button>
+                            </div>
+                          </div>
+                          <button type="button" class="btn btn-secondary" v-else data-bs-dismiss="modal">关闭</button>
                         </div>
                       </div>
                     </div>
@@ -805,7 +806,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
@@ -818,6 +819,7 @@ import { goBack } from '@/utils/route'
 import { uploadImage } from '@/utils/upload'
 import toast from '@/utils/toast'
 import OwOData from '@/assets/json/OwO.json'
+import Sortable from 'sortablejs'
 
 // 状态管理
 const store = useCommStore()
@@ -941,6 +943,8 @@ const replyInput = ref('')
 const showReplyIndex = ref(null)
 const replyTarget = ref(null)
 const selectedMessage = ref(null)
+const messagesGrid = ref(null)
+const replyModalMessage = ref(null)
 // 表情功能相关状态
 const showMessageEmojiPicker = ref(false)
 const showReplyEmojiPicker = ref(false)
@@ -1036,13 +1040,13 @@ const getPageData = async (pageKey) => {
       setDynamicTitle('获取页面失败')
     }
   } else {
-    // 使用缓存数据
-    pageInfo.value = cachedPage
-    // 更新浏览量
-    viewCount.value = cachedPage.views || 0
-    error.value = false
-    setDynamicTitle(pageInfo.value.title)
-  }
+      // 使用缓存数据
+      pageInfo.value = cachedPage
+      // 更新浏览量
+      viewCount.value = cachedPage.views || 0
+      error.value = false
+      setDynamicTitle(pageInfo.value.title)
+    }
 } catch (err) {
   error.value = true
   errorMsg.value = '网络异常，请检查网络后刷新页面'
@@ -1108,6 +1112,79 @@ watch(
     initPage() // 直接执行，内部会取最新的pageKey并校验
   },
   { immediate: false }
+)
+
+// 初始化拖拽功能
+const initSortable = () => {
+  console.log('Initializing Sortable...');
+  console.log('isMessagePage:', isMessagePage.value);
+  console.log('messagesGrid:', messagesGrid.value);
+  
+  if (isMessagePage.value && messagesGrid.value) {
+    console.log('Sortable initialized successfully!');
+    // 移除之前的Sortable实例
+    if (window.sortableInstance) {
+      window.sortableInstance.destroy();
+    }
+    
+    try {
+      // 直接初始化，不需要nextTick
+      window.sortableInstance = new Sortable(messagesGrid.value, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        // 移除handle配置，让整个元素都可以拖拽
+        // handle: '.sticky-note',
+        onStart: function(evt) {
+          console.log('Drag started:', evt);
+        },
+        onEnd: function(evt) {
+          // 可以在这里处理拖拽结束后的逻辑，比如保存排序
+          console.log('Dragged element:', evt.item);
+          console.log('Old index:', evt.oldIndex);
+          console.log('New index:', evt.newIndex);
+        }
+      });
+      console.log('Sortable instance:', window.sortableInstance);
+    } catch (error) {
+      console.error('Error initializing Sortable:', error);
+    }
+  } else {
+    console.log('Sortable not initialized. Conditions not met.');
+  }
+}
+
+// 初始化页面
+onMounted(() => {
+  initPage()
+})
+
+// 监听留言列表变化，重新初始化拖拽功能
+watch(
+  () => commentList.value.length,
+  (newLength) => {
+    console.log('Comment list length changed:', newLength);
+    if (newLength > 0) {
+      // 延迟一下，确保DOM已经更新
+      setTimeout(() => {
+        initSortable();
+      }, 500);
+    }
+  }
+)
+
+// 监听isMessagePage变化
+watch(
+  () => isMessagePage.value,
+  (newValue) => {
+    console.log('isMessagePage changed:', newValue);
+    if (newValue && commentList.value.length > 0) {
+      setTimeout(() => {
+        initSortable();
+      }, 500);
+    }
+  }
 )
 
 // 获取页面评论
@@ -1651,6 +1728,8 @@ const handleLinkAvatarError = (event) => {
   event.target.src = 'https://img1.zhuxu.asia/2026/L2SIxoK1ss.png'
 }
 
+
+
 // 获取留言页面基础数据
 const getMessagePageData = async () => {
   loading.value = true
@@ -2026,6 +2105,9 @@ const handleSubmitReply = async (commentId) => {
       if (window.Toast) {
         window.Toast.success('回复发布成功！')
       }
+      // 关闭回复弹窗
+      closeReplyModal()
+      // 清空回复相关状态
       showReplyIndex.value = null
       replyInput.value = ''
       replyTarget.value = null
@@ -2098,6 +2180,14 @@ const handleClickOutside = (event) => {
 // 打开回复弹窗
 const openReplyModal = (message) => {
   selectedMessage.value = message
+  // 清空回复输入框
+  replyInput.value = ''
+  // 隐藏表情选择面板
+  showReplyEmojiPicker.value = false
+  // 获取回复对象的昵称
+  const nickname = message.result?.author?.nickname || message.author?.nickname || message.nickname || '用户'
+  // 添加@提及
+  replyInput.value = `@${nickname} `
 }
 
 // 关闭回复弹窗
@@ -2108,6 +2198,10 @@ const closeReplyModal = () => {
       modal.hide()
     }
   }
+  // 清空回复输入框
+  replyInput.value = ''
+  // 隐藏表情选择面板
+  showReplyEmojiPicker.value = false
 }
 
 // 监听页面信息变化，获取评论和作者信息
@@ -3089,6 +3183,109 @@ onUnmounted(() => {
   }
 }
 
+/* 网格式留言板样式 */
+.messages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  padding: 20px 0;
+  min-height: 500px;
+}
+
+.message-item {
+  transition: all 0.3s ease;
+  transform: rotate(-1deg);
+}
+
+.message-item:nth-child(even) {
+  transform: rotate(1deg);
+}
+
+.message-item:nth-child(3n) {
+  transform: rotate(-0.5deg);
+}
+
+.message-item:nth-child(4n) {
+  transform: rotate(0.5deg);
+}
+
+/* 便利贴样式增强 */
+.sticky-note {
+  border-radius: 4px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: move;
+  background-color: #fff9c4;
+  border: none;
+  min-height: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sticky-note::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(135deg, #ffeb3b, #fbc02d);
+  border-bottom: 1px solid #f57f17;
+}
+
+.sticky-note .card-body {
+  padding: 25px 20px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.sticky-note:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-3px) rotate(0deg) !important;
+}
+
+/* 拖拽相关样式 */
+.sortable-ghost {
+  opacity: 0.5;
+  background: #fff9c4;
+  transform: rotate(0deg) !important;
+}
+
+.sortable-chosen {
+  background: #fff9c4;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.sortable-drag {
+  opacity: 0.9;
+  z-index: 1000;
+  transform: rotate(5deg) scale(1.02) !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* 响应式网格布局 */
+@media (max-width: 768px) {
+  .messages-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+  
+  .sticky-note {
+    min-height: 160px;
+  }
+}
+
+@media (max-width: 576px) {
+  .messages-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .sticky-note {
+    min-height: 140px;
+  }
+}
+
 /* 留言板样式 */
 /* 留言显示模块 */
 .message-display {
@@ -3260,17 +3457,14 @@ onUnmounted(() => {
 
 #replyModal .reply-item {
   background-color: rgba(var(--bs-primary-rgb), 0.05);
-  transition: all 0.3s ease;
 }
 
 #replyModal .reply-item:hover {
   background-color: rgba(var(--bs-primary-rgb), 0.1);
-  transform: translateX(5px);
 }
 
 /* 回复输入框 */
 .reply-form {
-  transition: all 0.3s ease;
   border-radius: 8px;
   padding: 1rem;
   background-color: rgba(var(--bs-primary-rgb), 0.02);
@@ -3282,12 +3476,10 @@ onUnmounted(() => {
   padding-left: 1rem;
   margin-left: 1rem;
   margin-top: 0.75rem;
-  transition: all 0.3s ease;
 }
 
 .reply-item:hover {
   border-left-color: rgba(var(--bs-primary-rgb), 0.4);
-  margin-left: 1.25rem;
 }
 
 /* @提及样式 */

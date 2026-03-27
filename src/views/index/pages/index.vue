@@ -36,7 +36,7 @@
   <div class="mt-2">
     <div class="card shadow-sm p-3">
       <div class="d-flex flex-column">
-        <div class="sort-tabs d-flex border rounded-3 overflow-hidden">
+        <div class="sort-tabs d-flex border overflow-hidden">
           <button 
             v-for="(option, index) in sortOptions" 
             :key="index"
@@ -895,6 +895,31 @@ img {
   width: 100%;
 }
 
+/* 响应式轮播图高度 */
+@media (max-width: 992px) {
+  .carousel-img {
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-img {
+    height: 250px;
+  }
+}
+
+@media (max-width: 576px) {
+  .carousel-img {
+    height: 200px;
+  }
+}
+
+@media (max-width: 400px) {
+  .carousel-img {
+    height: 180px;
+  }
+}
+
 .carousel-item {
   transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -1183,10 +1208,6 @@ img {
 /* 分页响应式设计 */
 @media (max-width: 992px) {
   /* 轮播图响应式 */
-  .carousel-img {
-    height: 300px;
-  }
-  
   .carousel-caption {
     padding: 1.5rem;
     bottom: 2rem;
@@ -1225,10 +1246,6 @@ img {
   }
   
   /* 轮播图响应式 */
-  .carousel-img {
-    height: 300px;
-  }
-  
   .carousel-caption {
     padding: 1.25rem;
     bottom: 1.5rem;
@@ -1261,10 +1278,6 @@ img {
 
 @media (max-width: 576px) {
   /* 轮播图响应式 */
-  .carousel-img {
-    height: 300px;
-  }
-  
   .carousel-caption {
     padding: 1rem;
     bottom: 1rem;

@@ -42,6 +42,15 @@ const routes = [
     }
   },
   {
+    path: '/search',
+    name: '搜索页面',
+    component: () => import('@/views/index/pages/search.vue'),
+    meta: { 
+      title: '搜索', 
+      requiresAuth: false
+    }
+  },
+  {
     path: '/messages',
     name: '通知中心',
     component: () => import('@/views/index/pages/messages.vue'),
