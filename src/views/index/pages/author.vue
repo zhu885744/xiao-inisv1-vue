@@ -141,15 +141,20 @@
       <div class="user-basic-info mb-4">
         <div class="d-flex align-items-start gap-4 mb-4">
           <div class="position-relative">
-            <img 
-              :src="userInfo.avatar || defaultAvatar" 
-              :alt="userInfo.nickname"
-              class="rounded-3 border-4 border-white shadow-md transition-transform duration-300 hover:scale-105"
-              width="120"
-              height="120"
-              style="object-fit: cover;"
-              @error="handleAvatarError"
-            >
+            <div class="avatar-container position-relative">
+              <img 
+                :src="userInfo.avatar || defaultAvatar" 
+                :alt="userInfo.nickname"
+                class="rounded-3 border-4 border-white shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                width="120"
+                height="120"
+                style="object-fit: cover;"
+                @error="handleAvatarError"
+              >
+              <div class="avatar-overlay rounded-3">
+                <div class="avatar-status" :class="{ 'online': userInfo.login_time && (Date.now() / 1000 - userInfo.login_time < 86400) }"></div>
+              </div>
+            </div>
           </div>
           <div class="flex-grow-1">
             <div class="d-flex align-items-center gap-3 mb-2">
@@ -684,6 +689,51 @@ watch(
   }
 }
 
+/* 头像容器样式 */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0.75rem;
+  pointer-events: none;
+}
+
+.avatar-status {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #ccc;
+  border: 3px solid white;
+  transition: all 0.3s ease;
+}
+
+.avatar-status.online {
+  background-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+  }
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .btn-sm {
@@ -910,6 +960,26 @@ watch(
   /* 头像边框 */
   img[src*="avatar"] {
     border-color: var(--bs-secondary-bg) !important;
+  }
+  
+  /* 头像状态暗黑模式 */
+  .avatar-status {
+    border-color: var(--bs-secondary-bg) !important;
+  }
+  
+  .avatar-status.online {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+    }
+    50% {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.9);
+    }
   }
   
   /* 链接样式 */

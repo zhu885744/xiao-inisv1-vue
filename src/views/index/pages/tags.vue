@@ -49,36 +49,36 @@
       <!-- 标签列表页结构 -->
       <div v-if="!currentTag" class="tags-list-page">
         <!-- 标签总数统计 -->
-        <div class="tags-count card  shadow-sm p-4 mt-2">
+        <div class="tags-count card shadow-sm p-4 mt-2 bg-body rounded-3">
           <div class="tags-count-header">
             <h2 class="tags-count-title fw-bold">标签 <span class="text-sm text-muted">({{ totalTags }})</span></h2>
           </div>
         </div>
         <!-- 标签卡片网格 -->
-        <div class="tags-grid card  shadow-sm p-4 mt-2">
+        <div class="tags-grid card shadow-sm p-4 mt-2 bg-body rounded-3">
           <div class="tags-grid-container">
             <div 
               v-for="tag in tags" 
               :key="tag.id" 
-              class="tag-card"
+              class="tag-card card bg-body rounded-3 border border-light shadow-sm"
               @click="selectTag(tag.id)"
             >
-              <div class="tag-card-inner">
+              <div class="tag-card-inner p-4">
                 <!-- 标签头像 -->
-                <div class="tag-avatar">
+                <div class="tag-avatar mx-auto mb-4">
                   <img 
                     :src="tag.avatar || defaultCover" 
                     :alt="tag.name"
-                    class="tag-avatar-img"
+                    class="tag-avatar-img rounded-circle"
                     @error="handleImageError"
                   >
                 </div>
                 <!-- 标签信息 -->
-                <div class="tag-card-body">
-                  <h3 class="tag-card-title">{{ tag.name }}</h3>
-                  <p v-if="tag.description" class="tag-card-description">{{ tag.description }}</p>
-                  <div class="tag-card-footer">
-                    <span class="tag-article-count">{{ tag.articleCount || 0 }} 篇文章</span>
+                <div class="tag-card-body text-center">
+                  <h3 class="tag-card-title h5 fw-bold mb-2">{{ tag.name }}</h3>
+                  <p v-if="tag.description" class="tag-card-description text-muted mb-3">{{ tag.description }}</p>
+                  <div class="tag-card-footer pt-3 border-top border-light">
+                    <span class="tag-article-count badge bg-primary-subtle text-primary px-3 py-1 rounded-full">{{ tag.articleCount || 0 }} 篇文章</span>
                   </div>
                 </div>
               </div>
@@ -111,22 +111,22 @@
       <!-- 单个标签页结构 -->
       <div v-else class="single-tag-page">
         <!-- 标签详情 -->
-        <div class="tag-info card  shadow-sm p-4 mt-2">
+        <div class="tag-info card shadow-sm p-4 mt-2">
           <div class="tag-info-inner">
             <!-- 标签头像 -->
             <div class="tag-info-avatar">
               <img 
                 :src="currentTag.avatar || defaultCover" 
                 :alt="currentTag.name"
-                class="tag-info-avatar-img"
+                class="tag-info-avatar-img rounded-3"
                 @error="handleImageError"
               >
             </div>
             <!-- 标签信息 -->
             <div class="tag-info-content">
               <h1 class="tag-title fw-bold mb-3">{{ currentTag.name }} <span class="text-sm text-muted">({{ currentTag.articleCount || 0 }})</span></h1>
-              <p class="tag-description text-muted mb-4">
-                {{ currentTag.description || '该标签无描述' }}
+              <p v-if="currentTag.description" class="tag-description text-muted mb-4">
+                {{ currentTag.description }}
               </p>
             </div>
           </div>
@@ -811,45 +811,77 @@ onMounted(async () => {
 }
 
 /* 标签总数统计 */
+.tags-count {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tags-count-header {
+  padding: 1.5rem;
+}
+
 .tags-count-title {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
   font-weight: 700;
+  color: var(--bs-heading-color);
+  margin-bottom: 0.75rem !important;
+  transition: all 0.3s ease;
+}
+
+.tags-count-title .text-muted {
+  font-size: 0.8em;
+  font-weight: 400;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.tags-count-title:hover .text-muted {
+  opacity: 1;
+  color: var(--bs-primary);
 }
 
 /* 标签卡片网格 */
+.tags-grid {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 .tags-grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
+  padding: 1.5rem;
 }
 
 /* 标签卡片 */
 .tag-card {
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid #e9ecef;
 }
 
 .tag-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.tag-card-inner {
-  padding: 1.5rem;
+  border-color: var(--bs-primary);
 }
 
 /* 标签头像 */
 .tag-avatar {
   width: 80px;
   height: 80px;
-  margin: 0 auto 1rem;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #f8f9fa;
+  background-color: var(--bs-body-bg);
+  border: 3px solid var(--bs-body-bg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.tag-card:hover .tag-avatar {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .tag-avatar-img {
@@ -873,11 +905,18 @@ onMounted(async () => {
   font-weight: 700;
   margin-bottom: 0.5rem;
   line-height: 1.3;
+  color: var(--bs-heading-color);
+  transition: all 0.3s ease;
+}
+
+.tag-card:hover .tag-card-title {
+  color: var(--bs-primary);
+  transform: translateY(-2px);
 }
 
 .tag-card-description {
   font-size: 0.9rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
   margin-bottom: 1rem;
   line-height: 1.5;
   display: -webkit-box;
@@ -886,43 +925,105 @@ onMounted(async () => {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all 0.3s ease;
+}
+
+.tag-card:hover .tag-card-description {
+  color: var(--bs-text-color);
 }
 
 .tag-card-footer {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--bs-border-color);
+  transition: all 0.3s ease;
+}
+
+.tag-card:hover .tag-card-footer {
+  border-top-color: var(--bs-primary);
 }
 
 .tag-article-count {
   font-size: 0.85rem;
-  color: #868e96;
+  transition: all 0.3s ease;
+}
+
+.tag-card:hover .tag-article-count {
+  transform: translateY(-1px);
 }
 
 /* 单个标签页结构 */
+.tag-info {
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
 .tag-info-inner {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   flex-wrap: wrap;
+  padding: 1.5rem;
 }
 
 .tag-info-avatar {
   flex-shrink: 0;
+  position: relative;
 }
 
 .tag-info-avatar-img {
   width: 100px;
   height: 100px;
-  border-radius: 8px;
   object-fit: cover;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  border: 3px solid white;
+}
+
+.tag-info-avatar-img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* 标签信息内容 */
 .tag-info-content {
   flex-grow: 1;
   min-width: 0;
+}
+
+/* 标签标题 */
+.tag-title {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  line-height: 1.3;
+  font-weight: 700;
+  margin-bottom: 0.75rem !important;
+  color: var(--bs-heading-color);
+  transition: all 0.3s ease;
+}
+
+.tag-title:hover {
+  color: var(--bs-primary);
+}
+
+.tag-title .text-muted {
+  font-size: 0.8em;
+  font-weight: 400;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.tag-title:hover .text-muted {
+  opacity: 1;
+  color: var(--bs-primary);
+}
+
+/* 标签描述 */
+.tag-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 0 !important;
+  color: var(--bs-secondary-color);
+  transition: all 0.3s ease;
 }
 
 /* 响应式调整 */
@@ -950,8 +1051,8 @@ onMounted(async () => {
 /* 文章列表Grid布局 - 有图模式 */
 .grid-article-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -962,13 +1063,30 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
+/* 文章卡片基础样式 */
+.article-item-card,
+.article-item-list {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+/* 文章卡片悬停效果 */
+.article-item-card:hover,
+.article-item-list:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
 /* 封面容器 */
 .article-cover {
   width: 100%;
   padding-top: 66.67%;
   position: relative;
   overflow: hidden;
-  background-color: #f8f9fa; /* 加载时的背景色 */
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef); /* 加载时的背景色 */
+  border-radius: 0.75rem 0.75rem 0 0;
 }
 
 /* 懒加载图片样式 */
@@ -979,40 +1097,43 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
+  border-radius: 0.75rem 0.75rem 0 0;
 }
 
 /* 加载中的图片样式 */
 .article-cover-img.lazy-loading {
-  filter: blur(5px);
-  opacity: 0.7;
-  transform: scale(1.02);
+  filter: blur(8px);
+  opacity: 0.6;
+  transform: scale(1.05);
 }
 
 /* 加载完成的图片样式 */
 .article-cover-img.lazy-loaded {
   filter: blur(0);
   opacity: 1;
-  animation: fadeIn 0.5s ease;
+  animation: fadeIn 0.6s ease-out;
 }
 
 /* 加载失败的图片样式 */
 .article-cover-img.lazy-error {
-  background-color: #e9ecef;
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #868e96;
+  font-size: 1.5rem;
 }
 
 .article-cover-img.lazy-error::after {
-  content: '图片加载失败';
-  font-size: 0.7rem;
-  color: #868e96;
+  content: '📷';
+  font-size: 2rem;
 }
 
 /* 内容区 */
 .article-content {
   height: 100%;
+  padding: 1.25rem !important;
 }
 
 /* 图片样式 */
@@ -1022,26 +1143,39 @@ img {
   height: auto;
 }
 
-.article-cover-img:hover {
-  transform: scale(1.03);
-  filter: brightness(0.95);
+.article-cover:hover .article-cover-img {
+  transform: scale(1.08);
+  filter: brightness(1.05);
 }
 
 /* 标题 */
 .article-title {
-  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
   line-height: 1.6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 700;
+  color: #212529;
+  transition: color 0.3s ease;
+  margin-bottom: 0.75rem !important;
+}
+
+.article-item-card:hover .article-title {
+  color: #007bff;
 }
 
 /* 摘要 */
 .article-desc {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   color: #6c757d;
-  line-height: 1.3;
-  margin: 0;
+  line-height: 1.4;
+  margin: 0 0 1rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .text-truncate-1 {
@@ -1052,30 +1186,43 @@ img {
 
 /* 无图模式标题 */
 .article-title-list {
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
   line-height: 1.4;
   font-weight: 700;
+  color: #212529;
+  transition: color 0.3s ease;
+  margin-bottom: 0.75rem !important;
+}
+
+.article-item-list:hover .article-title-list {
+  color: #007bff;
 }
 
 /* 无图模式摘要 */
 .article-desc-list {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #6c757d;
-  line-height: 1.5;
-  margin: 0.5rem 0;
+  line-height: 1.6;
+  margin: 0.75rem 0 1.25rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 元信息 */
 .article-meta {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #868e96;
-  line-height: 1.2;
+  line-height: 1.3;
+  margin-top: auto;
 }
 
 .meta-left, .meta-right {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
 }
 
 .meta-item {
@@ -1084,20 +1231,93 @@ img {
   align-items: center;
   white-space: nowrap;
   padding-left: 0 !important;
+  transition: color 0.3s ease;
+}
+
+.meta-item:hover {
+  color: #007bff;
 }
 
 .meta-item .bi {
   font-size: 0.9em;
-  margin-right: 0.2rem;
+  margin-right: 0.3rem;
   line-height: 1;
   vertical-align: middle;
   color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.meta-item:hover .bi {
+  color: #007bff;
+}
+
+/* 无图模式元信息 */
+.article-item-list .text-sm.text-secondary {
+  transition: color 0.3s ease;
+}
+
+.article-item-list:hover .text-sm.text-secondary {
+  color: #007bff;
+}
+
+.article-item-list:hover .text-sm.text-secondary .bi {
+  color: #007bff;
 }
 
 /* 分页样式 */
 .pagination-container {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-item {
+  margin: 0;
+}
+
+.page-link {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.page-link:hover:not(.disabled) {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  transform: translateY(-1px);
+}
+
+.page-item.active .page-link {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 
@@ -1237,6 +1457,18 @@ img {
 
 /* 暗黑模式适配 */
 [data-bs-theme=dark] {
+  /* 标签总数统计 */
+  .tags-count {
+    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* 标签卡片网格 */
+  .tags-grid {
+    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
   /* 标签标题和描述 */
   .tag-title {
     color: var(--bs-heading-color);
@@ -1261,7 +1493,48 @@ img {
   }
   
   .tag-article-count {
-    color: var(--bs-tertiary-color);
+    background-color: rgba(var(--bs-primary-rgb), 0.2);
+    color: var(--bs-primary);
+  }
+  
+  /* 标签头像 */
+  .tag-avatar {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-body-bg);
+  }
+  
+  /* 标签信息 */
+  .tag-info {
+    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .tag-info-avatar-img {
+    border-color: var(--bs-secondary-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .tag-info-avatar-img:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* 标签标题和描述 */
+  .tag-title {
+    color: var(--bs-heading-color);
+  }
+  
+  .tag-description {
+    color: var(--bs-secondary-color);
+  }
+  
+  /* 标签数量标签 */
+  .tag-title .text-muted {
+    opacity: 0.7;
+  }
+  
+  .tag-title:hover .text-muted {
+    opacity: 1;
+    color: var(--bs-primary);
   }
   
   /* 文章卡片 */
@@ -1319,6 +1592,161 @@ img {
   
   .tag-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* 分页暗黑模式 */
+  .pagination {
+    background: var(--bs-body-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .page-link {
+    color: var(--bs-secondary-color);
+  }
+  
+  .page-link:hover:not(.disabled) {
+    background: rgba(0, 123, 255, 0.2);
+    color: var(--bs-primary);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 992px) {
+  .grid-article-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-article-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .article-item-card {
+    min-width: 160px;
+  }
+  
+  .article-content {
+    padding: 1rem !important;
+  }
+  
+  .article-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .article-desc {
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .article-meta {
+    font-size: 0.7rem;
+  }
+  
+  /* 分页响应式 */
+  .pagination-container {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .pagination {
+    padding: 0.25rem;
+  }
+  
+  .page-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    min-width: 2rem;
+  }
+  
+  /* 标签卡片网格响应式调整 */
+  .tags-grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  
+  /* 标签头像响应式调整 */
+  .tag-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .tag-info-avatar {
+    width: 100px;
+    height: 100px;
+  }
+  
+  /* 标签卡片内容响应式调整 */
+  .tag-card-inner {
+    padding: 1.2rem;
+  }
+  
+  .tag-card-title {
+    font-size: 1.1rem;
+  }
+  
+  .tag-card-description {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .grid-article-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .article-item-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .article-title {
+    font-size: 1.1rem;
+  }
+  
+  .article-meta {
+    font-size: 0.75rem;
+  }
+  
+  .article-content {
+    padding: 1.25rem !important;
+  }
+  
+  /* 标签卡片网格响应式调整 */
+  .tags-grid-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* 标签头像响应式调整 */
+  .tag-avatar {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .tag-info-avatar {
+    width: 80px;
+    height: 80px;
+  }
+  
+  /* 标签卡片内容响应式调整 */
+  .tag-card-inner {
+    padding: 1rem;
+  }
+  
+  .tag-card-title {
+    font-size: 1rem;
+  }
+  
+  .tag-card-description {
+    font-size: 0.8rem;
+  }
+  
+  .tag-article-count {
+    font-size: 0.75rem;
   }
 }
 </style>

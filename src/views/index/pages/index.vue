@@ -1,7 +1,7 @@
 <template>
   <!-- 轮播图 -->
   <div v-if="banners.length > 0" class="mt-2">
-    <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselExampleControls" class="carousel slide position-relative">
       <div class="carousel-inner">
         <div 
           v-for="(banner, index) in banners" 
@@ -16,7 +16,7 @@
               class="d-block w-100 carousel-img"
             >
           </a>
-          <div v-if="banner.title" class="carousel-caption d-none d-md-block">
+          <div v-if="banner.title" class="carousel-caption">
             <h5>{{ banner.title }}</h5>
           </div>
         </div>
@@ -550,43 +550,62 @@ onUnmounted(() => {
 /* 文章列表Grid布局 - 有图模式 */
 .grid-article-list {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 }
 
+/* 文章卡片基础样式 */
+.article-item-card,
+.article-item-list {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+
+/* 文章卡片悬停效果 */
+.article-item-card:hover,
+.article-item-list:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
 /* 置顶文章特殊样式 */
 .sticky-article {
-  border-top: 3px solid #ffc107;
+  border-top: 4px solid #ffc107;
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
 }
 
 /* 置顶徽章 */
 .sticky-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 12px;
+  right: 12px;
   background: linear-gradient(135deg, #ffc107, #ff9800);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: bold;
-  padding: 3px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 16px;
   z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
+  animation: pulse 2s infinite;
 }
 
 .sticky-badge .bi {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
 }
 
 /* 标题内的置顶图标 */
 .sticky-icon-inline {
   display: inline-flex;
   align-items: center;
+  animation: bounce 1s infinite;
 }
 
 /* 封面容器 */
@@ -595,7 +614,8 @@ onUnmounted(() => {
   padding-top: 66.67%;
   position: relative;
   overflow: hidden;
-  background-color: #f8f9fa; /* 加载时的背景色 */
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef); /* 加载时的背景色 */
+  border-radius: 0.75rem 0.75rem 0 0;
 }
 
 /* 懒加载图片样式 */
@@ -606,40 +626,43 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
+  border-radius: 0.75rem 0.75rem 0 0;
 }
 
 /* 加载中的图片样式 */
 .article-cover-img.lazy-loading {
-  filter: blur(5px);
-  opacity: 0.7;
-  transform: scale(1.02);
+  filter: blur(8px);
+  opacity: 0.6;
+  transform: scale(1.05);
 }
 
 /* 加载完成的图片样式 */
 .article-cover-img.lazy-loaded {
   filter: blur(0);
   opacity: 1;
-  animation: fadeIn 0.5s ease;
+  animation: fadeIn 0.6s ease-out;
 }
 
 /* 加载失败的图片样式 */
 .article-cover-img.lazy-error {
-  background-color: #e9ecef;
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #868e96;
+  font-size: 1.5rem;
 }
 
 .article-cover-img.lazy-error::after {
-  content: '图片加载失败';
-  font-size: 0.7rem;
-  color: #868e96;
+  content: '📷';
+  font-size: 2rem;
 }
 
 /* 内容区 */
 .article-content {
   height: 100%;
+  padding: 1.25rem !important;
 }
 
 /* 图片样式 */
@@ -649,41 +672,66 @@ img {
   height: auto;
 }
 
-.article-cover-img:hover {
-  transform: scale(1.03);
-  filter: brightness(0.95);
+.article-cover:hover .article-cover-img {
+  transform: scale(1.08);
+  filter: brightness(1.05);
 }
 
 /* 标题 */
 .article-title {
-  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
   line-height: 1.6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 700;
+  color: #212529;
+  transition: color 0.3s ease;
+  margin-bottom: 0.75rem !important;
+}
+
+.article-item-card:hover .article-title {
+  color: #007bff;
 }
 
 /* 摘要 */
 .article-desc {
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   color: #6c757d;
-  line-height: 1.3;
-  margin: 0;
+  line-height: 1.4;
+  margin: 0 0 1rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 无图模式标题 */
 .article-title-list {
-  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
   line-height: 1.4;
   font-weight: 700;
+  color: #212529;
+  transition: color 0.3s ease;
+  margin-bottom: 0.75rem !important;
+}
+
+.article-item-list:hover .article-title-list {
+  color: #007bff;
 }
 
 /* 无图模式摘要 */
 .article-desc-list {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: #6c757d;
-  line-height: 1.5;
-  margin: 0.5rem 0;
+  line-height: 1.6;
+  margin: 0.75rem 0 1.25rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .text-truncate-1 {
@@ -694,15 +742,16 @@ img {
 
 /* 元信息 */
 .article-meta {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: #868e96;
-  line-height: 1.2;
+  line-height: 1.3;
+  margin-top: auto;
 }
 
 .meta-left, .meta-right {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
 }
 
 .meta-item {
@@ -711,50 +760,130 @@ img {
   align-items: center;
   white-space: nowrap;
   padding-left: 0 !important;
+  transition: color 0.3s ease;
+}
+
+.meta-item:hover {
+  color: #007bff;
 }
 
 .meta-item .bi {
   font-size: 0.9em;
-  margin-right: 0.2rem;
+  margin-right: 0.3rem;
   line-height: 1;
   vertical-align: middle;
   color: #9ca3af;
+  transition: color 0.3s ease;
+}
+
+.meta-item:hover .bi {
+  color: #007bff;
+}
+
+/* 无图模式元信息 */
+.article-item-list .text-sm.text-secondary {
+  transition: color 0.3s ease;
+}
+
+.article-item-list:hover .text-sm.text-secondary {
+  color: #007bff;
+}
+
+.article-item-list:hover .text-sm.text-secondary .bi {
+  color: #007bff;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-2px);
+  }
+  60% {
+    transform: translateY(-1px);
+  }
 }
 
 /* 响应式 */
+@media (max-width: 992px) {
+  .grid-article-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .grid-article-list {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.8rem;
+    gap: 1rem;
   }
+  
   .article-item-card {
     min-width: 160px;
   }
+  
   .article-content {
-    padding: 1.5px;
+    padding: 1rem !important;
   }
+  
   .sticky-badge {
-    font-size: 0.65rem;
-    padding: 2px 6px;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    top: 8px;
+    right: 8px;
+  }
+  
+  .article-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .article-desc {
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .article-meta {
+    font-size: 0.7rem;
   }
 }
 
 @media (max-width: 576px) {
   .grid-article-list {
     grid-template-columns: 1fr;
-    gap: 0.8rem;
+    gap: 1rem;
   }
   
   .article-item-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
   }
   
   .article-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
   
   .article-meta {
     font-size: 0.75rem;
+  }
+  
+  .article-content {
+    padding: 1.25rem !important;
+  }
+  
+  .sticky-badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
   }
 }
 
@@ -762,13 +891,166 @@ img {
 .carousel-img {
   height: 400px;
   object-fit: cover;
-  border-radius: 0.5rem;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  width: 100%;
+}
+
+.carousel-item {
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-item:hover .carousel-img {
+  transform: scale(1.03);
 }
 
 .carousel-caption {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 0.5rem;
-  padding: 1rem;
+  position: absolute;
+  bottom: 1.5rem;
+  left: 10%;
+  right: 10%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.3));
+  border-radius: 0.75rem;
+  padding: 1rem 1.5rem;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+  display: block !important;
+  visibility: visible !important;
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+.carousel-item:hover .carousel-caption {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+.carousel-caption h5 {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.3px;
+  color: white;
+  z-index: 6;
+  position: relative;
+  line-height: 1.4;
+}
+
+/* 轮播图控制按钮 */
+#carouselExampleControls .carousel-control-prev,
+#carouselExampleControls .carousel-control-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  opacity: 0.8 !important;
+  transition: all 0.3s ease;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  visibility: visible !important;
+  z-index: 10;
+}
+
+#carouselExampleControls .carousel-control-prev {
+  left: 10px;
+}
+
+#carouselExampleControls .carousel-control-next {
+  right: 10px;
+}
+
+#carouselExampleControls .carousel-control-prev:hover,
+#carouselExampleControls .carousel-control-next:hover {
+  opacity: 1 !important;
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* 轮播图控制按钮图标 */
+#carouselExampleControls .carousel-control-prev-icon,
+#carouselExampleControls .carousel-control-next-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  background-size: 100% 100%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: block !important;
+  visibility: visible !important;
+}
+
+#carouselExampleControls .carousel-control-prev:hover .carousel-control-prev-icon,
+#carouselExampleControls .carousel-control-next:hover .carousel-control-next-icon {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 轮播图指示器样式 */
+.carousel-indicators {
+  bottom: 2rem;
+  gap: 0.75rem;
+}
+
+.carousel-indicators button {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin: 0;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-indicators button:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.carousel-indicators button.active {
+  background-color: white;
+  width: 28px;
+  border-radius: 7px;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* 轮播图加载动画 */
+.carousel-item {
+  position: relative;
+}
+
+.carousel-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.carousel-item.loading::before {
+  opacity: 1;
+  animation: pulse 1.5s infinite;
+}
+
+.carousel-item img {
+  position: relative;
+  z-index: 2;
 }
 
 /* 排序Tab样式 */
@@ -776,82 +1058,242 @@ img {
   width: 100%;
   display: flex;
   border: 1px solid #dee2e6;
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   overflow: hidden;
   background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sort-tab-btn {
   flex: 1;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border: none;
   background: transparent;
   color: #6c757d;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-align: center;
   position: relative;
+  overflow: hidden;
 }
 
 .sort-tab-btn:hover {
   background-color: rgba(0, 123, 255, 0.1);
   color: #007bff;
+  transform: translateY(-1px);
 }
 
 .sort-tab-btn.active {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #007bff, #0056b3);
   color: white;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
 }
 
 .sort-tab-btn:first-child {
-  border-top-left-radius: 0.5rem;
-  border-bottom-left-radius: 0.5rem;
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
 }
 
 .sort-tab-btn:last-child {
-  border-top-right-radius: 0.5rem;
-  border-bottom-right-radius: 0.5rem;
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+/* 排序按钮点击效果 */
+.sort-tab-btn:active {
+  transform: translateY(0);
+}
+
+/* 暗黑模式排序Tab优化 */
+[data-bs-theme=dark] .sort-tabs {
+  border-color: var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme=dark] .sort-tab-btn:hover {
+  background-color: rgba(0, 123, 255, 0.2);
+  color: var(--bs-primary);
+}
+
+[data-bs-theme=dark] .sort-tab-btn.active {
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark));
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
 }
 
 /* 分页样式 */
 .pagination-container {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pagination {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.page-item {
+  margin: 0;
+}
+
+.page-link {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.page-link:hover:not(.disabled) {
+  background: rgba(0, 123, 255, 0.1);
+  color: #007bff;
+  transform: translateY(-1px);
+}
+
+.page-item.active .page-link {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+}
+
+.page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* 分页响应式设计 */
+@media (max-width: 992px) {
+  /* 轮播图响应式 */
+  .carousel-img {
+    height: 300px;
+  }
+  
+  .carousel-caption {
+    padding: 1.5rem;
+    bottom: 2rem;
+  }
+  
+  .carousel-caption h5 {
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+  }
+  
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 3rem;
+    height: 3rem;
+    padding: 1rem;
+  }
+  
+  .carousel-indicators {
+    bottom: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .pagination-container {
-    margin-top: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .pagination {
+    padding: 0.25rem;
   }
   
   .page-link {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
+    min-width: 2rem;
   }
   
   /* 轮播图响应式 */
   .carousel-img {
-    height: 250px;
+    height: 300px;
+  }
+  
+  .carousel-caption {
+    padding: 1.25rem;
+    bottom: 1.5rem;
+  }
+  
+  .carousel-caption h5 {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+  }
+  
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.75rem;
+  }
+  
+  .carousel-indicators {
+    bottom: 1.5rem;
+  }
+  
+  .carousel-indicators button {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .carousel-indicators button.active {
+    width: 24px;
   }
 }
 
 @media (max-width: 576px) {
   /* 轮播图响应式 */
   .carousel-img {
-    height: 200px;
+    height: 300px;
   }
   
   .carousel-caption {
-    padding: 0.5rem;
+    padding: 1rem;
+    bottom: 1rem;
   }
   
   .carousel-caption h5 {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    margin-bottom: 0.5rem;
+  }
+  
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.5rem;
+  }
+  
+  .carousel-indicators {
+    bottom: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .carousel-indicators button {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .carousel-indicators button.active {
+    width: 20px;
   }
   
   /* 排序Tab响应式 */
@@ -1012,6 +1454,64 @@ img {
   .sort-tab-btn.active {
     background-color: var(--bs-primary);
     color: white;
+  }
+  
+  /* 轮播图暗黑模式 */
+  .carousel-caption {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.7));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  }
+  
+  .carousel-item:hover .carousel-caption {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+  }
+  
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .carousel-control-prev:hover .carousel-control-prev-icon,
+  .carousel-control-next:hover .carousel-control-next-icon {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  
+  .carousel-indicators button {
+    background-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  
+  .carousel-indicators button:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  }
+  
+  .carousel-indicators button.active {
+    background-color: white;
+    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+  
+  /* 轮播图加载动画暗黑模式 */
+  .carousel-item::before {
+    background: linear-gradient(135deg, #333 0%, #444 100%);
+  }
+  
+  /* 分页暗黑模式 */
+  .pagination {
+    background: var(--bs-body-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .page-link {
+    color: var(--bs-secondary-color);
+  }
+  
+  .page-link:hover:not(.disabled) {
+    background: rgba(0, 123, 255, 0.2);
+    color: var(--bs-primary);
   }
   
   /* 悬停效果 */

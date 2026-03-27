@@ -1,6 +1,6 @@
 <template>
   <!-- 顶部导航栏 -->
-  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <nav class="navbar navbar-expand-lg bg-body-tertiary bg-opacity-95 shadow-sm">
     <div class="container d-flex justify-content-between">
       <!-- 移动端侧边栏触发按钮 -->
       <button 
@@ -950,8 +950,21 @@ watch(
 <style scoped>
 /* 基础样式 */
 :deep(.nav-link.active) {
-  color: #0077ff !important;
+  color: var(--bs-primary) !important;
   font-weight: 500;
+  position: relative;
+}
+
+:deep(.nav-link.active::after) {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background-color: var(--bs-primary);
+  border-radius: 1px;
 }
 
 /* 导航栏图标样式 */
@@ -960,6 +973,12 @@ watch(
   height: 40px;
   border-radius: 50%;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 响应式图标大小 */
@@ -981,11 +1000,14 @@ watch(
 :deep(.navbar-nav .nav-item .nav-link) {
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 :deep(.navbar-nav .nav-item .nav-link:hover) {
   background-color: var(--bs-secondary-bg-subtle);
+  transform: translateY(-1px);
 }
 
 /* 网格布局 */
@@ -1000,14 +1022,44 @@ watch(
 /* 适配不同主题 */
 :deep(.dropdown-menu) {
   background-color: var(--bs-dropdown-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   max-width: 100vw;
   overflow-x: hidden;
   position: absolute !important;
   z-index: 1050;
+  transition: all 0.2s ease;
+}
+
+:deep(.dropdown-item) {
+  transition: all 0.2s ease;
+  border-radius: 0.25rem;
+  margin: 0.25rem;
 }
 
 :deep(.dropdown-item:hover) {
   background-color: var(--bs-dropdown-link-hover-bg);
+  transform: translateX(4px);
+}
+
+:deep(.dropdown-item:active) {
+  transform: translateX(2px);
+}
+
+/* 按钮样式优化 */
+:deep(.btn) {
+  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+}
+
+:deep(.btn:hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.btn:active) {
+  transform: translateY(0);
 }
 
 /* 搜索容器样式 */
@@ -1031,6 +1083,11 @@ watch(
   .search-container {
     width: 100%;
   }
+  
+  /* 移动端按钮间距 */
+  :deep(.btn) {
+    margin: 0.25rem;
+  }
 }
 
 @media (min-width: 992px) {
@@ -1040,20 +1097,85 @@ watch(
     justify-content: flex-start !important;
     flex-grow: 0 !important;
   }
+  
+  /* PC端导航项间距 */
+  :deep(.navbar-nav .nav-item) {
+    margin-right: 0.5rem;
+  }
 }
 
+/* PC端下拉强制展开修复 */
 @media (min-width: 992px) {
-  /* PC端下拉强制展开修复 */
   :deep(.nav-item.dropdown) { position: relative; }
-  :deep(.nav-item.dropdown .dropdown-menu) { z-index: 9999 !important; }
-  :deep(.nav-item.dropdown:hover .dropdown-menu) { display: block !important; }
+  :deep(.nav-item.dropdown .dropdown-menu) {
+    z-index: 9999 !important;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+  }
+  :deep(.nav-item.dropdown:hover .dropdown-menu) {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
   :deep(.nav-item.dropdown .dropdown-toggle)[data-bs-toggle="dropdown"] { pointer-events: auto !important; }
   
   /* 用户下拉菜单强制显示 */
   :deep(.dropdown) { position: relative; }
-  :deep(.dropdown .dropdown-menu) { z-index: 10000 !important; }
-  :deep(.dropdown:hover .dropdown-menu) { display: block !important; }
+  :deep(.dropdown .dropdown-menu) {
+    z-index: 10000 !important;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
+  }
+  :deep(.dropdown:hover .dropdown-menu) {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
   :deep(.dropdown .dropdown-toggle)[data-bs-toggle="dropdown"] { pointer-events: auto !important; }
-  :deep(.dropdown-menu.show) { display: block !important; }
+  :deep(.dropdown-menu.show) { 
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+/* 移动端侧边栏样式 */
+:deep(.offcanvas) {
+  background-color: var(--bs-body-bg);
+  border-right: 1px solid var(--bs-border-color);
+}
+
+:deep(.offcanvas-header) {
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+:deep(.offcanvas-title) {
+  color: var(--bs-body-color);
+}
+
+:deep(.btn-close) {
+  filter: var(--bs-btn-close-color);
+}
+
+/* 适配暗黑模式的特殊样式 */
+@media (prefers-color-scheme: dark) {
+  :deep(.navbar) {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .nav-logo {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  
+  :deep(.dropdown-menu) {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
 }
 </style>
