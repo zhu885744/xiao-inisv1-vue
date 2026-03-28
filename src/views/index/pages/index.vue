@@ -552,7 +552,6 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  max-width: 1200px;
   margin: 0 auto;
 }
 

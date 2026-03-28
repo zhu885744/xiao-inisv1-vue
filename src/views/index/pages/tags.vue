@@ -1053,13 +1053,6 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* 文章列表List布局 - 无图模式 */
-.list-article-list {
-  max-width: 1200px;
   margin: 0 auto;
 }
 

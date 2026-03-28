@@ -341,10 +341,8 @@
     </div>
   </div>
 
-  <!-- 引入三个对话框组件 -->
-  <DialogLogin ref="loginDialog" @finish="method.onLoginFinish" />
-  <DialogRegister ref="registerDialog" @finish="method.onRegisterFinish" />
-  <DialogResetPassword ref="resetDialog" @finish="method.onResetFinish" />
+  <!-- 引入认证对话框组件 -->
+  <DialogAuth ref="authDialog" @finish="method.onAuthFinish" />
 </template>
 
 <script setup>
@@ -358,9 +356,7 @@ import { useCommStore } from '@/store/comm'
 import { useConfigStore } from '@/store/config'
 
 // 引入对话框组件
-import DialogLogin from '@/comps/index/dialog/login.vue'
-import DialogRegister from '@/comps/index/dialog/register.vue'
-import DialogResetPassword from '@/comps/index/dialog/reset-password.vue'
+import DialogAuth from '@/comps/index/dialog/auth.vue'
 
 // 初始化router
 const router = useRouter()
@@ -381,9 +377,7 @@ const pcDropdownRef = ref(null)
 const userDropdownRef = ref(null)
 
 // 组件引用
-const loginDialog = ref(null)
-const registerDialog = ref(null)
-const resetDialog = ref(null)
+const authDialog = ref(null)
 
 // 存储
 const store = {
@@ -445,13 +439,13 @@ const method = {
     // 先关闭侧边栏
     closeSidebar()
     
-    if (loginDialog.value && loginDialog.value.show) {
-      loginDialog.value.show()
+    if (authDialog.value && authDialog.value.show) {
+      authDialog.value.show('login')
     } else {
       // 延迟一下，确保对话框引用被正确初始化
       setTimeout(() => {
-        if (loginDialog.value && loginDialog.value.show) {
-          loginDialog.value.show()
+        if (authDialog.value && authDialog.value.show) {
+          authDialog.value.show('login')
         }
       }, 100)
     }
@@ -461,13 +455,13 @@ const method = {
     // 先关闭侧边栏
     closeSidebar()
     
-    if (registerDialog.value && registerDialog.value.show) {
-      registerDialog.value.show()
+    if (authDialog.value && authDialog.value.show) {
+      authDialog.value.show('register')
     } else {
       // 延迟一下，确保对话框引用被正确初始化
       setTimeout(() => {
-        if (registerDialog.value && registerDialog.value.show) {
-          registerDialog.value.show()
+        if (authDialog.value && authDialog.value.show) {
+          authDialog.value.show('register')
         }
       }, 100)
     }
@@ -477,44 +471,39 @@ const method = {
     // 先关闭侧边栏
     closeSidebar()
     
-    if (resetDialog.value && resetDialog.value.show) {
-      resetDialog.value.show()
+    if (authDialog.value && authDialog.value.show) {
+      authDialog.value.show('reset')
     } else {
       // 延迟一下，确保对话框引用被正确初始化
       setTimeout(() => {
-        if (resetDialog.value && resetDialog.value.show) {
-          resetDialog.value.show()
+        if (authDialog.value && authDialog.value.show) {
+          authDialog.value.show('reset')
         }
       }, 100)
     }
   },
   
   // 事件处理
-  onLoginFinish: (user) => {
-    // console.log('登录成功:', user)
-    store.comm.login.finish = true
-    store.comm.login.user = user
-    closeSidebar()
-    // 登录成功提示
-    Toast.success('登录成功')
-    // 重新初始化下拉菜单（用户登录后）
-    nextTick(() => {
-      initDropdowns()
-    })
-  },
-  
-  onRegisterFinish: (user) => {
-    // console.log('注册成功:', user)
-    // 注册成功提示
-    Toast.success('注册成功，请登录')
-    method.showLogin()
-  },
-  
-  onResetFinish: () => {
-    // console.log('密码重置成功')
-    // 密码重置成功提示
-    Toast.success('密码重置成功，请登录')
-    method.showLogin()
+  onAuthFinish: (user) => {
+    // 登录或注册成功
+    if (user) {
+      // console.log('登录/注册成功:', user)
+      store.comm.login.finish = true
+      store.comm.login.user = user
+      closeSidebar()
+      // 登录成功提示
+      Toast.success('登录成功')
+      // 重新初始化下拉菜单（用户登录后）
+      nextTick(() => {
+        initDropdowns()
+      })
+    } else {
+      // 密码重置成功
+      // console.log('密码重置成功')
+      // 密码重置成功提示
+      Toast.success('密码重置成功，请登录')
+      method.showLogin()
+    }
   },
   
   // 登出（核心修改：适配后端 DELETE /api/comm/logout 接口）

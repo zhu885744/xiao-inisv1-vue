@@ -502,6 +502,25 @@
                         </div>
                       </div>
                     </div>
+                    <div class="col-md-6">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <label class="form-label fw-medium">PC端侧边栏</label>
+                          <p class="form-text text-muted mt-1">开启或关闭PC端侧边栏</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="sidebar_enabled_switch"
+                            v-model="homepageConfig.sidebar_enabled"
+                          >
+                          <label class="form-check-label" for="sidebar_enabled_switch">
+                            {{ homepageConfig.sidebar_enabled ? '开启' : '关闭' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -700,7 +719,8 @@ const globalConfig = ref({
 })
 
 const homepageConfig = ref({
-  display_mode: true // true为有图模式，false为无图模式
+  display_mode: true, // true为有图模式，false为无图模式
+  sidebar_enabled: true // true为开启侧边栏，false为关闭侧边栏
 })
 
 const customCodeConfig = ref({
@@ -903,6 +923,7 @@ async function getHomepageConfig() {
     if (response.code === 200 && response.data) {
       const config = response.data.json || {}
       homepageConfig.value.display_mode = config.display_mode !== false // 默认值为true
+      homepageConfig.value.sidebar_enabled = config.sidebar_enabled !== false // 默认值为true
     }
   } catch (error) {
     console.error('获取首页配置失败:', error)
@@ -944,10 +965,11 @@ async function saveHomepageConfig() {
       currentConfig = configResponse.data.json || {}
     }
     
-    // 只更新display_mode字段
+    // 更新display_mode和sidebar_enabled字段
     const updatedConfig = {
       ...currentConfig,
-      display_mode: homepageConfig.value.display_mode
+      display_mode: homepageConfig.value.display_mode,
+      sidebar_enabled: homepageConfig.value.sidebar_enabled
     }
     
     // 保存到后端API
@@ -1018,7 +1040,8 @@ function resetGlobalConfig() {
 
 function resetHomepageConfig() {
   homepageConfig.value = {
-    display_mode: true // 默认为有图模式
+    display_mode: true, // 默认为有图模式
+    sidebar_enabled: true // 默认为开启侧边栏
   }
 }
 
@@ -1123,12 +1146,6 @@ onMounted(async () => {
   font-size: 1rem;
   color: var(--bs-text-muted);
   line-height: 1.6;
-}
-
-/* 配置内容 */
-.config-content {
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 /* 导航标签容器 */

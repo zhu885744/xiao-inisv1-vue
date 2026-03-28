@@ -13,15 +13,20 @@
     <i-nav ref="navRef"></i-nav>
     <!-- 主内容区 -->
     <div class="container">
-      <div class="row">
-        <div class="col-lg-9">
-          <router-view></router-view>
+      <template v-if="store.siteInfo?.sidebar_enabled !== false">
+        <div class="row">
+          <div class="col-lg-9">
+            <router-view></router-view>
+          </div>
+          <!-- 全局侧边栏 -->
+          <div class="col-lg-3 d-none d-lg-block">
+            <ISidebar @showLogin="handleShowLogin" @showRegister="handleShowRegister"></ISidebar>
+          </div>
         </div>
-        <!-- 全局侧边栏 -->
-        <div class="col-lg-3 d-none d-lg-block">
-          <ISidebar @showLogin="handleShowLogin" @showRegister="handleShowRegister"></ISidebar>
-        </div>
-      </div>
+      </template>
+      <template v-else>
+        <router-view></router-view>
+      </template>
     </div>
     <!-- 全局页脚 -->
     <i-footer></i-footer>
