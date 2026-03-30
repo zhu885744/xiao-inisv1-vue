@@ -14,9 +14,12 @@
           <div class="position-relative d-inline-block mb-3">
             <div class="avatar-container position-relative">
               <img
-                :src="store.comm.login.user.avatar || defaultAvatar"
+                :src="defaultAvatar"
+                :data-src="store.comm.login.user.avatar || defaultAvatar"
                 :alt="store.comm.login.user.nickname || '用户头像'"
-                class="rounded-3 user-avatar"
+                class="rounded-3 user-avatar lazy-img"
+                @load="onImageLoad"
+                @error="handleImageError"
               >
               <div class="avatar-overlay rounded-3">
                 <div class="avatar-status" :class="{ 'online': store.comm.login.user.login_time && (Date.now() / 1000 - store.comm.login.user.login_time < 86400) }"></div>
@@ -62,8 +65,11 @@
           <div class="position-relative d-inline-block mb-3">
             <img
               :src="defaultAvatar"
+              :data-src="defaultAvatar"
               alt="头像"
-              class="rounded-3 user-avatar"
+              class="rounded-3 user-avatar lazy-img"
+              @load="onImageLoad"
+              @error="handleImageError"
             >
           </div>
           
@@ -174,9 +180,12 @@
               </div>
               <!-- 头像 -->
               <img
-                :src="user.avatar || defaultAvatar"
+                :src="defaultAvatar"
+                :data-src="user.avatar || defaultAvatar"
                 alt="用户头像"
-                class="rank-avatar"
+                class="rank-avatar lazy-img"
+                @load="onImageLoad"
+                @error="handleImageError"
               >
             </div>
 
@@ -323,9 +332,12 @@
             <!-- 评论头部 -->
             <div class="d-flex align-items-center gap-2 mb-2">
               <img
-                :src="comment.avatar || defaultAvatar"
+                :src="defaultAvatar"
+                :data-src="comment.avatar || defaultAvatar"
                 alt="用户头像"
-                class="comment-avatar"
+                class="comment-avatar lazy-img"
+                @load="onImageLoad"
+                @error="handleImageError"
               >
               <div class="flex-grow-1 min-w-0">
                 <div class="d-flex justify-content-between align-items-center">
@@ -419,12 +431,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
 import utils from '@/utils/utils'
 import Toast from '@/utils/toast'
+import cache from '@/utils/cache'
 import defaultAvatar from '@/assets/img/avatar.png'
 
 const router = useRouter()
@@ -456,15 +469,163 @@ const userStats = ref({
 })
 const statsLoading = ref(false)
 
-// 快速导航数据
-const quickNavs = ref([
+// 快速导航数据（使用常量，避免响应式开销）
+const quickNavs = [
   { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
   { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
   { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
   { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
   { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
   { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
-])
+]
+
+// 图片缓存
+const imageCache = new Set()
+
+// Intersection Observer 用于图片懒加载
+let observer = null
+
+// 初始化Intersection Observer
+const initIntersectionObserver = () => {
+  if (!('IntersectionObserver' in window)) {
+    // 浏览器不支持 IntersectionObserver，回退到立即加载
+    loadAllImages()
+    return
+  }
+
+  // 根据屏幕尺寸动态调整rootMargin
+  const screenHeight = window.innerHeight
+  const rootMarginValue = `${Math.min(screenHeight * 0.3, 200)}px 0px ${Math.min(screenHeight * 0.3, 200)}px 0px`
+
+  observer = new IntersectionObserver((entries) => {
+    // 批量处理观察到的图片
+    const imagesToLoad = []
+    
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target
+        const dataSrc = img.dataset.src
+        
+        if (dataSrc) {
+          imagesToLoad.push(img)
+        }
+      }
+    })
+    
+    // 限制同时加载的图片数量，避免网络拥塞
+    const batchSize = 3
+    for (let i = 0; i < Math.min(imagesToLoad.length, batchSize); i++) {
+      const img = imagesToLoad[i]
+      // 开始加载实际图片
+      img.src = img.dataset.src
+      img.classList.add('lazy-loading')
+      observer.unobserve(img)
+    }
+    
+    // 剩余图片延迟加载
+    if (imagesToLoad.length > batchSize) {
+      setTimeout(() => {
+        for (let i = batchSize; i < imagesToLoad.length; i++) {
+          const img = imagesToLoad[i]
+          img.src = img.dataset.src
+          img.classList.add('lazy-loading')
+          observer.unobserve(img)
+        }
+      }, 100)
+    }
+  }, {
+    rootMargin: rootMarginValue, // 动态调整预加载区域
+    threshold: 0.01, // 只要有1%的区域可见就开始加载
+    root: null // 使用默认根元素（视口）
+  })
+}
+
+// 观察所有懒加载图片
+const observeLazyImages = () => {
+  nextTick(() => {
+    const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed])')
+    if (lazyImages.length > 0) {
+      // 优先观察可视区域内的图片
+      const visibleImages = Array.from(lazyImages).filter(img => {
+        const rect = img.getBoundingClientRect()
+        return rect.top < window.innerHeight + 200 && rect.bottom > -100
+      })
+      
+      // 先观察可视区域内的图片
+      visibleImages.forEach(img => {
+        if (observer) {
+          observer.observe(img)
+          img.dataset.observed = 'true'
+        }
+      })
+      
+      // 延迟观察其他图片，减少初始加载压力
+      setTimeout(() => {
+        const remainingImages = Array.from(lazyImages).filter(img => !img.dataset.observed)
+        remainingImages.forEach(img => {
+          if (observer) {
+            observer.observe(img)
+            img.dataset.observed = 'true'
+          }
+        })
+      }, 200)
+    }
+  })
+}
+
+// 加载所有图片（回退方案）
+const loadAllImages = () => {
+  const lazyImages = document.querySelectorAll('.lazy-img')
+  lazyImages.forEach(img => {
+    const dataSrc = img.dataset.src
+    if (dataSrc) {
+      img.src = dataSrc
+    }
+  })
+}
+
+// 图片加载成功处理
+const onImageLoad = (event) => {
+  const img = event.target
+  const src = img.src
+  
+  // 添加到缓存
+  if (src && !imageCache.has(src)) {
+    imageCache.add(src)
+  }
+  
+  // 使用requestAnimationFrame优化DOM操作，减少重绘
+  requestAnimationFrame(() => {
+    // 移除loading样式
+    img.classList.remove('lazy-loading')
+    img.classList.add('lazy-loaded')
+    // 清理data-observed属性，释放内存
+    delete img.dataset.observed
+  })
+}
+
+// 图片加载失败处理
+const handleImageError = (event) => {
+  const img = event.target
+  // 使用requestAnimationFrame优化DOM操作，减少重绘
+  requestAnimationFrame(() => {
+    // 移除loading样式
+    img.classList.remove('lazy-loading')
+    
+    // 尝试加载默认图片
+    if (img.src !== defaultAvatar) {
+      img.src = defaultAvatar
+    } else {
+      // 如果默认图片也加载失败，显示错误状态
+      img.classList.add('lazy-error')
+    }
+    
+    // 防止无限错误循环
+    img.onerror = null
+    // 清理data-observed属性，释放内存
+    delete img.dataset.observed
+  })
+}
 
 // 检测深色模式
 const detectDarkMode = () => {
@@ -476,13 +637,23 @@ const detectDarkMode = () => {
 // 等级数据
 const levelInfo = ref(null)
 
+// 等级计算缓存
+const levelCache = new Map()
+
 // 根据经验值计算等级
 // 现在使用后端返回的等级数据来动态计算
 const calculateLevel = (exp) => {
+  // 检查缓存
+  if (levelCache.has(exp)) {
+    return levelCache.get(exp)
+  }
+  
   // 如果没有等级数据，使用默认逻辑
   if (!levelInfo.value || !levelInfo.value.data || !levelInfo.value.data.data) {
     // 默认每100经验值一级
-    return Math.floor(exp / 100)
+    const level = Math.floor(exp / 100)
+    levelCache.set(exp, level)
+    return level
   }
   
   // 从后端返回的等级数据中获取等级阈值
@@ -491,7 +662,9 @@ const calculateLevel = (exp) => {
   // 检查levelData是否是数组
   if (!Array.isArray(levelData)) {
     // 如果不是数组，使用默认逻辑
-    return Math.floor(exp / 100)
+    const level = Math.floor(exp / 100)
+    levelCache.set(exp, level)
+    return level
   }
   
   // 按经验值阈值从高到低排序
@@ -500,13 +673,16 @@ const calculateLevel = (exp) => {
   // 找到用户当前经验值对应的最高等级
   for (const level of sortedLevels) {
     if (exp >= level.exp) {
+      levelCache.set(exp, level.value)
       return level.value
     }
   }
   
   // 如果没有找到匹配的等级，使用默认逻辑计算等级
   // 这样即使后端返回的数据不完整，也能够正确计算等级
-  return Math.floor(exp / 100)
+  const level = Math.floor(exp / 100)
+  levelCache.set(exp, level)
+  return level
 }
 
 // 导航方法
@@ -572,15 +748,27 @@ const getLevelInfo = async () => {
 // 接口请求方法
 const getHotArticles = async () => {
   try {
+    const cacheKey = 'sidebar_hot_articles'
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      hotArticles.value = cachedData
+      return
+    }
+    
     loading.value = true
     const response = await request.get('/api/article/all', { 
       page: 1, 
       limit: 5, 
       order: 'views desc', 
-      cache: false 
+      cache: true 
     })
     if (response.code === 200) {
       hotArticles.value = response.data.data || []
+      // 缓存数据
+      cache.set(cacheKey, hotArticles.value, cacheExpire)
     }
   } catch (error) {
     // console.error('获取热门文章失败：', error)
@@ -592,13 +780,23 @@ const getHotArticles = async () => {
 
 const getLevelRank = async () => {
   try {
+    const cacheKey = 'sidebar_level_rank'
+    const cacheExpire = 15 // 缓存15分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      levelRankList.value = cachedData
+      return
+    }
+    
     levelLoading.value = true
     // 优先获取有经验值的用户，按经验值降序排序
     const response = await request.get('/api/users/all', { 
       page: 1, 
-      limit: 9999, // 减少获取的数据量，提高性能
+      limit: 20, // 减少获取的数据量，提高性能
       order: 'exp desc', // 优先按经验值排序，确保获取有经验值的用户
-      cache: false 
+      cache: true 
     })
     if (response.code === 200) {
       // 按等级值排序，等级值基于用户当前经验值计算
@@ -619,6 +817,9 @@ const getLevelRank = async () => {
           return (b.exp || 0) - (a.exp || 0)
         })
         .slice(0, 5) // 取前5名
+      
+      // 缓存数据
+      cache.set(cacheKey, levelRankList.value, cacheExpire)
     }
   } catch (error) {
     // console.error('获取等级排行失败：', error)
@@ -630,15 +831,27 @@ const getLevelRank = async () => {
 
 const getTagList = async () => {
   try {
+    const cacheKey = 'sidebar_tag_list'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      tagList.value = cachedData
+      return
+    }
+    
     tagLoading.value = true
     const response = await request.get('/api/tags/all', {
       page: 1,
       limit: 40,
       order: 'create_time desc',
-      cache: false
+      cache: true
     })
     if (response.code === 200) {
       tagList.value = response.data.data || []
+      // 缓存数据
+      cache.set(cacheKey, tagList.value, cacheExpire)
     }
   } catch (error) {
     // console.error('获取标签云失败：', error)
@@ -650,12 +863,22 @@ const getTagList = async () => {
 
 const getLatestComments = async () => {
   try {
+    const cacheKey = 'sidebar_latest_comments'
+    const cacheExpire = 10 // 缓存10分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      commentList.value = cachedData
+      return
+    }
+    
     commentLoading.value = true
     const response = await request.get('/api/comment/all', {
       page: 1,
       limit: 5,
       order: 'create_time desc',
-      cache: false
+      cache: true
     })
 
     if (response.code === 200) {
@@ -698,6 +921,9 @@ const getLatestComments = async () => {
           commentType: commentType // 添加评论类型
         }
       })
+      
+      // 缓存数据
+      cache.set(cacheKey, commentList.value, cacheExpire)
     }
   } catch (error) {
     // console.error('获取最新评论失败：', error)
@@ -762,9 +988,19 @@ const getLikeCount = async (userId) => {
 const initUserStats = async () => {
   if (!store.comm.login.finish || !store.comm.login.user) return
   
+  const userId = store.comm.login.user.id
+  const cacheKey = `user_stats_${userId}`
+  const cacheExpire = 10 // 缓存10分钟
+  
+  // 尝试从缓存获取
+  const cachedData = cache.get(cacheKey)
+  if (cachedData) {
+    userStats.value = cachedData
+    return
+  }
+  
   statsLoading.value = true
   try {
-    const userId = store.comm.login.user.id
     const [articleCount, collectCount, likeCount] = await Promise.all([
       getArticleCount(userId),
       getCollectCount(userId),
@@ -776,6 +1012,9 @@ const initUserStats = async () => {
       collectCount,
       likeCount
     }
+    
+    // 缓存数据
+    cache.set(cacheKey, userStats.value, cacheExpire)
     
     // console.log('用户统计数据:', userStats.value)
   } catch (error) {
@@ -796,11 +1035,26 @@ const checkSignStatus = async () => {
   
   if (!store.comm.login.user) return
   
+  const userId = store.comm.login.user.id
+  const cacheKey = `sign_status_${userId}`
+  const cacheExpire = 60 // 缓存60分钟（签到状态一天内不变）
+  
+  // 尝试从缓存获取
+  const cachedData = cache.get(cacheKey)
+  if (cachedData) {
+    hasSigned.value = cachedData.hasSigned
+    signDays.value = cachedData.signDays
+    return
+  }
+  
   try {
     const response = await request.get('/api/exp/sign-status')
     if (response.code === 200) {
       hasSigned.value = response.data?.hasSigned || false
       signDays.value = response.data?.signDays || 0
+      
+      // 缓存数据
+      cache.set(cacheKey, { hasSigned: hasSigned.value, signDays: signDays.value }, cacheExpire)
     }
   } catch (error) {
     // console.error('获取签到状态失败：', error)
@@ -845,6 +1099,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', det
 // 组件挂载
 onMounted(() => {
   detectDarkMode()
+  // 初始化Intersection Observer
+  initIntersectionObserver()
+  
   Promise.all([
     getHotArticles(),
     getLevelRank(),
@@ -853,37 +1110,77 @@ onMounted(() => {
     checkSignStatus(),
     initUserStats(),
     getLevelInfo() // 获取等级数据
-  ]).catch(err => console.error('数据加载失败：', err))
+  ]).then(() => {
+    // 数据加载完成后观察图片
+    setTimeout(observeLazyImages, 100)
+  }).catch(err => console.error('数据加载失败：', err))
 })
 </script>
 
 <style scoped>
-/* 侧边栏基础样式 */
-.sidebar-container {
-  overflow-y: auto;
-  padding: 0;
+/* 卡片基础样式增强 */
+.card {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  background-color: var(--bs-card-bg);
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.card-header {
+  border-bottom: 1px solid var(--bs-border-color);
+  background-color: var(--bs-card-header-bg);
+  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 1rem;
+}
+
+.card-body {
+  padding: 1.25rem;
+  background-color: var(--bs-card-bg);
+  border-radius: 0 0 0.75rem 0.75rem;
 }
 
 /* 卡片标题样式 */
 .card-header h6 {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0;
+  margin: 0;
+  font-weight: 600;
+  color: var(--bs-heading-color);
 }
 
 .card-header h6 i {
   margin-right: 0.75rem;
   font-size: 1.1rem;
+  color: var(--bs-primary);
+  opacity: 0.8;
 }
 
 .card-header h6 span {
   font-size: 0.95rem;
   font-weight: 600;
+  color: var(--bs-heading-color);
+  letter-spacing: 0.025em;
 }
 
 /* 按钮样式 */
 .sidebar-btn {
   font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-btn:active {
+  transform: translateY(0);
 }
 
 .sidebar-btn-icon {
@@ -894,6 +1191,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-btn-icon:hover {
+  transform: rotate(15deg);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .user-avatar {
@@ -937,15 +1240,29 @@ onMounted(() => {
 .sign-btn {
   font-size: 0.875rem;
   font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sign-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.sign-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .sign-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transition: all 0.2s ease;
 }
 
 .sign-days {
   font-size: 0.75rem;
+  transition: all 0.2s ease;
 }
 
 /* 活跃度排行样式 */
@@ -1071,7 +1388,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   align-items: center;
   justify-content: flex-start;
 }
@@ -1083,17 +1400,19 @@ onMounted(() => {
   color: var(--bs-body-color);
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 0.375rem;
+  border-radius: 1.5rem;
   text-decoration: none;
   border: 1px solid var(--bs-border-color);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .tag-item:hover {
   background-color: var(--bs-primary);
   color: var(--bs-white);
   border-color: var(--bs-primary);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 快捷导航样式 */
@@ -1103,12 +1422,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 1rem 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--bs-border-color);
   text-decoration: none;
   color: var(--bs-body-color);
   min-height: 80px;
   transition: all 0.3s ease;
+  background-color: var(--bs-card-bg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
 }
 
 .cursor-pointer {
@@ -1116,19 +1439,33 @@ onMounted(() => {
 }
 
 .nav-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: rgba(var(--bs-primary-rgb), 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--bs-primary);
 }
 
 .nav-item-icon {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
+  color: var(--nav-color, var(--bs-primary));
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover .nav-item-icon {
+  transform: scale(1.1);
 }
 
 .nav-item-name {
   font-size: 0.75rem;
   font-weight: 500;
+  color: var(--bs-body-color);
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover .nav-item-name {
+  color: var(--bs-primary);
+  font-weight: 600;
 }
 
 /* 列表样式 */
@@ -1143,6 +1480,13 @@ onMounted(() => {
   border-radius: 0.5rem;
   background-color: var(--bs-tertiary-bg);
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--bs-tertiary-bg);
 }
 
 .sidebar-list-item-top {
@@ -1157,6 +1501,13 @@ onMounted(() => {
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.sidebar-article-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--bs-tertiary-bg);
 }
 
 .sidebar-article-item .flex-grow-1 {
@@ -1170,6 +1521,11 @@ onMounted(() => {
   text-overflow: ellipsis;
   max-width: 100%;
   display: block;
+  transition: color 0.2s ease;
+}
+
+.sidebar-article-item:hover h6.article-title {
+  color: var(--bs-primary);
 }
 
 .sidebar-comment-item {
@@ -1177,6 +1533,18 @@ onMounted(() => {
   border-radius: 0.5rem;
   background-color: var(--bs-tertiary-bg);
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar-comment-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--bs-tertiary-bg);
+}
+
+.sidebar-comment-item:hover .comment-content {
+  color: var(--bs-primary);
+  transition: color 0.2s ease;
 }
 
 /* 加载和空状态样式 */
@@ -1250,12 +1618,58 @@ onMounted(() => {
   }
 }
 
+/* 懒加载图片样式 */
+.lazy-img {
+  transition: all 0.3s ease;
+}
+
+.lazy-loading {
+  filter: blur(8px);
+  opacity: 0.6;
+  transform: scale(0.95);
+}
+
+.lazy-loaded {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1);
+  animation: fadeIn 0.6s ease-out;
+}
+
+.lazy-error {
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #868e96;
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
   .sidebar-container {
     padding: 0.5rem 0;
   }
   
+  /* 卡片样式调整 */
+  .card {
+    margin-bottom: 0.75rem;
+  }
+  
+  .card-header h6 {
+    font-size: 0.875rem;
+    padding: 0.375rem 0;
+  }
+  
+  .card-header h6 i {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* 头像大小调整 */
   .user-avatar {
     width: 64px;
     height: 64px;
@@ -1271,6 +1685,34 @@ onMounted(() => {
     height: 32px;
   }
   
+  /* 字体大小调整 */
+  .user-nickname {
+    font-size: 0.9rem;
+  }
+  
+  .user-bio {
+    font-size: 0.8rem;
+  }
+  
+  .article-title {
+    font-size: 0.8rem;
+  }
+  
+  .comment-content {
+    font-size: 0.8rem;
+  }
+  
+  /* 按钮调整 */
+  .sidebar-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+  
+  .sign-btn {
+    font-size: 0.8rem;
+  }
+  
+  /* 快捷导航调整 */
   .nav-item {
     min-height: 70px;
     padding: 0.5rem;
@@ -1280,11 +1722,55 @@ onMounted(() => {
     font-size: 1.25rem;
   }
   
+  .nav-item-name {
+    font-size: 0.7rem;
+  }
+  
+  /* 列表项调整 */
+  .sidebar-list-item {
+    padding: 0.625rem;
+  }
+  
+  .sidebar-article-item {
+    padding: 0.625rem;
+  }
+  
+  .sidebar-comment-item {
+    padding: 0.625rem;
+  }
+  
+  /* 标签云调整 */
+  .tag-item {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
   /* 响应式头像状态指示器 */
   .avatar-status {
     width: 16px;
     height: 16px;
     border-width: 2px;
+  }
+  
+  /* 等级排行调整 */
+  .rank-badge {
+    width: 1rem;
+    height: 1rem;
+    font-size: 0.65rem;
+  }
+  
+  /* 热门文章排行调整 */
+  .article-rank-badge {
+    width: 24px;
+    height: 24px;
+    font-size: 0.65rem;
+  }
+  
+  /* 触摸目标优化 */
+  .sidebar-btn, .nav-item, .sidebar-list-item, .tag-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 }
 

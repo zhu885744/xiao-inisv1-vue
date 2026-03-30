@@ -99,7 +99,6 @@ async function getScriptUrls() {
     const reg  = /<script.*src=["'](?<src>[^"]+)/gm
     
     try {
-        // console.log('开始获取页面HTML...')
         // 使用相对路径，避免跨域问题
         const currentPath = window.location.pathname
         const url = currentPath + (currentPath.includes('?') ? '&' : '?') + 't=' + Date.now()
@@ -120,7 +119,6 @@ async function getScriptUrls() {
             return res.text()
         })
         
-        // console.log('获取页面HTML成功，开始提取script标签...')
         reg.lastIndex = 0
         while ((match = reg.exec(html)) !== null) {
             result.push(match.groups.src)
@@ -137,10 +135,6 @@ async function getScriptUrls() {
 
 // 比较脚本URL是否有变化
 function compareScripts(scripts) {
-    // console.log('比较脚本URL...')
-    // console.log('当前存储的脚本:', state.lastScripts)
-    // console.log('新获取的脚本:', scripts)
-    
     if (!state.lastScripts.length) {
         // 第一次检查，存储脚本列表
         // console.log('首次检查，存储脚本列表')
@@ -148,7 +142,6 @@ function compareScripts(scripts) {
         // 更新window上的引用
         if (typeof window !== 'undefined' && window.__updateChecker) {
             window.__updateChecker.lastScripts = state.lastScripts
-            // console.log('更新window.__updateChecker.lastScripts:', window.__updateChecker.lastScripts)
         }
         return false
     }
