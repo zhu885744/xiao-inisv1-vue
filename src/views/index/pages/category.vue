@@ -200,6 +200,9 @@ import loadingGif from '@/assets/img/ljz.gif'
 import { useCommStore } from '@/store/comm'
 import { usePageTitle } from '@/utils/usePageTitle'
 
+// 图片缓存
+const imageCache = new Set()
+
 // 存储
 const store = {
   comm: useCommStore()
@@ -305,10 +308,38 @@ const checkCategoryParam = (param) => {
   return true
 }
 
-// 获取封面图片
+// 获取封面图片 - 响应式处理
 const getCoverImg = (article) => {
   // 1. 优先使用文章自身封面
   if (article.covers && article.covers.trim() !== '') {
+    // 响应式图片处理
+    const screenWidth = window.innerWidth
+    const devicePixelRatio = window.devicePixelRatio || 1
+    
+    // 根据屏幕宽度和像素密度确定图片尺寸
+    let imageSize = 'medium' // 默认中等尺寸
+    
+    if (screenWidth < 768) {
+      // 移动设备
+      imageSize = 'small'
+    } else if (screenWidth < 1200) {
+      // 平板设备
+      imageSize = 'medium'
+    } else {
+      // 桌面设备
+      imageSize = 'large'
+    }
+    
+    // 如果像素密度高，使用更大的图片
+    if (devicePixelRatio > 1.5) {
+      if (imageSize === 'small') imageSize = 'medium'
+      else if (imageSize === 'medium') imageSize = 'large'
+    }
+    
+    // 这里假设图片URL支持通过参数调整尺寸
+    // 如果后端支持，可以在这里修改URL来获取不同尺寸的图片
+    // 例如: article.covers + '?size=' + imageSize
+    // 目前暂时返回原始URL
     return article.covers
   }
   
@@ -319,29 +350,65 @@ const getCoverImg = (article) => {
 // 图片加载成功处理
 const onImageLoad = (event) => {
   const img = event.target
-  // 移除loading样式
-  img.classList.remove('lazy-loading')
-  img.classList.add('lazy-loaded')
+  const src = img.src
+  
+  // 添加到缓存
+  if (src && !imageCache.has(src)) {
+    imageCache.add(src)
+  }
+  
+  // 使用requestAnimationFrame优化DOM操作，减少重绘
+  requestAnimationFrame(() => {
+    // 移除loading样式
+    img.classList.remove('lazy-loading')
+    img.classList.add('lazy-loaded')
+    // 清理data-observed属性，释放内存
+    delete img.dataset.observed
+  })
 }
 
 // 图片加载失败处理
 const handleImageError = (event) => {
   const img = event.target
-  // 移除loading样式
-  img.classList.remove('lazy-loading')
+  // 使用requestAnimationFrame优化DOM操作，减少重绘
+  requestAnimationFrame(() => {
+    // 移除loading样式
+    img.classList.remove('lazy-loading')
+    
+    // 尝试加载默认图片
+    if (img.src !== defaultCover) {
+      img.src = defaultCover
+    } else {
+      // 如果默认图片也加载失败，显示错误状态
+      img.classList.add('lazy-error')
+    }
+    
+    // 防止无限错误循环
+    img.onerror = null
+    // 清理data-observed属性，释放内存
+    delete img.dataset.observed
+  })
+}
+
+// 预加载图片
+const preloadImage = (src) => {
+  if (!src) return
   
-  // 尝试加载默认图片
-  
-  // 如果当前src不是默认图片，则尝试加载默认图片
-  if (img.src !== defaultCover) {
-    img.src = defaultCover
-  } else {
-    // 如果默认图片也加载失败，显示错误状态
-    img.classList.add('lazy-error')
+  // 检查缓存
+  if (imageCache.has(src)) {
+    return Promise.resolve()
   }
   
-  // 防止无限错误循环
-  img.onerror = null
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.src = src
+    img.onload = () => {
+      // 添加到缓存
+      imageCache.add(src)
+      resolve()
+    }
+    img.onerror = reject
+  })
 }
 
 // Intersection Observer 用于懒加载
@@ -352,35 +419,123 @@ const initIntersectionObserver = () => {
     return
   }
 
+  // 根据屏幕尺寸动态调整rootMargin
+  const screenHeight = window.innerHeight
+  const rootMarginValue = `${Math.min(screenHeight * 0.5, 300)}px 0px ${Math.min(screenHeight * 0.3, 200)}px 0px`
+
   observer = new IntersectionObserver((entries) => {
+    // 批量处理观察到的图片
+    const imagesToLoad = []
+    
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target
         const dataSrc = img.dataset.src
         
         if (dataSrc) {
-          // 开始加载实际图片
-          img.src = dataSrc
-          img.classList.add('lazy-loading')
-          observer.unobserve(img)
+          imagesToLoad.push(img)
         }
       }
     })
+    
+    // 根据网络状况调整批量加载大小
+    let batchSize = 3
+    if (navigator.connection) {
+      const effectiveType = navigator.connection.effectiveType
+      if (effectiveType === '4g') {
+        batchSize = 5
+      } else if (effectiveType === '3g') {
+        batchSize = 3
+      } else {
+        batchSize = 2
+      }
+    }
+    
+    // 限制同时加载的图片数量，避免网络拥塞
+    for (let i = 0; i < Math.min(imagesToLoad.length, batchSize); i++) {
+      const img = imagesToLoad[i]
+      // 开始加载实际图片
+      img.src = img.dataset.src
+      img.classList.add('lazy-loading')
+      observer.unobserve(img)
+    }
+    
+    // 剩余图片延迟加载，根据网络状况调整延迟时间
+    if (imagesToLoad.length > batchSize) {
+      let delay = 200
+      if (navigator.connection) {
+        const effectiveType = navigator.connection.effectiveType
+        if (effectiveType === '4g') {
+          delay = 100
+        } else if (effectiveType === '3g') {
+          delay = 200
+        } else {
+          delay = 300
+        }
+      }
+      
+      setTimeout(() => {
+        for (let i = batchSize; i < imagesToLoad.length; i++) {
+          const img = imagesToLoad[i]
+          img.src = img.dataset.src
+          img.classList.add('lazy-loading')
+          observer.unobserve(img)
+        }
+      }, delay)
+    }
   }, {
-    rootMargin: '50px 0px', // 提前50px开始加载
-    threshold: 0.1
+    rootMargin: rootMarginValue, // 动态调整预加载区域
+    threshold: 0.01, // 只要有1%的区域可见就开始加载，提高响应速度
+    root: null // 使用默认根元素（视口）
   })
 }
 
 // 观察所有懒加载图片
 const observeLazyImages = () => {
   nextTick(() => {
-    const lazyImages = document.querySelectorAll('.lazy-img')
-    lazyImages.forEach(img => {
-      if (observer) {
-        observer.observe(img)
+    const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed])')
+    if (lazyImages.length > 0) {
+      // 优先观察可视区域内的图片
+      const visibleImages = Array.from(lazyImages).filter(img => {
+        const rect = img.getBoundingClientRect()
+        return rect.top < window.innerHeight + 300 && rect.bottom > -100
+      })
+      
+      // 先观察可视区域内的图片
+      visibleImages.forEach(img => {
+        if (observer) {
+          observer.observe(img)
+          img.dataset.observed = 'true'
+        }
+      })
+      
+      // 预加载下一批图片（预加载策略）
+      if (visibleImages.length > 0) {
+        const nextImages = Array.from(lazyImages)
+          .filter(img => !img.dataset.observed)
+          .slice(0, 3) // 预加载接下来的3张图片
+        
+        nextImages.forEach(img => {
+          const dataSrc = img.dataset.src
+          if (dataSrc) {
+            preloadImage(dataSrc).catch(() => {
+              // 预加载失败不影响主流程
+            })
+          }
+        })
       }
-    })
+      
+      // 延迟观察其他图片，减少初始加载压力
+      setTimeout(() => {
+        const remainingImages = Array.from(lazyImages).filter(img => !img.dataset.observed)
+        remainingImages.forEach(img => {
+          if (observer) {
+            observer.observe(img)
+            img.dataset.observed = 'true'
+          }
+        })
+      }, 300) // 减少延迟时间，提高响应速度
+    }
   })
 }
 
