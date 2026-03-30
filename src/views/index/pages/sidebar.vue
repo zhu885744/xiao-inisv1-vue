@@ -761,11 +761,13 @@ const getHotArticles = async () => {
     }
     
     loading.value = true
+    // 只获取已审核的文章
     const response = await request.get('/api/article/all', { 
       page: 1, 
       limit: 5, 
       order: 'views desc', 
-      cache: true 
+      cache: true,
+      where: { audit: 1 }
     })
     if (response.code === 200) {
       hotArticles.value = response.data.data || []

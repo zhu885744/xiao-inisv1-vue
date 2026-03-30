@@ -175,9 +175,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import utils from '@/utils/utils'
 import axios from '@/utils/request'
+import { getCurrentInstance } from 'vue'
 
 const emit = defineEmits(['selection:change'])
 
@@ -201,6 +202,21 @@ const props = defineProps({
                 prop: 'id',
                 order: 'descending'
             },
+            rowStyle: {
+                backgroundColor: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.8))`,
+            },
+            cellStyle: {
+                backgroundColor: 'transparent',
+                border: 'unset',
+                padding: '10px 0'
+            },
+            headerRowStyle: {
+                backgroundColor: 'transparent !important',
+            },
+            headerCellStyle: {
+                backgroundColor: `rgba(var(--theme-color), var(--theme-opacity))`,
+                border: 'unset',
+            },
             style: {
                 background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.15))`,
                 backdropFilter: 'blur(10px)',
@@ -221,9 +237,7 @@ const props = defineProps({
     },
 })
 
-// 响应式状态
-const error = ref(false)
-const errorMessage = ref('')
+const { ctx, proxy } = getCurrentInstance()
 
 const state = reactive({
     item: {
@@ -248,10 +262,23 @@ const state = reactive({
                 prop: 'id',
                 order: 'descending'
             },
+            rowStyle: {
+                backgroundColor: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.8))`,
+            },
+            cellStyle: {
+                backgroundColor: 'transparent',
+                border: 'unset',
+            },
+            headerRowStyle: {
+                backgroundColor: 'transparent !important',
+            },
+            headerCellStyle: {
+                backgroundColor: `rgba(var(--theme-color), var(--theme-opacity))`,
+                border: 'unset',
+            },
             style: {
-                background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.15))`,
-                backdropFilter: 'blur(10px)',
-                borderRadius: '8px',
+                background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.65))`,
+                backdropFilter: 'var(--theme-blur)',
             },
             ...props.table
         },
@@ -276,101 +303,31 @@ const state = reactive({
     },
 })
 
-// 计算总列数（包括自定义插槽和多选列）
-const totalColumns = computed(() => {
-    let count = state.config.opts.columns.length + 2 // 2 是自定义插槽的数量（start 和 end）
-    if (state.config.opts.selection) {
-        count += 1 // 加上多选列
-    }
-    return count
-})
-
-// 计算是否全选
-const isAllSelected = computed(() => {
-    return state.item.data.length > 0 && state.item.selection.length === state.item.data.length
-})
-
-// 检查行是否被选中
-const isSelected = (row) => {
-    return state.item.selection.some(item => item.id === row.id)
-}
-
-// 计算页码范围
-const pageRange = computed(() => {
-    const total = state.item.page.total || 1
-    const current = state.item.page.code || 1
-    const count = state.config.pagination.count || 5 // 显示5个页码
-    
-    // 处理总页数为0的情况
-    if (total <= 0) {
-        return []
-    }
-    
-    // 计算起始页码
-    let start = Math.max(1, current - Math.floor(count / 2))
-    // 计算结束页码
-    let end = Math.min(total, start + count - 1)
-    
-    // 调整起始位置，确保显示足够的页码
-    if (end - start + 1 < count) {
-        start = Math.max(1, end - count + 1)
-    }
-    
-    // 生成页码数组
-    const range = []
-    for (let i = start; i <= end; i++) {
-        range.push(i)
-    }
-    return range
-})
+const error = ref(false)
+const errorMessage = ref('')
 
 const method = {
     init   : async (page = state.item.page.code, limit = state.item.limit) => {
-
         // 数据加载中
         state.item.loading.data = true
         error.value = false
-        errorMessage.value = ''
-        // 清空选中项
-        state.item.selection = []
-        emit('selection:change', [])
 
         try {
-            let response;
-            if (state.config.opts.method === 'get') {
-                // GET 请求：参数作为 URL 查询参数
-                response = await axios[state.config.opts.method](state.config.opts.url, {
-                    params: {
-                        ...state.config.opts.params,
-                        page, 
-                        limit, 
-                        order: state.item.order
-                    }
-                });
-            } else {
-                // 其他请求（包括 DELETE）：参数作为请求体
-                response = await axios[state.config.opts.method](state.config.opts.url, {
-                    ...state.config.opts.params,
-                    page, 
-                    limit, 
-                    order: state.item.order
-                });
-            }
-            const { data, code, msg } = response;
+            const { data, code, msg } = await axios[state.config.opts.method](state.config.opts.url, {
+                page, limit, order: state.item.order, ...state.config.opts.params
+            })
 
             // 数据加载失败
-            if (!utils.inArray(code, [200, 204])) {
+            if (!utils.in.array(code, [200, 204])) {
                 throw new Error(msg || '数据加载失败')
             }
 
             state.item.data       = data.data || []
             state.item.count      = data.count || 0
-            // 计算总页数，如果后端没有返回 page 字段
             state.item.page.total = data.page || Math.ceil((data.count || 0) / limit) || 1
 
             // 更新页码
             state.item.page.code   = page
-
         } catch (err) {
             console.error('数据加载失败:', err)
             error.value = true
@@ -384,24 +341,25 @@ const method = {
             // 页码加载动画
             state.item.loading.page = false
         }
-    }
+    },
+    // 是否为空
+    empty  : value => utils.is.empty(value),
+    // 是否在数组中
+    inArray: (value, array) => utils.in.array(value, array),
+    // 格式化数字
+    format : value => utils.format.number(value),
+    // 时间戳转人性化时间
+    nature : value => utils.time.nature(value),
 }
 
 const handle = {
     // 分页大小改变
-    sizeChange: () => {
-        // 清空选中项
-        state.item.selection = []
-        emit('selection:change', [])
-        method.init(1, state.item.limit)
+    sizeChange: val => {
+        state.item.limit = val
+        method.init()
     },
     // 页码改变
-    currentChange: val => {
-        // 清空选中项
-        state.item.selection = []
-        emit('selection:change', [])
-        method.init(val)
-    },
+    currentChange: val => method.init(val),
     // 选中
     selectionChange(selection) {
         state.item.selection = selection
@@ -435,12 +393,63 @@ const handle = {
     },
 }
 
+// 计算总列数（包括自定义插槽和多选列）
+const totalColumns = computed(() => {
+    let count = state.config.opts.columns.length + 2 // 2 是自定义插槽的数量（start 和 end）
+    if (state.config.opts.selection) {
+        count += 1 // 加上多选列
+    }
+    return count
+})
+
+// 计算是否全选
+const isAllSelected = computed(() => {
+    return state.item.data.length > 0 && state.item.selection.length === state.item.data.length
+})
+
+// 检查行是否被选中
+const isSelected = (row) => {
+    return state.item.selection.some(item => item.id === row.id)
+}
+
+// 计算页码范围
+const pageRange = computed(() => {
+    const current = state.item.page.code || 1
+    const total = state.item.page.total || 1
+    const delta = Math.floor(state.config.pagination.count / 2)
+    const range = []
+    
+    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+        range.push(i)
+    }
+    
+    if (current - delta > 2) {
+        range.unshift('...')
+    }
+    if (current + delta < total - 1) {
+        range.push('...')
+    }
+    
+    range.unshift(1)
+    if (total > 1) {
+        range.push(total)
+    }
+    
+    return range.filter((v, i, a) => a.indexOf(v) === i)
+})
+
 // 主动将子组件方法暴露给父组件
 defineExpose({
     init: method.init,
-    refresh: () => method.init(),
+    refresh: () => method.init(1, state.item.limit),
     loadData: () => method.init(),
 })
+
+// 监听 opts 配置变化，当参数变化时重新加载数据
+watch(() => props.opts, () => {
+    // 配置变化时刷新数据（从第一页开始）
+    method.init(1, state.item.limit)
+}, { deep: true })
 
 // 初始化加载数据
 method.init()
@@ -450,282 +459,92 @@ method.init()
 /* 表格容器 */
 .table-container {
     width: 100%;
-    background-color: var(--bs-body-bg);
-    border-radius: 0.75rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    padding: 1.5rem;
-    border: 1px solid var(--bs-border-color);
-    transition: all 0.3s ease;
 }
 
-.table-container:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+/* 加载状态 */
+.loading-state {
+    min-height: 400px;
+}
+
+/* 错误状态 */
+.error-state {
+    min-height: 400px;
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
 }
 
 /* 批量操作工具栏 */
 .batch-operation {
-    padding: 1rem;
-    background-color: var(--bs-tertiary-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-    margin-bottom: 1rem;
-}
-
-.batch-operation:hover {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border-color: var(--bs-primary);
+    padding: 0.75rem;
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-radius: 0.375rem;
 }
 
 /* 表格样式 */
 .table {
     margin-bottom: 0;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    border: 1px solid var(--bs-border-color);
-}
-
-.table:hover {
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-}
-
-/* 表格头部 */
-.table thead {
-    background-color: var(--bs-primary);
-    color: white;
 }
 
 .table thead th {
-    border-bottom: none;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.875rem;
-    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
 }
 
-/* 表格行 */
 .table tbody tr {
     transition: all 0.2s ease;
 }
 
-.table tbody tr:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.05);
-}
-
-/* 表格单元格 */
-.table td,
-.table th {
-    vertical-align: middle;
-    padding: 0.75rem 1rem;
-}
-
-/* 加载状态 */
-.loading-state {
-    min-height: 200px;
-    background-color: var(--bs-tertiary-bg);
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-    border: 1px solid var(--bs-border-color);
-}
-
-/* 错误状态 */
-.error-state {
-    min-height: 200px;
-    background-color: rgba(var(--bs-danger-rgb), 0.1);
-    border: 1px solid var(--bs-danger-border-subtle);
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-/* 空数据状态 */
-.empty-state {
-    padding: 3rem 0;
-    transition: all 0.3s ease;
-    color: var(--bs-secondary-color);
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-/* 表格底部 */
-.table-footer {
-    border-top: 1px solid var(--bs-border-color);
-    padding-top: 1rem;
-    margin-top: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
-
 /* 分页样式 */
-.pagination {
-    margin-bottom: 0;
-}
-
-.page-item.active .page-link {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.page-link {
-    transition: all 0.2s ease;
+.pagination .page-link {
+    border-radius: 0.25rem;
+    margin: 0 2px;
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
     color: var(--bs-primary);
-    border-color: var(--bs-border-color);
 }
 
-.page-link:hover {
-    background-color: var(--bs-tertiary-bg);
-    border-color: var(--bs-primary);
-    transform: translateY(-1px);
-}
-
-.page-link:focus {
-    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .table-container {
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-    }
-    
-    .table-responsive {
-        border: 1px solid var(--bs-border-color);
-        border-radius: 0.5rem;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-    
-    /* 优化滚动条样式 */
-    .table-responsive::-webkit-scrollbar {
-        height: 6px;
-    }
-    
-    .table-responsive::-webkit-scrollbar-track {
-        background: var(--bs-tertiary-bg);
-        border-radius: 3px;
-    }
-    
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: var(--bs-border-color);
-        border-radius: 3px;
-    }
-    
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-        background: var(--bs-secondary-color);
-    }
-    
-    .table-footer {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 0.75rem !important;
-        padding-top: 0.75rem;
-    }
-    
-    .pagination {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    
-    .page-item {
-        margin: 0 2px;
-    }
-    
-    .page-link {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-    }
-    
-    .loading-state,
-    .error-state {
-        min-height: 120px;
-        padding: 3rem 1.5rem;
-    }
-    
-    .table td,
-    .table th {
-        padding: 0.5rem 0.625rem;
-        font-size: 0.8125rem;
-    }
-    
-    .batch-operation {
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    /* 优化空数据状态 */
-    .empty-state {
-        padding: 2rem 0;
-    }
-    
-    .empty-state i {
-        font-size: 2.5rem;
-    }
-}
-
-/* 动画效果 */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.table,
-.loading-state,
-.error-state,
-.empty-state {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.loading-state .spinner-border {
-    animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
-}
-
-/* 复选框样式 */
-.form-check-input {
-    transition: all 0.2s ease;
-}
-
-.form-check-input:checked {
+.pagination .page-item.active .page-link {
     background-color: var(--bs-primary);
     border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+    color: white;
 }
 
-.form-check-input:focus {
-    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+.pagination .page-link:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* 适配暗黑模式 */
+@media (prefers-color-scheme: dark) {
+    .batch-operation {
+        background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+    }
+    
+    .table {
+        color: var(--bs-light) !important;
+    }
+    
+    .table-hover tbody tr:hover {
+        color: var(--bs-light) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+    
+    .pagination .page-link {
+        border-color: rgba(var(--bs-light-rgb), 0.2);
+        color: var(--bs-light);
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+    }
 }
 </style>

@@ -151,7 +151,7 @@ const state  = reactive({
     },
 })
 
-// API配置
+// API 配置
 const optsConfig = computed(() => {
     return {
         url: '/api/article/all',
@@ -161,6 +161,14 @@ const optsConfig = computed(() => {
         selection: true // 启用多选功能
     }
 })
+
+// 监听参数变化，当参数变化时重新加载数据
+watch(() => props.params, () => {
+    // 参数变化时刷新数据
+    if (tableRef.value && typeof tableRef.value.refresh === 'function') {
+        tableRef.value.refresh()
+    }
+}, { deep: true })
 
 const method = {
     // 刷新数据

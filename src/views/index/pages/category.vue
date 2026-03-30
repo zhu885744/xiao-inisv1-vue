@@ -646,11 +646,12 @@ const getCategoryArticles = async (page = 1) => {
   try {
     // 使用带管道符的格式，确保能匹配到所有文章
     const like = `Group|%7C${categoryInfo.value.id}%7C`;
-    const apiUrl = `/api/article/all?like=${like}&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
+    // 添加审核筛选条件，只显示已审核的文章
+    const apiUrl = `/api/article/all?like=${like}&where[audit]=1&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
     
-    // console.log('修复版请求URL:', apiUrl);
-    // console.log('当前分类ID:', categoryInfo.value.id);
-    // console.log('like参数:', like);
+    // console.log('修复版请求 URL:', apiUrl);
+    // console.log('当前分类 ID:', categoryInfo.value.id);
+    // console.log('like 参数:', like);
     
     const res = await request.get(apiUrl);
 

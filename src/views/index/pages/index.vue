@@ -635,7 +635,13 @@ const loadVisibleImages = () => {
 const getArticleList = async (page = 1) => {
   loading.value = true
   try {
-    const params = { page, limit: limit.value, order: order.value }
+    // 只获取已审核的文章
+    const params = { 
+      page, 
+      limit: limit.value, 
+      order: order.value,
+      where: { audit: 1 }
+    }
     const res = await request.get('/api/article/all', params)
     
     if (res.code === 200) {

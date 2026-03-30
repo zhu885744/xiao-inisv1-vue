@@ -95,7 +95,7 @@
                 aria-controls="sidebar" 
                 aria-selected="false"
               >
-                <i class="bi bi-sidebar me-2"></i>
+                <i class="bi bi-columns me-2"></i>
                 侧边栏设置
               </button>
             </li>

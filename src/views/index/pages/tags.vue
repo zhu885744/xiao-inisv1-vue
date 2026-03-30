@@ -474,10 +474,6 @@ const initIntersectionObserver = () => {
     return
   }
 
-  // 根据屏幕尺寸动态调整rootMargin
-  const screenHeight = window.innerHeight
-  const rootMarginValue = `${Math.min(screenHeight * 0.5, 300)}px 0px ${Math.min(screenHeight * 0.3, 200)}px 0px`
-
   observer = new IntersectionObserver((entries) => {
     // 批量处理观察到的图片
     const imagesToLoad = []
@@ -487,60 +483,26 @@ const initIntersectionObserver = () => {
         const img = entry.target
         const dataSrc = img.dataset.src
         
-        if (dataSrc) {
+        // 只有当图片没有 src 时才加载
+        if (dataSrc && !img.src) {
           imagesToLoad.push(img)
         }
       }
     })
     
-    // 根据网络状况调整批量加载大小
-    let batchSize = 3
-    if (navigator.connection) {
-      const effectiveType = navigator.connection.effectiveType
-      if (effectiveType === '4g') {
-        batchSize = 5
-      } else if (effectiveType === '3g') {
-        batchSize = 3
-      } else {
-        batchSize = 2
+    // 立即加载所有可见图片
+    imagesToLoad.forEach(img => {
+      // 再次检查，避免重复加载
+      if (!img.src && img.dataset.src) {
+        img.src = img.dataset.src
+        img.classList.add('lazy-loading')
       }
-    }
-    
-    // 限制同时加载的图片数量，避免网络拥塞
-    for (let i = 0; i < Math.min(imagesToLoad.length, batchSize); i++) {
-      const img = imagesToLoad[i]
-      // 开始加载实际图片
-      img.src = img.dataset.src
-      img.classList.add('lazy-loading')
+      // 停止观察
       observer.unobserve(img)
-    }
-    
-    // 剩余图片延迟加载，根据网络状况调整延迟时间
-    if (imagesToLoad.length > batchSize) {
-      let delay = 200
-      if (navigator.connection) {
-        const effectiveType = navigator.connection.effectiveType
-        if (effectiveType === '4g') {
-          delay = 100
-        } else if (effectiveType === '3g') {
-          delay = 200
-        } else {
-          delay = 300
-        }
-      }
-      
-      setTimeout(() => {
-        for (let i = batchSize; i < imagesToLoad.length; i++) {
-          const img = imagesToLoad[i]
-          img.src = img.dataset.src
-          img.classList.add('lazy-loading')
-          observer.unobserve(img)
-        }
-      }, delay)
-    }
+    })
   }, {
-    rootMargin: rootMarginValue, // 动态调整预加载区域
-    threshold: 0.01, // 只要有1%的区域可见就开始加载，提高响应速度
+    rootMargin: '50px 0px 50px 0px', // 提前 50px 开始加载
+    threshold: 0.01, // 只要有 1% 的区域可见就开始加载
     root: null // 使用默认根元素（视口）
   })
 }
@@ -548,49 +510,40 @@ const initIntersectionObserver = () => {
 // 观察所有懒加载图片
 const observeLazyImages = () => {
   nextTick(() => {
-    const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed])')
-    if (lazyImages.length > 0) {
-      // 优先观察可视区域内的图片
-      const visibleImages = Array.from(lazyImages).filter(img => {
-        const rect = img.getBoundingClientRect()
-        return rect.top < window.innerHeight + 300 && rect.bottom > -100
+    const lazyImages = document.querySelectorAll('.lazy-img')
+    if (lazyImages.length === 0) return
+    
+    // 立即加载可视区域内的图片
+    const visibleImages = Array.from(lazyImages).filter(img => {
+      const rect = img.getBoundingClientRect()
+      return rect.top < window.innerHeight + 300 && rect.bottom > -100
+    })
+    
+    // 直接加载可视区域内的图片
+    visibleImages.forEach(img => {
+      const dataSrc = img.dataset.src
+      if (dataSrc && !img.src) {
+        img.src = dataSrc
+        // 移除 data-observed 标记，让 IntersectionObserver 可以重新观察
+        delete img.dataset.observed
+      }
+    })
+    
+    // 延迟观察其他图片
+    setTimeout(() => {
+      const remainingImages = Array.from(lazyImages).filter(img => {
+        const dataSrc = img.dataset.src
+        // 只观察还没有 src 且没有被观察过的图片
+        return dataSrc && !img.src && !img.dataset.observed
       })
       
-      // 先观察可视区域内的图片
-      visibleImages.forEach(img => {
+      remainingImages.forEach(img => {
         if (observer) {
           observer.observe(img)
           img.dataset.observed = 'true'
         }
       })
-      
-      // 预加载下一批图片（预加载策略）
-      if (visibleImages.length > 0) {
-        const nextImages = Array.from(lazyImages)
-          .filter(img => !img.dataset.observed)
-          .slice(0, 3) // 预加载接下来的3张图片
-        
-        nextImages.forEach(img => {
-          const dataSrc = img.dataset.src
-          if (dataSrc) {
-            preloadImage(dataSrc).catch(() => {
-              // 预加载失败不影响主流程
-            })
-          }
-        })
-      }
-      
-      // 延迟观察其他图片，减少初始加载压力
-      setTimeout(() => {
-        const remainingImages = Array.from(lazyImages).filter(img => !img.dataset.observed)
-        remainingImages.forEach(img => {
-          if (observer) {
-            observer.observe(img)
-            img.dataset.observed = 'true'
-          }
-        })
-      }, 300) // 减少延迟时间，提高响应速度
-    }
+    }, 200)
   })
 }
 
@@ -671,25 +624,37 @@ const getTagArticleCount = async (tag) => {
   try {
     // 缓存键
     const cacheKey = `tag_article_count_${tag.id}`
-    const cacheExpire = 30 // 缓存30分钟
+    const cacheExpire = 30 // 缓存 30 分钟
     
     // 尝试从缓存获取
     const cachedCount = cache.get(cacheKey)
-    if (cachedCount !== null) {
+    if (cachedCount !== null && cachedCount !== undefined) {
       tag.articleCount = cachedCount
+      // 如果当前选中的是这个标签，也更新 currentTag
+      if (currentTag.value && currentTag.value.id === tag.id) {
+        currentTag.value.articleCount = cachedCount
+      }
       return
     }
     
-    // 参考分类页面的实现方式，使用like参数
+    // 参考分类页面的实现方式，使用 like 参数
     const like = `tags|%7C${tag.id}%7C`;
-    const apiUrl = `/api/article/count?like=${like}`;
+    // 添加审核筛选条件，只统计已审核的文章
+    const apiUrl = `/api/article/count?like=${like}&where[audit]=1`;
     
     const response = await request.get(apiUrl);
     
     if (response.code === 200) {
-      tag.articleCount = response.data || 0
+      // 确保正确处理返回的数据
+      const count = response.data?.count ?? response.data ?? 0
+      const articleCount = typeof count === 'number' ? count : 0
+      tag.articleCount = articleCount
+      // 如果当前选中的是这个标签，也更新 currentTag
+      if (currentTag.value && currentTag.value.id === tag.id) {
+        currentTag.value.articleCount = articleCount
+      }
       // 缓存文章数量
-      cache.set(cacheKey, tag.articleCount, cacheExpire)
+      cache.set(cacheKey, articleCount, cacheExpire)
     } else {
       tag.articleCount = 0
       console.error('获取标签文章数量失败:', response.msg)
@@ -713,13 +678,20 @@ const getTagArticles = async (tagId, page = 1) => {
       articles.value = cachedArticles.data || []
       total.value = cachedArticles.total || 0
       // 数据更新后，观察新图片
-      observeLazyImages()
+      nextTick(() => {
+        observeLazyImages()
+        // 再次检查，确保图片加载
+        setTimeout(() => {
+          observeLazyImages()
+        }, 300)
+      })
       return
     }
     
-    // 参考分类页面的实现方式，使用like参数
+    // 参考分类页面的实现方式，使用 like 参数
     const like = `tags|%7C${tagId}%7C`;
-    const apiUrl = `/api/article/all?like=${like}&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
+    // 添加审核筛选条件，只显示已审核的文章
+    const apiUrl = `/api/article/all?like=${like}&where[audit]=1&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
     
     const res = await request.get(apiUrl);
 
@@ -748,7 +720,13 @@ const getTagArticles = async (tagId, page = 1) => {
       }, cacheExpire)
       
       // 数据更新后，观察新图片
-      observeLazyImages();
+      nextTick(() => {
+        observeLazyImages()
+        // 再次检查，确保图片加载
+        setTimeout(() => {
+          observeLazyImages()
+        }, 300)
+      });
     } else {
       articles.value = [];
       total.value = 0;
@@ -803,6 +781,10 @@ const loadTagFromProps = async (tagId) => {
       currentTagId.value = cachedTag.id
       currentTag.value = cachedTag
       setDynamicTitle(cachedTag.name)
+      // 如果缓存的标签没有 articleCount，重新获取
+      if (cachedTag.articleCount === undefined || cachedTag.articleCount === null) {
+        await getTagArticleCount(cachedTag)
+      }
       // 获取标签文章列表
       await getTagArticles(tagId, 1)
       return
