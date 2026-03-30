@@ -404,7 +404,7 @@
       </div>
     </div>
 
-    <!-- 快速导航 -->
+    <!-- 快捷导航 -->
     <div class="card mt-2">
       <div class="card-header">
         <h6 class="mb-0">
@@ -431,7 +431,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
@@ -469,15 +469,17 @@ const userStats = ref({
 })
 const statsLoading = ref(false)
 
-// 快速导航数据（使用常量，避免响应式开销）
-const quickNavs = [
-  { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
-  { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
-  { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
-  { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
-  { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
-  { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
-]
+// 快速导航数据（从配置中读取）
+const quickNavs = computed(() => {
+  return store.comm.siteInfo.quick_navs || [
+    { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
+    { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
+    { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
+    { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
+    { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
+    { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+  ]
+})
 
 // 图片缓存
 const imageCache = new Set()

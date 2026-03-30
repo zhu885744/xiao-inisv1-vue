@@ -87,6 +87,21 @@
             <li class="nav-item" role="presentation">
               <button 
                 class="nav-link" 
+                id="sidebar-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#sidebar" 
+                type="button" 
+                role="tab" 
+                aria-controls="sidebar" 
+                aria-selected="false"
+              >
+                <i class="bi bi-sidebar me-2"></i>
+                侧边栏设置
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button 
+                class="nav-link" 
                 id="custom-code-tab" 
                 data-bs-toggle="tab" 
                 data-bs-target="#custom-code" 
@@ -185,6 +200,32 @@
                         @change="handleDateChange"
                       >
                       <div class="form-text text-muted mt-1">网站的建立日期</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 显示设置 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">显示设置</h3>
+                  <div class="row g-4">
+                    <div class="col-md-6">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <label class="form-label fw-medium">文章列表布局</label>
+                          <p class="form-text text-muted mt-1">选择文章列表卡片的显示模式</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="display_mode_switch"
+                            v-model="globalConfig.display_mode"
+                          >
+                          <label class="form-check-label" for="display_mode_switch">
+                            {{ globalConfig.display_mode ? '有图模式' : '无图模式' }}
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -479,48 +520,11 @@
             <div class="card shadow-sm">
               <div class="card-body p-3">
               <form class="homepage-config-form">
-                <!-- 显示模式设置 -->
+                <!-- 首页设置 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">显示模式</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">首页设置</h3>
                   <div class="row g-4">
-                    <div class="col-md-6">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                          <label class="form-label fw-medium">文章列表布局</label>
-                          <p class="form-text text-muted mt-1">选择首页文章卡片的显示模式</p>
-                        </div>
-                        <div class="form-check form-switch">
-                          <input 
-                            class="form-check-input" 
-                            type="checkbox" 
-                            id="display_mode_switch"
-                            v-model="homepageConfig.display_mode"
-                          >
-                          <label class="form-check-label" for="display_mode_switch">
-                            {{ homepageConfig.display_mode ? '有图模式' : '无图模式' }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                          <label class="form-label fw-medium">PC端侧边栏</label>
-                          <p class="form-text text-muted mt-1">开启或关闭PC端侧边栏</p>
-                        </div>
-                        <div class="form-check form-switch">
-                          <input 
-                            class="form-check-input" 
-                            type="checkbox" 
-                            id="sidebar_enabled_switch"
-                            v-model="homepageConfig.sidebar_enabled"
-                          >
-                          <label class="form-check-label" for="sidebar_enabled_switch">
-                            {{ homepageConfig.sidebar_enabled ? '开启' : '关闭' }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <!-- 首页相关设置可以在这里添加 -->
                   </div>
                 </div>
 
@@ -539,6 +543,155 @@
                     type="button" 
                     class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
                     @click="resetHomepageConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    重置
+                  </button>
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 侧边栏设置 -->
+        <div 
+          class="tab-pane fade" 
+          id="sidebar" 
+          role="tabpanel" 
+          aria-labelledby="sidebar-tab"
+        >
+          <div class="config-section">
+            <!-- 侧边栏设置表单 -->
+            <div class="card shadow-sm">
+              <div class="card-body p-3">
+              <form class="sidebar-config-form">
+                <!-- 侧边栏启用设置 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">基础设置</h3>
+                  <div class="row g-4">
+                    <div class="col-md-6">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                          <label class="form-label fw-medium">PC端侧边栏</label>
+                          <p class="form-text text-muted mt-1">开启或关闭PC端侧边栏</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="sidebar_enabled_switch"
+                            v-model="sidebarConfig.sidebar_enabled"
+                          >
+                          <label class="form-check-label" for="sidebar_enabled_switch">
+                            {{ sidebarConfig.sidebar_enabled ? '开启' : '关闭' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 快捷导航配置 -->
+                <div class="form-section mb-6">
+                  <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="form-section-title fw-medium text-gray-700">快捷导航配置</h3>
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-primary rounded-3"
+                      @click="addNavItem"
+                    >
+                      <i class="bi bi-plus me-1"></i>
+                      添加导航项
+                    </button>
+                  </div>
+                  
+                  <div class="nav-items-container space-y-4">
+                    <div 
+                      v-for="(nav, index) in sidebarConfig.quick_navs" 
+                      :key="nav.id"
+                      class="nav-item-form card p-4 border"
+                    >
+                      <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h4 class="nav-item-title fw-medium">导航项 {{ index + 1 }}</h4>
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-danger rounded-3"
+                          @click="removeNavItem(index)"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                      
+                      <div class="row g-4">
+                        <div class="col-md-6">
+                          <label :for="'nav-name-' + nav.id" class="form-label">导航名称</label>
+                          <input 
+                            type="text" 
+                            class="form-control rounded-3 border-gray-300 shadow-sm"
+                            :id="'nav-name-' + nav.id"
+                            v-model="nav.name"
+                            placeholder="输入导航名称"
+                          >
+                        </div>
+                        <div class="col-md-6">
+                          <label :for="'nav-url-' + nav.id" class="form-label">导航链接</label>
+                          <input 
+                            type="text" 
+                            class="form-control rounded-3 border-gray-300 shadow-sm"
+                            :id="'nav-url-' + nav.id"
+                            v-model="nav.url"
+                            placeholder="输入导航链接，如 /archive"
+                          >
+                        </div>
+                        <div class="col-md-6">
+                          <label :for="'nav-icon-' + nav.id" class="form-label">图标类名</label>
+                          <input 
+                            type="text" 
+                            class="form-control rounded-3 border-gray-300 shadow-sm"
+                            :id="'nav-icon-' + nav.id"
+                            v-model="nav.icon"
+                            placeholder="输入Bootstrap图标类名，如 bi bi-archive"
+                          >
+                        </div>
+                        <div class="col-md-6">
+                          <label :for="'nav-color-' + nav.id" class="form-label">图标颜色</label>
+                          <div class="input-group">
+                            <input 
+                              type="color" 
+                              class="form-control form-control-color rounded-3"
+                              :id="'nav-color-' + nav.id"
+                              v-model="nav.color"
+                            >
+                            <input 
+                              type="text" 
+                              class="form-control rounded-3 border-gray-300 shadow-sm"
+                              v-model="nav.color"
+                              placeholder="输入颜色值，如 #6f42c1"
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 保存按钮 -->
+                <div class="form-actions mt-8">
+                  <button 
+                    type="button" 
+                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
+                    @click="saveSidebarConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存侧边栏设置' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
+                    @click="resetSidebarConfig"
                     :disabled="saving"
                   >
                     <i class="bi bi-arrow-counterclockwise me-2"></i>
@@ -719,8 +872,19 @@ const globalConfig = ref({
 })
 
 const homepageConfig = ref({
-  display_mode: true, // true为有图模式，false为无图模式
-  sidebar_enabled: true // true为开启侧边栏，false为关闭侧边栏
+  display_mode: true // true为有图模式，false为无图模式
+})
+
+const sidebarConfig = ref({
+  sidebar_enabled: true, // true为开启侧边栏，false为关闭侧边栏
+  quick_navs: [
+    { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
+    { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
+    { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
+    { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
+    { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
+    { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+  ]
 })
 
 const customCodeConfig = ref({
@@ -923,12 +1087,53 @@ async function getHomepageConfig() {
     if (response.code === 200 && response.data) {
       const config = response.data.json || {}
       homepageConfig.value.display_mode = config.display_mode !== false // 默认值为true
-      homepageConfig.value.sidebar_enabled = config.sidebar_enabled !== false // 默认值为true
     }
   } catch (error) {
     console.error('获取首页配置失败:', error)
     toast.error('获取首页配置失败')
   }
+}
+
+// 获取侧边栏配置
+async function getSidebarConfig() {
+  try {
+    // 从后端API获取配置
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      const config = response.data.json || {}
+      sidebarConfig.value.sidebar_enabled = config.sidebar_enabled !== false // 默认值为true
+      sidebarConfig.value.quick_navs = config.quick_navs || [
+        { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
+        { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
+        { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
+        { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
+        { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
+        { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+      ]
+    }
+  } catch (error) {
+    console.error('获取侧边栏配置失败:', error)
+    toast.error('获取侧边栏配置失败')
+  }
+}
+
+// 添加导航项
+function addNavItem() {
+  const newId = sidebarConfig.value.quick_navs.length > 0 
+    ? Math.max(...sidebarConfig.value.quick_navs.map(nav => nav.id)) + 1 
+    : 1
+  sidebarConfig.value.quick_navs.push({
+    id: newId,
+    name: '新导航',
+    icon: 'bi bi-link',
+    color: '#007bff',
+    url: '/'
+  })
+}
+
+// 删除导航项
+function removeNavItem(index) {
+  sidebarConfig.value.quick_navs.splice(index, 1)
 }
 
 // 获取自定义代码配置
@@ -965,11 +1170,10 @@ async function saveHomepageConfig() {
       currentConfig = configResponse.data.json || {}
     }
     
-    // 更新display_mode和sidebar_enabled字段
+    // 更新display_mode字段
     const updatedConfig = {
       ...currentConfig,
-      display_mode: homepageConfig.value.display_mode,
-      sidebar_enabled: homepageConfig.value.sidebar_enabled
+      display_mode: homepageConfig.value.display_mode
     }
     
     // 保存到后端API
@@ -996,6 +1200,69 @@ async function saveHomepageConfig() {
     toast.error('保存失败：网络错误')
   } finally {
     saving.value = false
+  }
+}
+
+// 保存侧边栏配置
+async function saveSidebarConfig() {
+  saving.value = true
+  message.value = ''
+  messageType.value = ''
+  
+  try {
+    // 先获取当前全局配置，避免覆盖其他配置项
+    const configResponse = await request.get('/api/config/one', { key: 'xiao_functions' })
+    let currentConfig = {}
+    if (configResponse.code === 200 && configResponse.data) {
+      currentConfig = configResponse.data.json || {}
+    }
+    
+    // 更新sidebar_enabled和quick_navs字段
+    const updatedConfig = {
+      ...currentConfig,
+      sidebar_enabled: sidebarConfig.value.sidebar_enabled,
+      quick_navs: sidebarConfig.value.quick_navs
+    }
+    
+    // 保存到后端API
+    const response = await request.post('/api/config/save', {
+      key: 'xiao_functions',
+      json: updatedConfig
+    })
+    
+    if (response.code === 200) {
+      message.value = '侧边栏配置保存成功！'
+      messageType.value = 'success'
+      toast.success('侧边栏配置保存成功')
+      // 保存成功后强制刷新站点信息，更新缓存
+      await store.fetchSiteInfo(true)
+    } else {
+      message.value = '侧边栏配置保存失败：' + (response.msg || '未知错误')
+      messageType.value = 'error'
+      toast.error('侧边栏配置保存失败')
+    }
+  } catch (error) {
+    console.error('保存侧边栏配置失败:', error)
+    message.value = '保存失败：网络错误'
+    messageType.value = 'error'
+    toast.error('保存失败：网络错误')
+  } finally {
+    saving.value = false
+  }
+}
+
+// 重置侧边栏配置
+function resetSidebarConfig() {
+  sidebarConfig.value = {
+    sidebar_enabled: true,
+    quick_navs: [
+      { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
+      { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
+      { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
+      { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
+      { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
+      { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+    ]
   }
 }
 
@@ -1112,6 +1379,7 @@ onMounted(async () => {
       getCommentConfig(),
       getGlobalConfig(),
       getHomepageConfig(),
+      getSidebarConfig(),
       getCustomCodeConfig()
     ])
   }

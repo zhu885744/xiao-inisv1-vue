@@ -1209,7 +1209,6 @@ watch(
     padding: 0.4rem 0.2rem !important;
     font-size: 0.7rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-width: 60px;
@@ -1217,7 +1216,7 @@ watch(
   
   .btn .bi {
     font-size: 1.1em;
-    margin-right: 0 !important;
+    margin-right: 0.3rem !important;
     margin-bottom: 0.2rem;
   }
   
