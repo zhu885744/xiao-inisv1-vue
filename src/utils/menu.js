@@ -4,6 +4,8 @@ import { push } from '@/utils/route'
 import { useAuthPagesStore } from '@/store/auth-pages'
 
 const config = {
+    hasIcon: true,
+    iconType: 'svg-icon',
     menuWidth: 140,
     customClass: 'dark-howdy-menu scale-up-top-left',
     useLongPressInMobile: true,
@@ -18,8 +20,10 @@ const config = {
     },
     menuItemCss: {
         arrowSize: '10px',
+        iconFontSize: '18px',
         labelColor: '#FFF',
         hoverLabelColor: '#FFF',
+        iconColor: '#ffffff00',
         arrowColor: '#ffffff00'
     },
     menuList: [],
@@ -48,11 +52,13 @@ const list = async () => {
     let list = [{
         label: '创作',
         name : 'create',
+        icon: 'article',
         items: ['/admin/article', '/admin/article/group', '/admin/article/write', '/admin/pages','/admin/pages/write'],
         children: [],
     },{
         label: '管理',
         name : 'manage',
+        icon: 'manage-color',
         items: [
             '/admin/users', '/admin/bill', '/admin/order', '/admin/comment', '/admin/placard', '/admin/banner', '/admin/tags', '/admin/badge', '/admin/level', '/admin/links',
             '/admin/links/group', '/admin/system/version', '/admin/system'
@@ -61,6 +67,7 @@ const list = async () => {
     },{
         label: '安全',
         name : 'security',
+        icon: 'security',
         items: ['/admin/auth/rules', '/admin/auth/group', '/admin/api/keys', '/admin/auth/pages', '/admin/ip/black', '/admin/qps/warn'],
         children: [],
     }]

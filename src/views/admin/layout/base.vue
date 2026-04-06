@@ -39,6 +39,15 @@
                         >
                             <i :class="darkModeIcon"></i>
                         </button>
+                        
+                        <!-- 返回前台按钮 -->
+                        <router-link 
+                            class="btn btn-outline-secondary" 
+                            to="/"
+                            title="返回前台"
+                        >
+                            <i class="bi bi-house"></i>
+                        </router-link>
                     </div>
                 </div>
             </nav>

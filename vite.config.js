@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
+import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production'
@@ -13,6 +14,16 @@ export default defineConfig(({ mode }) => {
             preserveWhitespace: false
           }
         }
+      }),
+      createSvgIconsPlugin({
+        // 指定要处理的 SVG 图标目录
+        iconDirs: [path.resolve(__dirname, 'src/assets/svg')],
+        // 指定生成的 symbol ID 格式
+        symbolId: 'icon-[name]',
+        // 是否在构建时生成 sprite
+        inject: 'body-last',
+        // 是否在开发模式下自动注入
+        customDomId: '__svg__icons__dom__'
       })
     ],
 

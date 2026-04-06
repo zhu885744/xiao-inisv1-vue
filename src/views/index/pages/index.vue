@@ -1,7 +1,12 @@
 <template>
   <!-- 轮播图 -->
-  <div v-if="banners.length > 0" class="mt-2">
-    <div id="carouselExampleControls" class="carousel slide position-relative">
+  <div v-if="banners.length > 0 || bannersLoading" class="mt-2">
+    <!-- 轮播图加载中 -->
+    <div v-if="bannersLoading" class="carousel-loading card shadow-sm">
+      <div class="skeleton skeleton-carousel"></div>
+    </div>
+    <!-- 轮播图内容 -->
+    <div v-else id="carouselExampleControls" class="carousel slide position-relative">
       <div class="carousel-inner">
         <div 
           v-for="(banner, index) in banners" 
@@ -16,9 +21,6 @@
               class="d-block w-100 carousel-img"
             >
           </a>
-          <div v-if="banner.title" class="carousel-caption">
-            <h5>{{ banner.title }}</h5>
-          </div>
         </div>
       </div>
       <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
@@ -306,6 +308,7 @@ const sortOptions = [
 const hasImageMode = ref(true)
 // 轮播图数据
 const banners = ref([])
+const bannersLoading = ref(false)
 
 // 从后端API获取显示模式设置
 const loadDisplayMode = async () => {
@@ -632,8 +635,13 @@ const loadVisibleImages = () => {
   // 移除滚动事件的调用，避免重复加载
 }
 
-const getArticleList = async (page = 1) => {
-  loading.value = true
+const getArticleList = async (page = 1, isRefresh = true) => {
+  // 如果是刷新操作，立即显示骨架屏
+  if (isRefresh && page === 1) {
+    loading.value = true
+    articleList.value = []
+  }
+  
   try {
     // 只获取已审核的文章
     const params = { 
@@ -653,13 +661,14 @@ const getArticleList = async (page = 1) => {
       currentPage.value = page
       
       // 数据更新后，观察新图片
-      observeLazyImages()
+      nextTick(() => {
+        observeLazyImages()
+      })
     } else {
-      // console.error('获取文章列表失败：', res.msg)
       articleList.value = []
     }
   } catch (error) {
-    // console.error('获取文章列表接口异常：', error)
+    console.error('获取文章列表失败:', error)
     articleList.value = []
   } finally {
     loading.value = false
@@ -672,6 +681,7 @@ const toArticleDetail = (id) => {
 
 // 获取轮播图数据
 const getBanners = async () => {
+  bannersLoading.value = true
   try {
     const res = await request.get('/api/banner/all', { limit: 5, order: 'create_time desc' })
     if (res.code === 200) {
@@ -680,21 +690,29 @@ const getBanners = async () => {
   } catch (error) {
     console.error('获取轮播图数据失败:', error)
     banners.value = []
+  } finally {
+    bannersLoading.value = false
   }
 }
 
 onMounted(async () => {
-  // 加载显示模式设置
-  await loadDisplayMode()
+  // 立即显示骨架屏
+  loading.value = true
   
-  // 初始化Intersection Observer
-  initIntersectionObserver()
-  
-  // 获取轮播图数据
-  getBanners()
-  
-  // 获取文章列表
-  getArticleList(1)
+  // 并行加载所有数据，提高首屏速度
+  try {
+    // 同时加载轮播图和文章列表
+    await Promise.all([
+      loadDisplayMode(),
+      getBanners(),
+      getArticleList(1)
+    ])
+  } catch (error) {
+    console.error('初始化加载失败:', error)
+  } finally {
+    // 初始化 Intersection Observer
+    initIntersectionObserver()
+  }
 })
 
 onUnmounted(() => {
@@ -1159,15 +1177,13 @@ img {
 /* 轮播图控制按钮图标 */
 #carouselExampleControls .carousel-control-prev-icon,
 #carouselExampleControls .carousel-control-next-icon {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
   background-size: 100% 100%;
   background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
   padding: 1.25rem;
   transition: all 0.3s ease;
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: block !important;
   visibility: visible !important;
@@ -1559,6 +1575,23 @@ img {
   height: 0.9rem;
   width: 100%;
   margin-bottom: 0.5rem;
+}
+
+/* 轮播图骨架屏 */
+.carousel-loading {
+  width: 100%;
+  padding-top: 40%;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-carousel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
 }
 
 /* 暗黑模式适配 */

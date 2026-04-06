@@ -3,6 +3,7 @@ import App from './App.vue'
 import { createPinia } from 'pinia'
 import router from './router'
 import { useCommStore } from './store/comm'
+import iSvg from './comps/custom/i-svg.vue'
 
 // ========== 样式引入（按「第三方 → 自定义」顺序） ==========
 // Bootstrap 5 样式 + 图标
@@ -10,6 +11,8 @@ import './assets/css/bootstrap.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 // 自定义全局样式
 import './assets/css/buyu.style.css'
+// 引入 SVG 图标
+import 'virtual:svg-icons-register'
 
 // ========== 工具类引入 ==========
 // Bootstrap 5 JS（建议放到最后，避免DOM未加载完成时执行）
@@ -37,6 +40,9 @@ async function initApp() {
     
     // 4. 注册路由
     app.use(router)
+    
+    // 5. 全局注册组件
+    app.component('iSvg', iSvg)
     
     // 5. 全局挂载/提供工具（按「通用 → 业务」顺序）
     if (typeof window !== 'undefined') {
@@ -95,11 +101,14 @@ async function initApp() {
   } catch (error) {
     console.error('应用初始化失败:', error)
     // 即使配置加载失败，也尝试启动应用
-    try {
-      const app = createApp(App)
-      const pinia = createPinia()
-      app.use(pinia)
-      app.use(router)
+      try {
+        const app = createApp(App)
+        const pinia = createPinia()
+        app.use(pinia)
+        app.use(router)
+        
+        // 全局注册组件
+        app.component('iSvg', iSvg)
       
       if (typeof window !== 'undefined') {
         window.bootstrap = bootstrap

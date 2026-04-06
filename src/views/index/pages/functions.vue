@@ -72,21 +72,6 @@
             <li class="nav-item" role="presentation">
               <button 
                 class="nav-link" 
-                id="homepage-tab" 
-                data-bs-toggle="tab" 
-                data-bs-target="#homepage" 
-                type="button" 
-                role="tab" 
-                aria-controls="homepage" 
-                aria-selected="false"
-              >
-                <i class="bi bi-house me-2"></i>
-                首页配置
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button 
-                class="nav-link" 
                 id="sidebar-tab" 
                 data-bs-toggle="tab" 
                 data-bs-target="#sidebar" 
@@ -235,18 +220,18 @@
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">备案信息</h3>
                   <div class="row g-4">
                     <div class="col-md-6">
-                      <label for="copy-code" class="form-label">ICP备案号</label>
+                      <label for="copy-code" class="form-label">ICP 备案号</label>
                       <input 
                         type="text" 
                         class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="copy-code"
                         v-model="globalConfig.copy.code"
-                        placeholder="输入ICP备案号"
+                        placeholder="输入 ICP 备案号"
                       >
-                      <div class="form-text text-muted mt-1">工信部ICP备案号</div>
+                      <div class="form-text text-muted mt-1">工信部 ICP 备案号</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="copy-link" class="form-label">ICP备案链接</label>
+                      <label for="copy-link" class="form-label">ICP 备案链接</label>
                       <input 
                         type="text" 
                         class="form-control rounded-3 border-gray-300 shadow-sm"
@@ -277,6 +262,56 @@
                         placeholder="输入公安备案链接"
                       >
                       <div class="form-text text-muted mt-1">公安备案查询链接</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 登录协议提示配置 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">登录协议提示配置</h3>
+                  <div class="row g-4">
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                          <label class="form-label fw-medium mb-0">启用登录协议提示</label>
+                          <p class="form-text text-muted mt-1 mb-0">在登录/注册/找回密码弹窗中显示协议同意提示</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="auth_dialog_agreement_enabled_switch"
+                            v-model="globalConfig.auth_dialog_agreement.enabled"
+                          >
+                          <label class="form-check-label" for="auth_dialog_agreement_enabled_switch">
+                            {{ globalConfig.auth_dialog_agreement.enabled ? '开启' : '关闭' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="col-md-6" v-if="globalConfig.auth_dialog_agreement.enabled">
+                      <label for="auth_dialog_agreement_user_url" class="form-label">用户协议链接</label>
+                      <input 
+                        type="text" 
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        id="auth_dialog_agreement_user_url"
+                        v-model="globalConfig.auth_dialog_agreement.user_agreement_url"
+                        placeholder="输入用户协议链接，如 /user-agreement"
+                      >
+                      <div class="form-text text-muted mt-1">点击《用户协议》时跳转的链接</div>
+                    </div>
+                    
+                    <div class="col-md-6" v-if="globalConfig.auth_dialog_agreement.enabled">
+                      <label for="auth_dialog_agreement_specification_url" class="form-label">使用规范链接</label>
+                      <input 
+                        type="text" 
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        id="auth_dialog_agreement_specification_url"
+                        v-model="globalConfig.auth_dialog_agreement.usage_specification_url"
+                        placeholder="输入使用规范链接，如 /usage-specification"
+                      >
+                      <div class="form-text text-muted mt-1">点击《使用规范》时跳转的链接</div>
                     </div>
                   </div>
                 </div>
@@ -496,53 +531,6 @@
                     type="button" 
                     class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
                     @click="resetCommentConfig"
-                    :disabled="saving"
-                  >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>
-                    重置
-                  </button>
-                </div>
-              </form>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 首页配置 -->
-        <div 
-          class="tab-pane fade" 
-          id="homepage" 
-          role="tabpanel" 
-          aria-labelledby="homepage-tab"
-        >
-          <div class="config-section">
-            <!-- 首页配置表单 -->
-            <div class="card shadow-sm">
-              <div class="card-body p-3">
-              <form class="homepage-config-form">
-                <!-- 首页设置 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">首页设置</h3>
-                  <div class="row g-4">
-                    <!-- 首页相关设置可以在这里添加 -->
-                  </div>
-                </div>
-
-                <!-- 保存按钮 -->
-                <div class="form-actions mt-8">
-                  <button 
-                    type="button" 
-                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
-                    @click="saveHomepageConfig"
-                    :disabled="saving"
-                  >
-                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
-                    {{ saving ? ' 保存中...' : ' 保存首页设置' }}
-                  </button>
-                  <button 
-                    type="button" 
-                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
-                    @click="resetHomepageConfig"
                     :disabled="saving"
                   >
                     <i class="bi bi-arrow-counterclockwise me-2"></i>
@@ -860,7 +848,7 @@ const globalConfig = ref({
   avatar: '',
   favicon: '',
   date: Math.floor(Date.now() / 1000).toString(),
-  display_mode: true, // true为有图模式，false为无图模式
+  display_mode: true, // true 为有图模式，false 为无图模式
   copy: {
     code: '',
     link: 'http://beian.miit.gov.cn/'
@@ -868,11 +856,12 @@ const globalConfig = ref({
   police: {
     code: '',
     link: 'https://beian.mps.gov.cn/#/query/webSearch'
+  },
+  auth_dialog_agreement: {
+    enabled: true, // 是否启用协议提示
+    user_agreement_url: '/user-agreement', // 用户协议链接
+    usage_specification_url: '/usage-specification' // 使用规范链接
   }
-})
-
-const homepageConfig = ref({
-  display_mode: true // true为有图模式，false为无图模式
 })
 
 const sidebarConfig = ref({
@@ -958,7 +947,7 @@ async function getGlobalConfig() {
         avatar: config.avatar || '',
         favicon: config.favicon || '',
         date: config.date || Math.floor(Date.now() / 1000).toString(),
-        display_mode: config.display_mode !== false, // 默认值为true
+        display_mode: config.display_mode !== false, // 默认值为 true
         copy: {
           code: config.copy?.code || '',
           link: config.copy?.link || 'http://beian.mps.gov.cn/'
@@ -966,10 +955,13 @@ async function getGlobalConfig() {
         police: {
           code: config.police?.code || '',
           link: config.police?.link || 'https://beian.mps.gov.cn/#/query/webSearch'
+        },
+        auth_dialog_agreement: {
+          enabled: config.auth_dialog_agreement?.enabled !== false,
+          user_agreement_url: config.auth_dialog_agreement?.user_agreement_url || '/user-agreement',
+          usage_specification_url: config.auth_dialog_agreement?.usage_specification_url || '/usage-specification'
         }
       }
-      // 同时更新首页配置
-      homepageConfig.value.display_mode = globalConfig.value.display_mode
     }
   } catch (error) {
     console.error('获取全局配置失败:', error)
@@ -1079,21 +1071,6 @@ function handleDateChange(event) {
   }
 }
 
-// 获取首页配置
-async function getHomepageConfig() {
-  try {
-    // 从后端API获取配置
-    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
-    if (response.code === 200 && response.data) {
-      const config = response.data.json || {}
-      homepageConfig.value.display_mode = config.display_mode !== false // 默认值为true
-    }
-  } catch (error) {
-    console.error('获取首页配置失败:', error)
-    toast.error('获取首页配置失败')
-  }
-}
-
 // 获取侧边栏配置
 async function getSidebarConfig() {
   try {
@@ -1153,53 +1130,6 @@ async function getCustomCodeConfig() {
   } catch (error) {
     console.error('获取自定义代码配置失败:', error)
     toast.error('获取自定义代码配置失败')
-  }
-}
-
-// 保存首页配置
-async function saveHomepageConfig() {
-  saving.value = true
-  message.value = ''
-  messageType.value = ''
-  
-  try {
-    // 先获取当前全局配置，避免覆盖其他配置项
-    const configResponse = await request.get('/api/config/one', { key: 'xiao_functions' })
-    let currentConfig = {}
-    if (configResponse.code === 200 && configResponse.data) {
-      currentConfig = configResponse.data.json || {}
-    }
-    
-    // 更新display_mode字段
-    const updatedConfig = {
-      ...currentConfig,
-      display_mode: homepageConfig.value.display_mode
-    }
-    
-    // 保存到后端API
-    const response = await request.post('/api/config/save', {
-      key: 'xiao_functions',
-      json: updatedConfig
-    })
-    
-    if (response.code === 200) {
-      message.value = '首页配置保存成功！'
-      messageType.value = 'success'
-      toast.success('首页配置保存成功')
-      // 保存成功后强制刷新站点信息，更新缓存
-      await store.fetchSiteInfo(true)
-    } else {
-      message.value = '首页配置保存失败：' + (response.msg || '未知错误')
-      messageType.value = 'error'
-      toast.error('首页配置保存失败')
-    }
-  } catch (error) {
-    console.error('保存首页配置失败:', error)
-    message.value = '保存失败：网络错误'
-    messageType.value = 'error'
-    toast.error('保存失败：网络错误')
-  } finally {
-    saving.value = false
   }
 }
 
@@ -1301,18 +1231,16 @@ function resetGlobalConfig() {
     police: {
       code: '',
       link: 'https://beian.mps.gov.cn/#/query/webSearch'
+    },
+    auth_dialog_agreement: {
+      enabled: true, // 默认启用协议提示
+      user_agreement_url: '/user-agreement', // 默认用户协议链接
+      usage_specification_url: '/usage-specification' // 默认使用规范链接
     }
   }
 }
 
-function resetHomepageConfig() {
-  homepageConfig.value = {
-    display_mode: true, // 默认为有图模式
-    sidebar_enabled: true // 默认为开启侧边栏
-  }
-}
-
-// 保存自定义代码配置
+// 重置自定义代码配置
 async function saveCustomCodeConfig() {
   saving.value = true
   message.value = ''
@@ -1378,7 +1306,6 @@ onMounted(async () => {
     await Promise.all([
       getCommentConfig(),
       getGlobalConfig(),
-      getHomepageConfig(),
       getSidebarConfig(),
       getCustomCodeConfig()
     ])

@@ -133,7 +133,6 @@
             <i v-if="!signLoading" :class="hasSigned ? 'bi bi-check-circle' : 'bi bi-calendar-check'" class="me-1"></i>
             <i v-else class="bi bi-arrow-clockwise spin me-1"></i>
             {{ hasSigned ? '今日已签到' : '每日签到' }}
-            <span v-if="signDays > 0" class="ms-1 sign-days">({{ signDays }}天)</span>
           </button>
         </div>
         

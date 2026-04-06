@@ -48,14 +48,11 @@
     <div v-else class="tags-main">
       <!-- 标签列表页结构 -->
       <div v-if="!currentTag" class="tags-list-page">
-        <!-- 标签总数统计 -->
-        <div class="tags-count card shadow-sm mt-2 bg-body rounded-3">
-          <div class="tags-count-header">
-            <h2 class="tags-count-title fw-bold">标签 <span class="text-sm text-muted">({{ totalTags }})</span></h2>
-          </div>
-        </div>
         <!-- 标签卡片网格 -->
         <div class="tags-grid card shadow-sm mt-2 bg-body rounded-3">
+          <div class="card-header">
+            <span class="tags-count-title">标签 <span class="text-sm text-muted">({{ totalTags }})</span></span>
+          </div>
           <div class="tags-grid-container">
             <div 
               v-for="tag in tags" 
@@ -412,12 +409,14 @@ const onImageLoad = (event) => {
     imageCache.add(src)
   }
   
-  // 使用requestAnimationFrame优化DOM操作，减少重绘
+  // 使用 requestAnimationFrame 优化 DOM 操作，减少重绘
   requestAnimationFrame(() => {
-    // 移除loading样式
+    // 移除 loading 样式
     img.classList.remove('lazy-loading')
     img.classList.add('lazy-loaded')
-    // 清理data-observed属性，释放内存
+    // 添加已加载标记，防止重复加载
+    img.dataset.loaded = 'true'
+    // 清理 data-observed 属性，释放内存
     delete img.dataset.observed
   })
 }
@@ -446,22 +445,24 @@ const preloadImage = (src) => {
 // 图片加载失败处理
 const handleImageError = (event) => {
   const img = event.target
-  // 使用requestAnimationFrame优化DOM操作，减少重绘
+  // 使用 requestAnimationFrame 优化 DOM 操作，减少重绘
   requestAnimationFrame(() => {
-    // 移除loading样式
+    // 移除 loading 样式
     img.classList.remove('lazy-loading')
     
     // 尝试加载默认图片
-    if (img.src !== defaultCover) {
+    if (img.src !== defaultCover && !img.src.includes('ljz.gif')) {
       img.src = defaultCover
     } else {
       // 如果默认图片也加载失败，显示错误状态
       img.classList.add('lazy-error')
+      // 标记为已加载（失败状态）
+      img.dataset.loaded = 'true'
     }
     
     // 防止无限错误循环
     img.onerror = null
-    // 清理data-observed属性，释放内存
+    // 清理 data-observed 属性，释放内存
     delete img.dataset.observed
   })
 }
@@ -483,8 +484,12 @@ const initIntersectionObserver = () => {
         const img = entry.target
         const dataSrc = img.dataset.src
         
-        // 只有当图片没有 src 时才加载
-        if (dataSrc && !img.src) {
+        // 检查是否已经加载过（通过自定义属性标记）
+        const isLoaded = img.dataset.loaded === 'true'
+        const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
+        
+        // 只有当图片没有加载过且 data-src 存在时才加载
+        if (dataSrc && !isLoaded && isDefaultCover) {
           imagesToLoad.push(img)
         }
       }
@@ -493,8 +498,12 @@ const initIntersectionObserver = () => {
     // 立即加载所有可见图片
     imagesToLoad.forEach(img => {
       // 再次检查，避免重复加载
-      if (!img.src && img.dataset.src) {
-        img.src = img.dataset.src
+      const dataSrc = img.dataset.src
+      const isLoaded = img.dataset.loaded === 'true'
+      const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
+      
+      if (dataSrc && !isLoaded && isDefaultCover) {
+        img.src = dataSrc
         img.classList.add('lazy-loading')
       }
       // 停止观察
@@ -522,7 +531,10 @@ const observeLazyImages = () => {
     // 直接加载可视区域内的图片
     visibleImages.forEach(img => {
       const dataSrc = img.dataset.src
-      if (dataSrc && !img.src) {
+      const isLoaded = img.dataset.loaded === 'true'
+      const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
+      
+      if (dataSrc && !isLoaded && isDefaultCover) {
         img.src = dataSrc
         // 移除 data-observed 标记，让 IntersectionObserver 可以重新观察
         delete img.dataset.observed
@@ -533,8 +545,10 @@ const observeLazyImages = () => {
     setTimeout(() => {
       const remainingImages = Array.from(lazyImages).filter(img => {
         const dataSrc = img.dataset.src
-        // 只观察还没有 src 且没有被观察过的图片
-        return dataSrc && !img.src && !img.dataset.observed
+        const isLoaded = img.dataset.loaded === 'true'
+        const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
+        // 只观察还没有加载过且没有被观察过的图片
+        return dataSrc && !isLoaded && isDefaultCover && !img.dataset.observed
       })
       
       remainingImages.forEach(img => {
@@ -552,7 +566,10 @@ const loadAllImages = () => {
   const lazyImages = document.querySelectorAll('.lazy-img')
   lazyImages.forEach(img => {
     const dataSrc = img.dataset.src
-    if (dataSrc) {
+    const isLoaded = img.dataset.loaded === 'true'
+    const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
+    
+    if (dataSrc && !isLoaded && isDefaultCover) {
       img.src = dataSrc
     }
   })

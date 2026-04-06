@@ -23,7 +23,7 @@
         class="menu-close-btn d-lg-none" 
         @click="$emit('update:sidebarOpen', false)"
       >
-        <i class="bi bi-x"></i>
+        <i-svg name="close" size="20" className="me-0"></i-svg>
       </button>
     </div>
     <nav class="menu-nav">
@@ -37,20 +37,18 @@
             exact-active-class="active"
             @click="$emit('update:sidebarOpen', false)"
           >
+            <i-svg name="console" size="18" className="me-2"></i-svg>
             <span>控制台</span>
           </router-link>
         </li>
         
         <!-- 动态生成菜单项 -->
         <li v-for="menu in menuList" :key="menu.name" class="menu-item">
-          <div 
-            class="menu-link dropdown-toggle" 
-            @click="toggleDropdown(menu.name)"
-          >
+          <div class="menu-link menu-category-title">
             <span>{{ menu.label }}</span>
           </div>
           <!-- 子菜单 -->
-          <ul class="menu-sub-list" v-show="dropdownOpen[menu.name]">
+          <ul class="menu-sub-list">
             <li v-for="child in menu.children" :key="child.path" class="menu-sub-item">
               <router-link 
                 class="menu-sub-link" 
@@ -58,25 +56,14 @@
                 active-class="active"
                 @click="$emit('update:sidebarOpen', false)"
               >
-                <i class="bi bi-circle-fill me-2" style="font-size: 6px;"></i>
+                <i-svg v-if="child.icon" :name="child.icon" size="14" className="me-2"></i-svg>
                 <span>{{ child.label }}</span>
               </router-link>
             </li>
           </ul>
         </li>
         
-        <!-- 返回前台 -->
-        <li class="menu-item">
-          <router-link 
-            class="menu-link" 
-            to="/" 
-            active-class="active" 
-            exact-active-class="active"
-            @click="$emit('update:sidebarOpen', false)"
-          >
-            <span>返回前台</span>
-          </router-link>
-        </li>
+
       </ul>
     </nav>
     
@@ -106,7 +93,7 @@
             title="退出登录"
             @click="handleLogout"
           >
-            <i class="bi bi-box-arrow-right"></i>
+            <i-svg name="logout" size="16" className="me-0"></i-svg>
           </button>
         </div>
       </div>
@@ -135,7 +122,6 @@ const props = defineProps({
 const emit = defineEmits(['update:sidebarOpen'])
 
 const menuList = ref([])
-const dropdownOpen = ref({})
 
 // 存储
 const store = {
@@ -197,26 +183,6 @@ const handleLogout = async () => {
   }
 }
 
-// 初始化下拉菜单状态
-const initDropdownState = () => {
-  menuList.value.forEach(menu => {
-    dropdownOpen.value[menu.name] = false
-  })
-}
-
-// 切换下拉菜单
-const toggleDropdown = (menuName) => {
-  // 关闭所有其他下拉菜单
-  Object.keys(dropdownOpen.value).forEach(key => {
-    if (key !== menuName) {
-      dropdownOpen.value[key] = false
-    }
-  })
-  
-  // 切换当前下拉菜单
-  dropdownOpen.value[menuName] = !dropdownOpen.value[menuName]
-}
-
 // 从store获取站点信息
 const fetchSiteInfo = async () => {
   try {
@@ -231,7 +197,6 @@ const fetchMenuList = async () => {
   try {
     const menuData = await getMenuList()
     menuList.value = menuData
-    initDropdownState()
   } catch (error) {
     console.error('获取菜单数据失败:', error)
   }
@@ -339,7 +304,7 @@ onMounted(async () => {
 .menu-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
+  padding: .4rem .5rem;
   color: var(--bs-body-color);
   text-decoration: none;
   transition: all 0.2s ease;
@@ -363,6 +328,20 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+/* 分类标题样式 */
+.menu-category-title {
+  background-color: transparent;
+  color: var(--bs-body-color);
+  border-left: 3px solid transparent;
+  cursor: default;
+  font-size: 0.875rem;
+}
+
+.menu-category-title:hover {
+  background-color: transparent;
+  color: var(--bs-body-color);
+}
+
 /* 子菜单 */
 .menu-sub-list {
   list-style: none;
@@ -379,10 +358,11 @@ onMounted(async () => {
 .menu-sub-link {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1.5rem 0.5rem 2.75rem;
+  padding: .4rem .5rem;
   color: var(--bs-body-color);
   text-decoration: none;
   transition: all 0.2s ease;
+  border-left: 3px solid transparent;
   position: relative;
 }
 
@@ -394,6 +374,7 @@ onMounted(async () => {
 .menu-sub-link.active {
   background-color: var(--bs-primary-bg-subtle);
   color: var(--bs-primary);
+  border-left-color: var(--bs-primary);
 }
 
 /* 响应式设计 */
