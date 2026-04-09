@@ -21,36 +21,10 @@
                     </div>
                     
                     <div class="modal-body">
-                        <!-- 登录方式切换 Tab -->
-                        <ul v-if="state.item.type === 'login'" class="nav nav-tabs mb-3" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button 
-                                    class="nav-link" 
-                                    :class="{ active: loginMethod === 'code' }"
-                                    @click="loginMethod = 'code'"
-                                    type="button"
-                                    role="tab"
-                                >
-                                    验证码登录
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button 
-                                    class="nav-link" 
-                                    :class="{ active: loginMethod === 'password' }"
-                                    @click="loginMethod = 'password'"
-                                    type="button"
-                                    role="tab"
-                                >
-                                    账号密码登录
-                                </button>
-                            </li>
-                        </ul>
-
                         <!-- 表单切换过渡效果 -->
                         <transition name="form-switch" mode="out-in">
                             <!-- 账号密码登录表单 -->
-                            <form key="password-login" v-if="state.item.type === 'login' && loginMethod === 'password'" @submit.prevent="method.login()">
+                            <form key="password-login" v-if="state.item.type === 'login'" @submit.prevent="method.login()">
                                 <div class="mb-3">
                                     <label for="loginAccountInput" class="form-label">帐号</label>
                                     <input type="text" 
@@ -109,7 +83,7 @@
                                         登录即代表您同意
                                         <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
                                         和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《使用规范》</a>
+                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
                                     </p>
                                 </div>
 
@@ -129,77 +103,6 @@
                                             注册帐号
                                         </button>
                                     </div>
-                                </div>
-                            </form>
-
-                            <!-- 验证码登录表单 -->
-                            <form key="code-login" v-else-if="state.item.type === 'login' && loginMethod === 'code'" @submit.prevent="method.codeLogin()">
-                                <div class="mb-3">
-                                    <label for="codeLoginSocialInput" class="form-label">邮箱或手机号</label>
-                                    <input :type="getSocialInputType" 
-                                           class="form-control"
-                                           id="codeLoginSocialInput"
-                                           v-model="state.struct.social"
-                                           placeholder="请输入邮箱或手机号"
-                                           required
-                                           autocomplete="username"
-                                           :class="{ 'is-invalid': state.errors.social, 'is-valid': state.valid.social }">
-                                    <div v-if="state.errors.social" class="invalid-feedback">
-                                        {{ state.errors.social }}
-                                    </div>
-                                    <div v-if="state.valid.social" class="valid-feedback">
-                                        格式正确
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="codeLoginCodeInput" class="form-label">验证码</label>
-                                    <div class="input-group">
-                                        <input type="text" 
-                                               class="form-control"
-                                               id="codeLoginCodeInput"
-                                               v-model="state.struct.code"
-                                               placeholder="请输入验证码"
-                                               required
-                                               autocomplete="one-time-code"
-                                               :class="{ 'is-invalid': state.errors.code, 'is-valid': state.valid.code }">
-                                        <button class="btn btn-outline-primary"
-                                                type="button" 
-                                                @click="method.sendCode()"
-                                                :disabled="state.item.wait || state.struct.second > 0">
-                                            {{ state.struct.second > 0 ? `${state.struct.second}秒后重试` : '发送验证码' }}
-                                        </button>
-                                    </div>
-                                    <div v-if="state.errors.code" class="invalid-feedback">
-                                        {{ state.errors.code }}
-                                    </div>
-                                    <div v-if="state.valid.code" class="valid-feedback">
-                                        验证码格式正确
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <button type="submit" 
-                                            class="btn btn-primary w-100"
-                                            :disabled="state.item.wait || !isCodeLoginFormValid">
-                                        <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                        {{ state.item.wait ? '登录中...' : '登录' }}
-                                    </button>
-                                </div>
-
-                                <div v-if="authAgreementConfig.enabled" class="text-center mb-3">
-                                    <p class="text-muted" style="font-size: 0.85rem;">
-                                        登录即代表您同意
-                                        <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
-                                        和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《使用规范》</a>
-                                    </p>
-                                </div>
-
-                                <div class="text-center mt-3">
-                                    <p class="text-muted mb-0" style="font-size: 0.85rem;">
-                                        未注册的手机号或邮箱验证后会自动创建账号
-                                    </p>
                                 </div>
                             </form>
 
@@ -350,7 +253,7 @@
                                         注册即代表您同意
                                         <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
                                         和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《使用规范》</a>
+                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
                                     </p>
                                 </div>
 
@@ -492,7 +395,7 @@
                                         重置密码即代表您同意
                                         <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
                                         和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《使用规范》</a>
+                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
                                     </p>
                                 </div>
 
@@ -587,7 +490,6 @@ const state = reactive({
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
-const loginMethod = ref('code') // 'password' 或 'code'，默认为验证码登录
 
 // 输入类型判断计算属性
 const getSocialInputType = computed(() => {
@@ -623,7 +525,7 @@ const authAgreementConfig = computed(() => {
 const getModalTitle = computed(() => {
     switch (state.item.type) {
         case 'login':
-            return loginMethod.value === 'password' ? '账号密码登录' : '验证码登录'
+            return '账号密码登录'
         case 'register':
             return '注册账号'
         case 'reset':
@@ -636,11 +538,6 @@ const getModalTitle = computed(() => {
 // 登录表单验证计算属性
 const isLoginFormValid = computed(() => {
     return state.valid.account && state.valid.password
-})
-
-// 验证码登录表单验证计算属性
-const isCodeLoginFormValid = computed(() => {
-    return state.valid.social && state.valid.code
 })
 
 // 注册表单验证计算属性
@@ -975,10 +872,7 @@ const method = {
         state.errors.code = ''
         state.valid.code = false
         
-        // 重置登录方式为验证码登录（默认）
-        if (type === 'login') {
-            loginMethod.value = 'code'
-        }
+
         
         // 重置定时器
         if (state.timer) {
@@ -1178,129 +1072,7 @@ const method = {
         }
     },
 
-    // 发送验证码
-    async sendCode() {
-        // 验证邮箱或手机号
-        validateSocial(state.struct.social)
-        
-        if (!state.valid.social) {
-            showNotification('请输入正确的邮箱或手机号', 'warning')
-            return
-        }
-        
-        // 检查频率限制
-        const isLimited = checkRateLimit(state.struct.social)
-        if (!isLimited) {
-            showNotification('发送过于频繁，请稍后再试', 'warning')
-            return
-        }
-        
-        state.item.wait = true
-        
-        try {
-            const { code, msg } = await axios.post('/api/comm/social-login', {
-                social: state.struct.social
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            
-            state.item.wait = false
-            
-            if (code === 201) {
-                showNotification('验证码发送成功！', 'success')
-                // 记录发送
-                recordSendCode('social', state.struct.social)
-                // 开始倒计时
-                startCountdown()
-            } else {
-                showNotification(msg || '发送失败，请稍后重试', 'error')
-            }
-        } catch (error) {
-            state.item.wait = false
-            let errorMsg = '发送失败，请稍后重试'
-            
-            // 处理后端返回的具体错误
-            if (error.response && error.response.data && error.response.data.msg) {
-                errorMsg = error.response.data.msg
-            }
-            
-            showNotification(errorMsg, 'error')
-        }
-    },
 
-    // 验证码登录
-    async codeLogin() {
-        // 手动触发验证
-        validateSocial(state.struct.social)
-        validateCode(state.struct.code)
-        
-        if (!isCodeLoginFormValid.value) {
-            showNotification('请检查表单填写是否正确', 'warning')
-            return
-        }
-        
-        state.item.wait = true
-
-        try {
-            const { code, msg, data } = await axios.post('/api/comm/social-login', {
-                social: state.struct.social,
-                code: state.struct.code
-            }, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            
-            state.item.wait = false
-            
-            if (code !== 200) {
-                showNotification(msg || '登录失败，请检查验证码', 'error')
-                return
-            }
-            
-            // 登录成功，保存用户信息和 token
-            if (cache.set) {
-                cache.set('user-info', data.user, 7 * 24 * 60)
-            } else if (cache.put) {
-                cache.put('user-info', data.user, 7 * 24 * 60)
-            } else {
-                localStorage.setItem('user-info', JSON.stringify({
-                    data: data.user,
-                    expire: Date.now() + 7 * 24 * 60 * 60 * 1000
-                }))
-            }
-            
-            if (utils.set?.cookie) {
-                utils.set.cookie(
-                    globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN', 
-                    data.token, 
-                    7 * 24 * 60 * 60
-                )
-            }
-            
-            state.item.finish = true
-            method.hide()
-            
-            store.comm.login.finish = true
-            store.comm.login.user = data.user
-            store.comm.switchAuth('login', false)
-            
-            emit('finish', data.user)
-            
-        } catch (error) {
-            state.item.wait = false
-            let errorMsg = '登录失败，请稍后重试'
-            
-            // 处理后端返回的具体错误
-            if (error.response && error.response.data && error.response.data.msg) {
-                errorMsg = error.response.data.msg
-            }
-            
-            showNotification(errorMsg, 'error')
-        }
-    },
 
     // 注册方法
     async register() {
@@ -1541,8 +1313,7 @@ const method = {
             state.item.loading = false
         }
         
-        // 重置登录方式为验证码登录（默认）
-        loginMethod.value = 'code'
+
         
         // 重置表单数据
         state.struct.account = ''

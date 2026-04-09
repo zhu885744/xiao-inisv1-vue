@@ -780,7 +780,7 @@
                 v-model="linkForm.group"
               >
                 <option value="">请选择友链分组</option>
-                <option v-for="group in linkGroups" :key="group.id" :value="group.name">
+                <option v-for="group in linkGroups" :key="group.id" :value="group.id">
                   {{ group.name }}
                 </option>
               </select>

@@ -303,15 +303,15 @@
                     </div>
                     
                     <div class="col-md-6" v-if="globalConfig.auth_dialog_agreement.enabled">
-                      <label for="auth_dialog_agreement_specification_url" class="form-label">使用规范链接</label>
+                      <label for="auth_dialog_agreement_specification_url" class="form-label">隐私协议链接</label>
                       <input 
                         type="text" 
                         class="form-control rounded-3 border-gray-300 shadow-sm"
                         id="auth_dialog_agreement_specification_url"
                         v-model="globalConfig.auth_dialog_agreement.usage_specification_url"
-                        placeholder="输入使用规范链接，如 /usage-specification"
+                        placeholder="输入隐私协议链接，如 /usage-specification"
                       >
-                      <div class="form-text text-muted mt-1">点击《使用规范》时跳转的链接</div>
+                      <div class="form-text text-muted mt-1">点击《隐私协议》时跳转的链接</div>
                     </div>
                   </div>
                 </div>
@@ -860,7 +860,7 @@ const globalConfig = ref({
   auth_dialog_agreement: {
     enabled: true, // 是否启用协议提示
     user_agreement_url: '/user-agreement', // 用户协议链接
-    usage_specification_url: '/usage-specification' // 使用规范链接
+    usage_specification_url: '/usage-specification' // 隐私协议链接
   }
 })
 
@@ -1235,7 +1235,7 @@ function resetGlobalConfig() {
     auth_dialog_agreement: {
       enabled: true, // 默认启用协议提示
       user_agreement_url: '/user-agreement', // 默认用户协议链接
-      usage_specification_url: '/usage-specification' // 默认使用规范链接
+      usage_specification_url: '/usage-specification' // 默认隐私协议链接
     }
   }
 }
