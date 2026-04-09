@@ -1,9 +1,21 @@
 /* ==========================================
+ * 字体引入
+ * ========================================== */
+
+@font-face {
+  font-family: 'sucaijishi';
+  src: url('../font/sucaijishi.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================
  * 全局变量定义
  * ========================================== */
 :root,[data-bs-theme=light] {
   /* 自定义字体 */
-  --font-family-main: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans CN', Arial, sans-serif;
+  --font-family-main: 'sucaijishi', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Source Han Sans CN', Arial, sans-serif;
   --font-family-mono: 'SF Mono', Menlo, Monaco, Consolas, 'Courier New', -apple-system, system-ui, monospace;
   
   /* 特殊元素色 */
@@ -94,7 +106,7 @@ body {
   min-height: 100vh;
   background-color: #cdcdcd;
   color: var(--bs-body-color);
-  font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Heiti SC", sans-serif;
+  font-family: var(--font-family-main);
 }
 
 /* ==========================================

@@ -135,8 +135,8 @@
 
                 <!-- 用户昵称自定义插槽 -->
                 <template #i-uid="{ scope = {} }">
-                    <span data-bs-toggle="tooltip" :title="scope?.user?.nickname || (scope?.uid ? '用户ID: ' + scope.uid : '未知用户')">
-                        {{ scope?.user?.nickname || (scope?.uid ? '用户ID: ' + scope.uid : '未知用户') }}
+                    <span data-bs-toggle="tooltip" :title="scope?.user?.nickname || (scope?.uid ? 'ID: ' + scope.uid : '未知用户')">
+                        {{ scope?.user?.nickname || (scope?.uid ? 'ID: ' + scope.uid : '未知用户') }}
                     </span>
                 </template>
 
@@ -188,7 +188,7 @@ const state  = reactive({
             { prop: 'url'        , label: '链接', width: '200px', slot: true },
             { prop: 'description', label: '描述', width: '200px', slot: true },
             { prop: 'group'      , label: '分组', width: '100px', slot: true },
-            { prop: 'uid'    , label: '用户昵称', width: '120px', slot: true },
+            { prop: 'uid'    , label: '用户ID', width: '120px', slot: true },
             { prop: 'audit'      , label: '状态', width: '80px', slot: true },
             { prop: 'create_time', label: '创建时间', width: '180px', slot: true },
             { prop: 'update_time', label: '更新时间', width: '180px', slot: true },

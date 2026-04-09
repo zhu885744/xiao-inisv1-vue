@@ -182,8 +182,6 @@ const versionHistory = ref([])
 const lastCheckTime = ref('')
 const checkInterval = ref(null)
 
-
-
 // 计算属性
 // 当前版本
 const currentVersionComputed = computed(() => {
