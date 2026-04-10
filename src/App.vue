@@ -30,6 +30,8 @@
     </div>
     <!-- 全局页脚 -->
     <i-footer></i-footer>
+    <!-- 全局公告弹窗 -->
+    <i-notice></i-notice>
   </template>
 
   <!-- 检查客户端页面更新 -->
@@ -55,6 +57,7 @@ import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
 import ConfigInit from '@/comps/config/init.vue'
+import iNotice from '@/comps/custom/i-notice.vue'
 import socket from '@/utils/socket'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'

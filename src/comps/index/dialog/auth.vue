@@ -525,13 +525,13 @@ const authAgreementConfig = computed(() => {
 const getModalTitle = computed(() => {
     switch (state.item.type) {
         case 'login':
-            return '账号密码登录'
+            return '登录账号'
         case 'register':
             return '注册账号'
         case 'reset':
             return '忘记密码'
         default:
-            return '账号密码登录'
+            return '登录账号'
     }
 })
 

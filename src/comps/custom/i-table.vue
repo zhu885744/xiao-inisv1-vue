@@ -487,17 +487,51 @@ method.init()
 /* 表格样式 */
 .table {
     margin-bottom: 0;
+    font-size: 0.8rem;
 }
 
 .table thead th {
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 0.5px;
+    padding: 0.5rem 0.75rem;
 }
 
 .table tbody tr {
     transition: all 0.2s ease;
+    line-height: 1.2;
+}
+
+.table tbody td {
+    padding: 0.4rem 0.75rem;
+}
+
+/* 表格容器 */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* 表格响应式容器 */
+.table-responsive {
+    border-radius: 0.375rem;
+    overflow: hidden;
+    border: 1px solid rgba(var(--bs-border-rgb), 0.2);
+}
+
+/* 表格边框 */
+.table-bordered {
+    border: none;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid rgba(var(--bs-border-rgb), 0.1);
+}
+
+.table-bordered thead th {
+    border-bottom: 2px solid rgba(var(--bs-primary-rgb), 0.3);
 }
 
 /* 分页样式 */
