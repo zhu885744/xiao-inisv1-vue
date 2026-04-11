@@ -30,24 +30,13 @@
     </div>
     <!-- 全局页脚 -->
     <i-footer></i-footer>
-    <!-- 全局公告弹窗 -->
-    <i-notice></i-notice>
   </template>
 
   <!-- 检查客户端页面更新 -->
   <upgrade-page></upgrade-page>
   
-  <!-- 返回顶部按钮 -->
-  <button 
-    class="btn shadow-lg back-to-top" 
-    id="backToTop" 
-    @click="scrollToTop"
-    :class="{ 'show': showBackToTop }"
-    title="返回顶部"
-    style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark)); border: none; color: #fff; font-size: 1.5rem;"
-  >
-    <i class="bi bi-arrow-up"></i>
-  </button>
+  <!-- 悬浮按钮组件 -->
+  <i-float-buttons></i-float-buttons>
 </template>
 
 <script setup>
@@ -57,13 +46,12 @@ import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
 import ConfigInit from '@/comps/config/init.vue'
-import iNotice from '@/comps/custom/i-notice.vue'
+import iFloatButtons from '@/comps/custom/i-float-buttons.vue'
 import socket from '@/utils/socket'
 import { useCommStore } from '@/store/comm'
 import request from '@/utils/request'
 
 const navRef = ref(null)
-const showBackToTop = ref(false)
 const store = useCommStore()
 
 const handleShowLogin = () => {
@@ -76,14 +64,6 @@ const handleShowRegister = () => {
   if (navRef.value && navRef.value.method && navRef.value.method.showRegister) {
     navRef.value.method.showRegister()
   }
-}
-
-// 滚动到顶部
-const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
 }
 
 // 注入自定义代码
@@ -141,11 +121,6 @@ const injectCustomCode = async () => {
   }
 }
 
-// 监听滚动事件
-const handleScroll = () => {
-  showBackToTop.value = window.scrollY > 300
-}
-
 // WebSocket事件处理
 const handleSocketOpen = () => {
   console.log('WebSocket连接已建立');
@@ -160,8 +135,6 @@ const handleSocketError = (error) => {
 }
 
 onMounted(async () => {
-  window.addEventListener('scroll', handleScroll)
-  
   // 连接WebSocket
   socket.on('open', handleSocketOpen)
   socket.on('close', handleSocketClose)
@@ -173,49 +146,10 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  
   // 销毁WebSocket实例
   socket.destroy()
 })
 </script>
 
 <style>
-/* 返回顶部按钮样式 */
-.back-to-top {
-  position: fixed;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%) translateY(-30px);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  z-index: 999;
-}
-
-.back-to-top.show {
-  opacity: 1;
-  visibility: visible;
-}
-
-.back-to-top:hover {
-  transform: translateY(-50%) translateY(-33px);
-}
-
-.back-to-top:active {
-  transform: translateY(-50%) translateY(-30px);
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .back-to-top {
-    right: 20px;
-  }
-  
-  .back-to-top {
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 1rem !important;
-  }
-}
 </style>

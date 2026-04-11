@@ -1,14 +1,62 @@
-<!-- 自定义公告组件 - 简洁风格 -->
+<!-- 悬浮按钮组件 -->
 <template>
-  <!-- 悬浮按钮 -->
-  <button 
-    v-if="!$route.path.startsWith('/admin')"
-    class="notice-float-btn btn btn-lg shadow-lg"
-    @click="openNoticeList"
-    title="系统公告"
+  <div 
+    v-if="config.enabled" 
+    class="float-buttons-container"
+    :class="{ 'position-center': config.position === 'center', 'position-bottom': config.position === 'bottom' }"
   >
-    <i class="bi bi-megaphone-fill"></i>
-  </button>
+    <!-- 公告按钮 -->
+    <div 
+      v-if="config.show_notice"
+      class="float-button"
+      :class="{ 'rounded-button': config.style === 'rounded', 'square-button': config.style === 'square' }"
+      title="系统公告"
+      @click="openNoticeList"
+    >
+      <i class="bi bi-megaphone-fill"></i>
+      <span 
+        v-if="noticeList.length > 0" 
+        class="notice-badge position-absolute top-0 start-0 translate-middle badge"
+        style="padding: 0; min-width: 1.4rem; height: 1.4rem; display: flex; align-items: center; justify-content: center;"
+      >
+        {{ noticeList.length }}
+      </span>
+    </div>
+
+    <!-- 自定义按钮 -->
+    <div 
+      v-for="button in enabledButtons" 
+      :key="button.id"
+      class="float-button"
+      :class="{ 'rounded-button': config.style === 'rounded', 'square-button': config.style === 'square' }"
+      :title="button.tooltip"
+      @click="handleButtonClick(button)"
+    >
+      <i :class="button.icon"></i>
+      <div 
+        v-if="button.image_url" 
+        class="float-button-content"
+      >
+        <img 
+          :src="button.image_url" 
+          :alt="button.name || '图片'"
+          :title="button.name || '图片'"
+          style="width: 100%; height: auto; border-radius: 4px;"
+        >
+      </div>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <div 
+      v-if="config.show_back_to_top && showBackToTop"
+      class="float-button"
+      :class="{ 'rounded-button': config.style === 'rounded', 'square-button': config.style === 'square' }"
+      title="返回顶部"
+      @click="scrollToTop"
+    >
+      <i class="bi bi-arrow-up"></i>
+    </div>
+  </div>
 
   <!-- 公告列表弹窗 -->
   <div 
@@ -32,15 +80,8 @@
           ></button>
         </div>
         <div class="modal-body p-0">
-          <!-- 加载状态 -->
-          <div v-if="loading" class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">加载中...</span>
-            </div>
-          </div>
-          
           <!-- 公告列表 -->
-          <div v-else-if="noticeList.length > 0" class="list-group list-group-flush">
+          <div v-if="noticeList.length > 0" class="list-group list-group-flush">
             <button
               v-for="notice in noticeList"
               :key="notice.id"
@@ -128,23 +169,55 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { useCommStore } from '@/store/comm'
 import { Modal } from 'bootstrap'
 import request from '@/utils/request'
 import utils from '@/utils/utils'
 
-// 响应式数据
+const store = useCommStore()
+const config = ref({
+  enabled: true,
+  style: 'rounded',
+  position: 'center',
+  show_back_to_top: true,
+  show_notice: true,
+  buttons: []
+})
+
+// 响应式变量
+const showBackToTop = ref(false)
+
+// 公告相关
 const noticeList = ref([])
 const currentNotice = ref(null)
 const noticeListModal = ref(null)
 const noticeDetailModal = ref(null)
-const loading = ref(false)
 let listModalInstance = null
 let detailModalInstance = null
 
+// 计算启用的按钮
+const enabledButtons = computed(() => {
+  return config.value.buttons.filter(button => button.enabled)
+})
+
+// 处理按钮点击
+const handleButtonClick = (button) => {
+  if (button.url && !button.image_url) {
+    window.open(button.url, '_blank')
+  }
+}
+
+// 返回顶部
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
 // 获取公告列表
 const fetchNotices = async () => {
-  loading.value = true
   try {
     const res = await request.get('/api/placard/all', {
       page: 1,
@@ -157,9 +230,44 @@ const fetchNotices = async () => {
     }
   } catch (error) {
     console.error('获取公告失败:', error)
-  } finally {
-    loading.value = false
   }
+}
+
+// 打开公告列表
+const openNoticeList = () => {
+  if (!listModalInstance) {
+    if (noticeListModal.value) {
+      listModalInstance = new Modal(noticeListModal.value, {
+        backdrop: true,
+        keyboard: true
+      })
+    }
+  }
+  if (listModalInstance) {
+    listModalInstance.show()
+  }
+}
+
+// 打开公告详情
+const openNoticeDetail = (notice) => {
+  currentNotice.value = notice
+
+  noticeListModal.value.addEventListener('hidden.bs.modal', function onHide() {
+    detailModalInstance.show()
+    noticeListModal.value.removeEventListener('hidden.bs.modal', onHide)
+  })
+  
+  listModalInstance.hide()
+}
+
+// 返回公告列表
+const backToList = () => {
+  noticeDetailModal.value.addEventListener('hidden.bs.modal', function onHide() {
+    listModalInstance.show()
+    noticeDetailModal.value.removeEventListener('hidden.bs.modal', onHide)
+  })
+  
+  detailModalInstance.hide()
 }
 
 // 格式化日期
@@ -179,33 +287,16 @@ const formatContent = (content) => {
   return content.replace(/\n/g, '<br>')
 }
 
-// 打开公告列表
-const openNoticeList = () => {
-  if (!listModalInstance) return
-  listModalInstance.show()
-}
-
-// 打开公告详情 - 丝滑切换
-const openNoticeDetail = (notice) => {
-  currentNotice.value = notice
-
-  noticeListModal.value.addEventListener('hidden.bs.modal', function onHide() {
-    detailModalInstance.show()
-    noticeListModal.value.removeEventListener('hidden.bs.modal', onHide)
-  })
-  
-  listModalInstance.hide()
-}
-
-// 返回公告列表 - 丝滑切换
-const backToList = () => {
-  noticeDetailModal.value.addEventListener('hidden.bs.modal', function onHide() {
-    listModalInstance.show()
-    noticeDetailModal.value.removeEventListener('hidden.bs.modal', onHide)
-  })
-  
-  detailModalInstance.hide()
-}
+// 监听配置变化
+watch(
+  () => store.siteInfo?.float_buttons,
+  (newConfig) => {
+    if (newConfig) {
+      config.value = newConfig
+    }
+  },
+  { deep: true }
+)
 
 // 初始化弹窗
 const initModals = () => {
@@ -223,50 +314,140 @@ const initModals = () => {
   }
 }
 
-// 清理资源
-const cleanup = () => {
-  listModalInstance?.dispose()
-  detailModalInstance?.dispose()
+// 监听滚动事件
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300
 }
 
-// 生命周期
 onMounted(() => {
+  // 初始化弹窗
   initModals()
+  // 从store获取配置
+  if (store.siteInfo?.float_buttons) {
+    config.value = store.siteInfo.float_buttons
+  }
+  // 获取公告列表
   fetchNotices()
+  // 添加滚动事件监听
+  window.addEventListener('scroll', handleScroll)
 })
 
 onUnmounted(() => {
-  cleanup()
+  // 移除滚动事件监听
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
 <style scoped>
-/* 悬浮按钮 - 适配Bootstrap5 */
-.notice-float-btn {
+/* 悬浮按钮容器 */
+.float-buttons-container {
   position: fixed;
-  top: 50%;
   right: 10px;
-  transform: translateY(-50%) translateY(30px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 位置样式 */
+.position-center {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.position-bottom {
+  bottom: 80px;
+}
+
+/* 按钮样式 */
+.float-button {
   width: 50px;
   height: 50px;
   background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   border: none;
   color: #fff;
-  font-size: 1.5rem;
-  z-index: 998;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.notice-float-btn:hover {
-  transform: translateY(-50%) translateY(27px);
+.rounded-button {
+  border-radius: 50%;
+}
+
+.square-button {
+  border-radius: 8px;
+}
+
+/* 按钮悬停效果 */
+.float-button:hover {
+  transform: translateY(-3px);
   filter: brightness(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.notice-float-btn:active {
-  transform: translateY(-50%) translateY(30px);
+/* 悬浮内容 */
+.float-button-content {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 10px;
+  padding: 8px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  white-space: normal;
+  word-break: break-word;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 确保不会超出页面底部 */
+  max-height: calc(100vh - 100px);
+}
+
+/* 图片样式 */
+.float-button-content img {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.float-button:hover .float-button-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%);
+}
+
+/* 公告徽章样式 */
+.notice-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  font-size: 0.75rem;
+  padding: 0.5rem 0.5rem;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffc107;
+  color: #212529;
+  border-radius: 50%;
+  z-index: 1000;
 }
 
 /* 核心丝滑弹窗动画 */
@@ -295,28 +476,66 @@ onUnmounted(() => {
 .list-group-item {
   transition: background-color 0.2s ease;
 }
+
 .list-group-item:hover {
   background-color: var(--bs-light);
 }
 
-/* 响应式 */
+/* 暗黑模式适配 */
+@media (prefers-color-scheme: dark) {
+  .float-button-content {
+    background: #343a40;
+    color: #e9ecef;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .modal-content {
+    background-color: #2b3035;
+    color: #e9ecef;
+  }
+  
+  .modal-header {
+    background-color: var(--bs-secondary) !important;
+  }
+  
+  .list-group-item {
+    background-color: #2b3035;
+    border-color: #495057;
+    color: #e9ecef;
+  }
+  
+  .list-group-item:hover {
+    background-color: #343a40;
+  }
+  
+  .text-muted {
+    color: #adb5bd !important;
+  }
+  
+  .border.rounded.p-4 {
+    background-color: #343a40;
+    border-color: #495057;
+  }
+}
+
+/* 响应式调整 */
 @media (max-width: 768px) {
-  .notice-float-btn {
-    right: 20px;
+  .float-buttons-container {
+    right: 10px;
+  }
+  
+  .float-button {
     width: 40px;
     height: 40px;
     font-size: 1rem;
   }
-}
-
-/* 暗黑模式适配 */
-@media (prefers-color-scheme: dark) {
-  :root { --bs-light: #212529; }
-  .modal-content { background-color: #2b3035; color: #e9ecef; }
-  .modal-header { background-color: var(--bs-secondary) !important; }
-  .list-group-item { background-color: #2b3035; border-color: #495057; color: #e9ecef; }
-  .list-group-item:hover { background-color: #343a40; }
-  .text-muted { color: #adb5bd !important; }
-  .border.rounded.p-4 { background-color: #343a40; border-color: #495057; }
+  
+  .float-button-content {
+    max-width: 240px !important;
+  }
+  
+  .position-bottom {
+    bottom: 20px;
+  }
 }
 </style>

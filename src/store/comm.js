@@ -132,19 +132,23 @@ const fetchSiteInfo = async (state = {}, force = false) => {
             // 处理反引号问题和XSS防护
             if (siteInfo && typeof siteInfo === 'object') {
                 // 递归处理对象中的字符串
-                const sanitizeObject = (obj) => {
-                    if (!obj || typeof obj !== 'object') return obj
-                    
-                    Object.keys(obj).forEach(key => {
-                        if (typeof obj[key] === 'string') {
-                            // 移除反引号并进行基本的XSS防护
-                            obj[key] = obj[key].replace(/`/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-                            sanitizeObject(obj[key])
-                        }
-                    })
-                    return obj
-                }
+            const sanitizeObject = (obj, parentKey = '', grandParentKey = '') => {
+                if (!obj || typeof obj !== 'object') return obj
+                
+                Object.keys(obj).forEach(key => {
+                    // 不对 float_buttons.buttons 中的 content 字段进行转义，允许使用 HTML
+                    // 不对 reward 配置中的收款码图片链接进行转义
+                    if (typeof obj[key] === 'string' && 
+                        !(grandParentKey === 'float_buttons' && parentKey === 'buttons' && key === 'content') &&
+                        !(parentKey === 'reward' && (key === 'wechat' || key === 'alipay'))) {
+                        // 移除反引号并进行基本的XSS防护
+                        obj[key] = obj[key].replace(/`/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                        sanitizeObject(obj[key], key, parentKey)
+                    }
+                })
+                return obj
+            }
                 
                 siteInfo = sanitizeObject(siteInfo)
                 

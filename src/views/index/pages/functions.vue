@@ -87,6 +87,21 @@
             <li class="nav-item" role="presentation">
               <button 
                 class="nav-link" 
+                id="article-tab" 
+                data-bs-toggle="tab" 
+                data-bs-target="#article" 
+                type="button" 
+                role="tab" 
+                aria-controls="article" 
+                aria-selected="false"
+              >
+                <i class="bi bi-file-earmark-text me-2"></i>
+                文章设置
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button 
+                class="nav-link" 
                 id="custom-code-tab" 
                 data-bs-toggle="tab" 
                 data-bs-target="#custom-code" 
@@ -95,7 +110,7 @@
                 aria-controls="custom-code" 
                 aria-selected="false"
               >
-                <i class="bi bi-code me-2"></i>
+                <i class="bi bi-code-slash me-2"></i>
                 自定义代码
               </button>
             </li>
@@ -312,6 +327,209 @@
                         placeholder="输入隐私协议链接，如 /usage-specification"
                       >
                       <div class="form-text text-muted mt-1">点击《隐私协议》时跳转的链接</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 悬浮按钮设置 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">右侧悬浮按钮设置</h3>
+                  <div class="row g-4">
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                          <label class="form-label fw-medium mb-0">启用悬浮按钮</label>
+                          <p class="form-text text-muted mt-1 mb-0">在网站右侧显示悬浮按钮</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="float_buttons_enabled_switch"
+                            v-model="globalConfig.float_buttons.enabled"
+                          >
+                          <label class="form-check-label" for="float_buttons_enabled_switch">
+                            {{ globalConfig.float_buttons.enabled ? '开启' : '关闭' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <label for="float_buttons_show_back_to_top" class="form-label">显示返回顶部按钮</label>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="float_buttons_show_back_to_top"
+                            v-model="globalConfig.float_buttons.show_back_to_top"
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <label for="float_buttons_show_notice" class="form-label">显示公告按钮</label>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="float_buttons_show_notice"
+                            v-model="globalConfig.float_buttons.show_notice"
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
+                      <label for="float_buttons_style" class="form-label">按钮样式</label>
+                      <select 
+                        class="form-select rounded-3 border-gray-300 shadow-sm"
+                        id="float_buttons_style"
+                        v-model="globalConfig.float_buttons.style"
+                      >
+                        <option value="rounded">圆角按钮</option>
+                        <option value="square">方形按钮</option>
+                      </select>
+                      <div class="form-text text-muted mt-1">选择悬浮按钮的样式</div>
+                    </div>
+
+                    <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
+                      <label for="float_buttons_position" class="form-label">显示位置</label>
+                      <select 
+                        class="form-select rounded-3 border-gray-300 shadow-sm"
+                        id="float_buttons_position"
+                        v-model="globalConfig.float_buttons.position"
+                      >
+                        <option value="center">右侧居中</option>
+                        <option value="bottom">右侧底部</option>
+                      </select>
+                      <div class="form-text text-muted mt-1">选择悬浮按钮的显示位置</div>
+                    </div>
+
+                    <div class="col-12" v-if="globalConfig.float_buttons.enabled">
+                      <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="form-section-title fw-medium text-gray-700">悬浮按钮管理</h4>
+                        <button 
+                          type="button" 
+                          class="btn btn-sm btn-primary rounded-3"
+                          @click="addFloatButton"
+                        >
+                          <i class="bi bi-plus me-1"></i>
+                          添加按钮
+                        </button>
+                      </div>
+
+                      <div class="float-buttons-container space-y-4">
+                        <div 
+                          v-for="(button, index) in globalConfig.float_buttons.buttons" 
+                          :key="button.id"
+                          class="float-button-form card p-4 border"
+                        >
+                          <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="float-button-title fw-medium">{{ button.name }}</h5>
+                            <div class="d-flex gap-2">
+                              <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-secondary rounded-3"
+                                @click="moveFloatButton(index, 'up')"
+                                :disabled="index === 0"
+                              >
+                                <i class="bi bi-arrow-up"></i>
+                              </button>
+                              <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline-secondary rounded-3"
+                                @click="moveFloatButton(index, 'down')"
+                                :disabled="index === globalConfig.float_buttons.buttons.length - 1"
+                              >
+                                <i class="bi bi-arrow-down"></i>
+                              </button>
+                              <button 
+                                type="button" 
+                                class="btn btn-sm btn-danger rounded-3"
+                                @click="removeFloatButton(index)"
+                              >
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="row g-4">
+                            <div class="col-md-6">
+                              <div class="d-flex align-items-center justify-content-between">
+                                <label :for="'float-button-enabled-' + button.id" class="form-label">启用</label>
+                                <div class="form-check form-switch">
+                                  <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    :id="'float-button-enabled-' + button.id"
+                                    v-model="button.enabled"
+                                  >
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="col-md-6">
+                              <label :for="'float-button-name-' + button.id" class="form-label">按钮名称</label>
+                              <input 
+                                type="text" 
+                                class="form-control rounded-3 border-gray-300 shadow-sm"
+                                :id="'float-button-name-' + button.id"
+                                v-model="button.name"
+                                placeholder="输入按钮名称"
+                              >
+                            </div>
+
+                            <div class="col-md-6">
+                              <label :for="'float-button-icon-' + button.id" class="form-label">按钮图标</label>
+                              <input 
+                                type="text" 
+                                class="form-control rounded-3 border-gray-300 shadow-sm"
+                                :id="'float-button-icon-' + button.id"
+                                v-model="button.icon"
+                                placeholder="输入Bootstrap图标类名，如 bi bi-qq"
+                              >
+                            </div>
+
+                            <div class="col-md-6">
+                              <label :for="'float-button-url-' + button.id" class="form-label">按钮链接</label>
+                              <input 
+                                type="text" 
+                                class="form-control rounded-3 border-gray-300 shadow-sm"
+                                :id="'float-button-url-' + button.id"
+                                v-model="button.url"
+                                placeholder="输入按钮链接，留空则仅显示悬浮内容"
+                              >
+                            </div>
+
+                            <div class="col-md-6">
+                              <label :for="'float-button-tooltip-' + button.id" class="form-label">按钮简介</label>
+                              <input 
+                                type="text" 
+                                class="form-control rounded-3 border-gray-300 shadow-sm"
+                                :id="'float-button-tooltip-' + button.id"
+                                v-model="button.tooltip"
+                                placeholder="输入鼠标悬停时显示的文字"
+                              >
+                            </div>
+
+                            <div class="col-12">
+                              <label :for="'float-button-image-url-' + button.id" class="form-label">图片链接</label>
+                              <input 
+                                type="text" 
+                                class="form-control rounded-3 border-gray-300 shadow-sm"
+                                :id="'float-button-image-url-' + button.id"
+                                v-model="button.image_url"
+                                placeholder="输入图片链接，鼠标移到此处时显示图片"
+                              >
+                              <div class="form-text text-muted mt-1">设置此处后，按钮链接将失效</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -676,6 +894,90 @@
           </div>
         </div>
 
+        <!-- 文章设置 -->
+        <div 
+          class="tab-pane fade" 
+          id="article" 
+          role="tabpanel" 
+          aria-labelledby="article-tab"
+        >
+          <div class="config-section">
+            <!-- 打赏设置 -->
+            <div class="card shadow-sm">
+              <div class="card-body p-3">
+                <h3 class="form-section-title mb-4 fw-medium text-gray-700">打赏设置</h3>
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <label class="form-label fw-medium">启用打赏功能</label>
+                        <p class="form-text text-muted mt-1">开启或关闭文章打赏功能</p>
+                      </div>
+                      <div class="form-check form-switch">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="reward_enabled_switch"
+                          v-model="globalConfig.reward.enabled"
+                        >
+                        <label class="form-check-label" for="reward_enabled_switch">
+                          {{ globalConfig.reward.enabled ? '开启' : '关闭' }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row g-4 mt-4">
+                  <div class="col-md-6">
+                    <label for="reward_wechat" class="form-label">微信收款码</label>
+                    <input 
+                      type="text" 
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      id="reward_wechat"
+                      v-model="globalConfig.reward.wechat"
+                      placeholder="输入微信收款码图片链接"
+                    >
+                    <div class="form-text text-muted mt-1">微信收款码图片链接，建议使用正方形图片</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="reward_alipay" class="form-label">支付宝收款码</label>
+                    <input 
+                      type="text" 
+                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      id="reward_alipay"
+                      v-model="globalConfig.reward.alipay"
+                      placeholder="输入支付宝收款码图片链接"
+                    >
+                    <div class="form-text text-muted mt-1">支付宝收款码图片链接，建议使用正方形图片</div>
+                  </div>
+                </div>
+                
+                <!-- 保存按钮 -->
+                <div class="form-actions mt-4">
+                  <button 
+                    type="button" 
+                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
+                    @click="saveGlobalConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存文章设置' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
+                    @click="resetGlobalConfig"
+                    :disabled="saving"
+                  >
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    重置
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 自定义代码 -->
         <div 
           class="tab-pane fade" 
@@ -845,6 +1147,37 @@ const globalConfig = ref({
     enabled: true, // 是否启用协议提示
     user_agreement_url: '/user-agreement', // 用户协议链接
     usage_specification_url: '/usage-specification' // 隐私协议链接
+  },
+  float_buttons: {
+    enabled: true,
+    style: 'rounded', // rounded 或 square
+    position: 'center', // center 或 bottom
+    show_back_to_top: true,
+    show_notice: true,
+    buttons: [
+      {
+        id: 1,
+        name: 'QQ',
+        icon: 'bi bi-tencent-qq',
+        url: 'https://qq.com',
+        tooltip: '联系QQ',
+        enabled: true
+      },
+      {
+        id: 2,
+        name: '微信',
+        icon: 'bi bi-wechat',
+        url: '',
+        tooltip: '扫码添加微信',
+        enabled: true,
+        image_url: 'https://img1.zhuxu.asia/2026/U5PbclFMPJ.png'
+      }
+    ]
+  },
+  reward: {
+    enabled: true,
+    wechat: '',
+    alipay: ''
   }
 })
 
@@ -944,6 +1277,37 @@ async function getGlobalConfig() {
           enabled: config.auth_dialog_agreement?.enabled !== false,
           user_agreement_url: config.auth_dialog_agreement?.user_agreement_url || '/user-agreement',
           usage_specification_url: config.auth_dialog_agreement?.usage_specification_url || '/usage-specification'
+        },
+        float_buttons: {
+          enabled: config.float_buttons?.enabled !== false,
+          style: config.float_buttons?.style || 'rounded',
+          position: config.float_buttons?.position || 'center',
+          show_back_to_top: config.float_buttons?.show_back_to_top !== false,
+          show_notice: config.float_buttons?.show_notice !== false,
+          buttons: config.float_buttons?.buttons || [
+            {
+              id: 1,
+              name: 'QQ',
+              icon: 'bi bi-qq',
+              url: 'https://qm.qq.com/q/56SYi6MAta',
+              tooltip: '加入交流群',
+              enabled: true
+            },
+            {
+              id: 2,
+              name: '微信',
+              icon: 'bi bi-wechat',
+              url: '',
+              tooltip: '扫码添加微信',
+              enabled: true,
+              image_url: 'https://img1.zhuxu.asia/2026/U5PbclFMPJ.png'
+            }
+          ]
+        },
+        reward: {
+          enabled: config.reward?.enabled !== false,
+          wechat: config.reward?.wechat || '',
+          alipay: config.reward?.alipay || ''
         }
       }
     }
@@ -1052,6 +1416,38 @@ function handleDateChange(event) {
     globalConfig.value.date = timestamp.toString()
   } else {
     globalConfig.value.date = Math.floor(Date.now() / 1000).toString()
+  }
+}
+
+// 悬浮按钮管理方法
+function addFloatButton() {
+  const newId = globalConfig.value.float_buttons.buttons.length > 0 
+    ? Math.max(...globalConfig.value.float_buttons.buttons.map(button => button.id)) + 1 
+    : 1
+  globalConfig.value.float_buttons.buttons.push({
+    id: newId,
+    name: '新按钮',
+    icon: 'bi bi-link',
+    url: '',
+    tooltip: '',
+    enabled: true,
+    content: ''
+  })
+}
+
+function removeFloatButton(index) {
+  globalConfig.value.float_buttons.buttons.splice(index, 1)
+}
+
+function moveFloatButton(index, direction) {
+  if (direction === 'up' && index > 0) {
+    const temp = globalConfig.value.float_buttons.buttons[index]
+    globalConfig.value.float_buttons.buttons[index] = globalConfig.value.float_buttons.buttons[index - 1]
+    globalConfig.value.float_buttons.buttons[index - 1] = temp
+  } else if (direction === 'down' && index < globalConfig.value.float_buttons.buttons.length - 1) {
+    const temp = globalConfig.value.float_buttons.buttons[index]
+    globalConfig.value.float_buttons.buttons[index] = globalConfig.value.float_buttons.buttons[index + 1]
+    globalConfig.value.float_buttons.buttons[index + 1] = temp
   }
 }
 
@@ -1228,6 +1624,37 @@ function resetGlobalConfig() {
       enabled: true, // 默认启用协议提示
       user_agreement_url: '/user-agreement', // 默认用户协议链接
       usage_specification_url: '/usage-specification' // 默认隐私协议链接
+    },
+    float_buttons: {
+      enabled: true,
+      style: 'rounded',
+      position: 'center',
+      show_back_to_top: true,
+      show_notice: true,
+      buttons: [
+        {
+          id: 1,
+          name: 'QQ',
+          icon: 'bi bi-tencent-qq',
+          url: 'https://qm.qq.com/q/56SYi6MAta',
+          tooltip: '加入交流群',
+          enabled: true
+        },
+        {
+          id: 2,
+          name: '微信',
+          icon: 'bi bi-wechat',
+          url: '',
+          tooltip: '扫码添加微信群',
+          enabled: true,
+          image_url: 'https://img1.zhuxu.asia/2026/U5PbclFMPJ.png'
+        }
+      ]
+    },
+    reward: {
+      enabled: true,
+      wechat: '',
+      alipay: ''
     }
   }
 }

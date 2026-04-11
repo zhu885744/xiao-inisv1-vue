@@ -189,6 +189,46 @@
                 <i class="bi bi-share me-2"></i>
                 <span>{{ shareCount }}</span>
               </button>
+              <button 
+                type="button" 
+                class="btn btn-outline-primary"
+                data-bs-toggle="modal" 
+                data-bs-target="#rewardModal"
+                v-if="rewardEnabled"
+              >
+                <i class="bi bi-heart-fill me-2"></i>
+                <span>打赏</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 打赏弹窗 -->
+          <div class="modal fade" id="rewardModal" tabindex="-1" aria-labelledby="rewardModalLabel" aria-hidden="true" v-if="rewardEnabled">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="rewardModalLabel">打赏支持</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="text-center mb-4">感谢您的支持，您的打赏将帮助我们持续创作优质内容</p>
+                  <div class="row">
+                    <div class="col-md-6 text-center">
+                      <h6 class="mb-2">微信支付</h6>
+                      <img :src="rewardConfig.wechat" alt="微信收款码" class="img-fluid rounded" style="max-width: 200px;" v-if="rewardConfig.wechat">
+                      <p class="text-muted" v-else>未设置微信收款码</p>
+                    </div>
+                    <div class="col-md-6 text-center">
+                      <h6 class="mb-2">支付宝</h6>
+                      <img :src="rewardConfig.alipay" alt="支付宝收款码" class="img-fluid rounded" style="max-width: 200px;" v-if="rewardConfig.alipay">
+                      <p class="text-muted" v-else>未设置支付宝收款码</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -242,6 +282,14 @@ const { setDynamicTitle } = usePageTitle();
 const store = {
   comm: useCommStore()
 };
+
+// 打赏相关
+const rewardEnabled = computed(() => {
+  return store.comm.siteInfo?.reward?.enabled || false;
+});
+const rewardConfig = computed(() => {
+  return store.comm.siteInfo?.reward || {};
+});
 
 // 路由参数获取文章ID
 const getCurrentArticleId = () => {
