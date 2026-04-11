@@ -39,7 +39,7 @@
   
   <!-- 返回顶部按钮 -->
   <button 
-    class="btn shadow-lg back-to-top rounded-circle" 
+    class="btn shadow-lg back-to-top" 
     id="backToTop" 
     @click="scrollToTop"
     :class="{ 'show': showBackToTop }"
@@ -184,8 +184,9 @@ onUnmounted(() => {
 /* 返回顶部按钮样式 */
 .back-to-top {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%) translateY(-30px);
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -198,17 +199,16 @@ onUnmounted(() => {
 }
 
 .back-to-top:hover {
-  transform: translateY(-3px);
+  transform: translateY(-50%) translateY(-33px);
 }
 
 .back-to-top:active {
-  transform: translateY(0);
+  transform: translateY(-50%) translateY(-30px);
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
   .back-to-top {
-    bottom: 20px;
     right: 20px;
   }
   

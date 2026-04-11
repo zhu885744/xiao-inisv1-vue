@@ -3,18 +3,11 @@
   <!-- 悬浮按钮 -->
   <button 
     v-if="!$route.path.startsWith('/admin')"
-    class="notice-float-btn btn btn-lg rounded-circle shadow-lg"
+    class="notice-float-btn btn btn-lg shadow-lg"
     @click="openNoticeList"
     title="系统公告"
   >
     <i class="bi bi-megaphone-fill"></i>
-    <span 
-      v-if="noticeList.length > 0" 
-      class="notice-badge position-absolute top-0 end-0 translate-middle badge rounded-pill bg-warning text-dark"
-      style="font-size: 0.75rem; padding: 0.25rem 0.5rem; min-width: 1.4rem; height: 1.4rem;"
-    >
-      {{ noticeList.length }}
-    </span>
   </button>
 
   <!-- 公告列表弹窗 -->
@@ -251,8 +244,9 @@ onUnmounted(() => {
 /* 悬浮按钮 - 适配Bootstrap5 */
 .notice-float-btn {
   position: fixed;
-  bottom: 90px;
-  right: 30px;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%) translateY(30px);
   width: 50px;
   height: 50px;
   background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
@@ -267,12 +261,12 @@ onUnmounted(() => {
 }
 
 .notice-float-btn:hover {
-  transform: translateY(-3px);
+  transform: translateY(-50%) translateY(27px);
   filter: brightness(1.1);
 }
 
 .notice-float-btn:active {
-  transform: translateY(0);
+  transform: translateY(-50%) translateY(30px);
 }
 
 /* 核心丝滑弹窗动画 */
@@ -308,7 +302,6 @@ onUnmounted(() => {
 /* 响应式 */
 @media (max-width: 768px) {
   .notice-float-btn {
-    bottom: 70px;
     right: 20px;
     width: 40px;
     height: 40px;

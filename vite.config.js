@@ -16,13 +16,9 @@ export default defineConfig(({ mode }) => {
         }
       }),
       createSvgIconsPlugin({
-        // 指定要处理的 SVG 图标目录
         iconDirs: [path.resolve(__dirname, 'src/assets/svg')],
-        // 指定生成的 symbol ID 格式
         symbolId: 'icon-[name]',
-        // 是否在构建时生成 sprite
         inject: 'body-last',
-        // 是否在开发模式下自动注入
         customDomId: '__svg__icons__dom__'
       })
     ],
@@ -34,22 +30,58 @@ export default defineConfig(({ mode }) => {
       cacheDir: false,
       minify: isProduction ? 'terser' : 'esbuild',
       sourcemap: false,
-      chunkSizeWarningLimit: 300,
+      // 提高警告上限
+      chunkSizeWarningLimit: 1500,
+
       rollupOptions: {
         output: {
-          manualChunks: {
-            vue: ['vue', 'vue-router', 'pinia'],
-            bootstrap: ['bootstrap', '@popperjs/core'],
-            fancybox: ['@fancyapps/ui'],
-            marked: ['marked'],
-            highlight: ['highlight.js'],
-            utils: ['axios', 'crypto-js', 'qs']
+          // 【终极拆包：把超大的编辑器拆成 N 个小文件】
+          manualChunks(id) {
+            // 1. 高亮库（瘦身成功）
+            if (id.includes('highlight.js')) {
+              return 'highlight'
+            }
+            // 2. 编辑器核心（单独打包，不与语言混在一起）
+            if (id.includes('codemirror') || id.includes('@codemirror')) {
+              // 核心编辑器
+              if (id.includes('codemirror/lib/codemirror.js') || id.includes('@codemirror/autocomplete') || id.includes('@codemirror/state') || id.includes('@codemirror/view')) {
+                return 'editor-core'
+              }
+              // 编辑器语言（自动拆分小文件）
+              if (id.match(/lang-[a-z]+/i) || id.includes('mode-') || id.includes('language-')) {
+                return 'editor-lang'
+              }
+              // 编辑器插件
+              return 'editor-plugin'
+            }
+            // 3. Vue 全家桶
+            if (id.includes('node_modules/vue') || id.includes('vue-router') || id.includes('pinia')) {
+              return 'vue'
+            }
+            // 4. Bootstrap
+            if (id.includes('bootstrap') || id.includes('@popperjs/core')) {
+              return 'bootstrap'
+            }
+            // 5. 弹出层
+            if (id.includes('@fancyapps/ui')) {
+              return 'fancybox'
+            }
+            // 6. 解析器
+            if (id.includes('marked')) {
+              return 'marked'
+            }
+            // 7. 工具
+            if (id.includes('axios') || id.includes('crypto-js') || id.includes('qs')) {
+              return 'utils'
+            }
           },
+
           assetFileNames: 'static/[name].[hash:8].[ext]',
           chunkFileNames: 'static/js/[name].[hash:8].js',
           entryFileNames: 'static/js/[name].[hash:8].js'
         }
       },
+
       terserOptions: {
         compress: {
           drop_console: isProduction,
@@ -70,37 +102,29 @@ export default defineConfig(({ mode }) => {
       }
     },
 
-    // 【核心修改1】生产环境base设为绝对路径/，开发环境保持/不变
     base: '/',
 
     server: {
       port: 3000,
       open: true,
       cors: true,
-      // 增加服务器响应超时时间
       timeout: 60000,
-      // 启用HTTP2，提高传输效率
       http2: false,
-      // 配置缓存
-      hmr: {
-        overlay: false,
-        timeout: 3000
-      },
-      // 配置代理
+      hmr: { overlay: false, timeout: 3000 },
       proxy: {
         '/api': {
           target: 'https://cs.zhuxu.asia',
           changeOrigin: true,
-          // 增加代理超时时间
           timeout: 60000,
-          // 启用WebSocket代理
           ws: true
-        },
+        }
       }
     },
 
     optimizeDeps: {
       include: ['vue'],
+      // 【关键】禁止提前全量打包编辑器语言
+      exclude: ['@codemirror/lang-*', 'codemirror/mode-*']
     }
   }
 })

@@ -4,14 +4,17 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-// 导入marked核心渲染方法
+import { ref, watch, onMounted } from 'vue'
 import { marked } from 'marked'
-// 导入highlight.js库和样式
+
+// ==============================================
+// highlight.js 按需引入
+// ==============================================
 import hljs from 'highlight.js'
+// 样式
 import 'highlight.js/styles/agate.css'
 
-// props规范
+// props
 const props = defineProps({
   modelValue: {
     type: String,
@@ -19,23 +22,20 @@ const props = defineProps({
   },
 })
 
-// 存储渲染后的HTML结果
 const renderedMd = ref('')
 
-// 初始化渲染方法
+// 渲染 markdown
 const renderMarkdown = (content) => {
   if (!content) {
     renderedMd.value = ''
     return
   }
   
-  // 简单处理：直接使用highlight.js处理所有代码
   let processedContent = content
   
-  // 匹配并处理代码块
   processedContent = processedContent.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
     try {
-      const highlighted = hljs.highlight(code, { language: lang || 'plaintext' }).value
+      const highlighted = hljs.highlight(code.trim(), { language: lang || 'plaintext' }).value
       return `<div class="code-block-container">
         <div class="code-block-header">
           <span class="code-language">${lang || 'plaintext'}</span>
@@ -61,17 +61,14 @@ const renderMarkdown = (content) => {
     }
   })
   
-  // 渲染Markdown
   let html = marked.parse(processedContent, {
     gfm: true,
     breaks: true,
     html: true
   })
   
-  // 为所有图片添加 data-fancybox 属性
   html = html.replace(/<img\s+src="([^"]+)"\s+alt="([^"]*)"\s*(.*?)\s*>/g, '<a href="$1" data-fancybox="gallery" data-caption="$2"><img src="$1" alt="$2" $3></a>')
   
-  // 安全处理超链接
   html = html.replace(/<a\s+([^>]*)>/g, (match, attributes) => {
     let safeAttributes = attributes.replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
     safeAttributes = safeAttributes.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, '')
@@ -87,22 +84,18 @@ const renderMarkdown = (content) => {
   renderedMd.value = html
 }
 
-// 复制按钮点击处理函数
+// 复制功能
 const handleCopyClick = (e) => {
   const button = e.target.closest('.copy-button')
   if (!button) return
-  
   const code = button.getAttribute('data-code')
   if (!code) return
-  
-  // 复制代码到剪贴板
+
   navigator.clipboard.writeText(code).then(() => {
-    // 显示复制成功状态
     const originalText = button.innerHTML
     button.innerHTML = '<i class="bi bi-check"></i><span class="copy-text">已复制</span>'
     button.classList.add('copied')
     
-    // 2秒后恢复原始状态
     setTimeout(() => {
       button.innerHTML = originalText
       button.classList.remove('copied')
@@ -112,33 +105,21 @@ const handleCopyClick = (e) => {
   })
 }
 
-// 添加复制按钮事件监听器
 const addCopyEventListeners = () => {
-  const copyButtons = document.querySelectorAll('.copy-button')
-  copyButtons.forEach(button => {
-    // 移除可能存在的旧事件监听器
+  document.querySelectorAll('.copy-button').forEach(button => {
     button.removeEventListener('click', handleCopyClick)
-    // 添加新的事件监听器
     button.addEventListener('click', handleCopyClick)
   })
 }
 
-// 首次加载立即渲染
+// 监听 + 生命周期
 renderMarkdown(props.modelValue)
 
-// 监听内容变化，重新渲染
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    renderMarkdown(newVal)
-    // 延迟添加事件监听器，确保DOM已更新
-    setTimeout(addCopyEventListeners, 100)
-  },
-  { immediate: true, deep: false }
-)
+watch(() => props.modelValue, (newVal) => {
+  renderMarkdown(newVal)
+  setTimeout(addCopyEventListeners, 100)
+}, { immediate: true })
 
-// 组件挂载后添加事件监听器
-import { onMounted } from 'vue'
 onMounted(() => {
   setTimeout(addCopyEventListeners, 100)
 })
