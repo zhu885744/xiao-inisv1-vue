@@ -890,7 +890,7 @@ onMounted(async () => {
 
 .category-title:hover .text-muted {
   opacity: 1;
-  color: var(--bs-primary);
+  color: var(--bs-secondary);
 }
 
 /* 响应式调整 */
@@ -1022,7 +1022,7 @@ img {
 }
 
 .article-item-card:hover .article-title {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 摘要 */
@@ -1056,7 +1056,7 @@ img {
 }
 
 .article-item-list:hover .article-title-list {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 无图模式摘要 */
@@ -1097,7 +1097,7 @@ img {
 }
 
 .meta-item:hover {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 .meta-item .bi {
@@ -1110,7 +1110,7 @@ img {
 }
 
 .meta-item:hover .bi {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 无图模式元信息 */
@@ -1119,11 +1119,11 @@ img {
 }
 
 .article-item-list:hover .text-sm.text-secondary {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 .article-item-list:hover .text-sm.text-secondary .bi {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 分页样式 */
@@ -1164,16 +1164,16 @@ img {
 }
 
 .page-link:hover:not(.disabled) {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
+  background: rgba(108, 117, 125, 0.1);
+  color: var(--bs-secondary);
   transform: translateY(-1px);
 }
 
 .page-item.active .page-link {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
 }
 
 .page-item.disabled .page-link {
@@ -1291,7 +1291,7 @@ img {
   
   .category-title:hover .text-muted {
     opacity: 1;
-    color: var(--bs-primary);
+    color: var(--bs-secondary);
   }
   
   /* 文章卡片 */
@@ -1358,8 +1358,8 @@ img {
   }
   
   .page-link:hover:not(.disabled) {
-    background: rgba(0, 123, 255, 0.2);
-    color: var(--bs-primary);
+    background: rgba(108, 117, 125, 0.2);
+    color: var(--bs-secondary);
   }
 }
 

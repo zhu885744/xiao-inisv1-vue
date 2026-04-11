@@ -75,7 +75,7 @@
                   <h3 class="tag-card-title h5 fw-bold mb-2">{{ tag.name }}</h3>
                   <p v-if="tag.description" class="tag-card-description text-muted mb-3">{{ tag.description }}</p>
                   <div class="tag-card-footer pt-3 border-top border-light">
-                    <span class="tag-article-count badge bg-primary-subtle text-primary px-3 py-1 rounded-full">{{ tag.articleCount || 0 }} 篇文章</span>
+                    <span class="tag-article-count badge bg-secondary-subtle text-secondary px-3 py-1 rounded-full">{{ tag.articleCount || 0 }} 篇文章</span>
                   </div>
                 </div>
               </div>
@@ -1020,7 +1020,7 @@ onMounted(async () => {
 .tag-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  border-color: var(--bs-primary);
+  border-color: var(--bs-secondary);
 }
 
 /* 标签头像 */
@@ -1066,7 +1066,7 @@ onMounted(async () => {
 }
 
 .tag-card:hover .tag-card-title {
-  color: var(--bs-primary);
+  color: var(--bs-secondary);
   transform: translateY(-2px);
 }
 
@@ -1096,7 +1096,7 @@ onMounted(async () => {
 }
 
 .tag-card:hover .tag-card-footer {
-  border-top-color: var(--bs-primary);
+  border-top-color: var(--bs-secondary);
 }
 
 .tag-article-count {
@@ -1158,7 +1158,7 @@ onMounted(async () => {
 }
 
 .tag-title:hover {
-  color: var(--bs-primary);
+  color: var(--bs-secondary);
 }
 
 .tag-title .text-muted {
@@ -1170,7 +1170,7 @@ onMounted(async () => {
 
 .tag-title:hover .text-muted {
   opacity: 1;
-  color: var(--bs-primary);
+  color: var(--bs-secondary);
 }
 
 /* 标签描述 */
@@ -1311,7 +1311,7 @@ img {
 }
 
 .article-item-card:hover .article-title {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 摘要 */
@@ -1345,7 +1345,7 @@ img {
 }
 
 .article-item-list:hover .article-title-list {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 无图模式摘要 */
@@ -1386,7 +1386,7 @@ img {
 }
 
 .meta-item:hover {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 .meta-item .bi {
@@ -1399,7 +1399,7 @@ img {
 }
 
 .meta-item:hover .bi {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 无图模式元信息 */
@@ -1408,11 +1408,11 @@ img {
 }
 
 .article-item-list:hover .text-sm.text-secondary {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 .article-item-list:hover .text-sm.text-secondary .bi {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 分页样式 */
@@ -1453,16 +1453,16 @@ img {
 }
 
 .page-link:hover:not(.disabled) {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
+  background: rgba(108, 117, 125, 0.1);
+  color: var(--bs-secondary);
   transform: translateY(-1px);
 }
 
 .page-item.active .page-link {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
 }
 
 .page-item.disabled .page-link {
@@ -1756,8 +1756,8 @@ img {
   }
   
   .page-link:hover:not(.disabled) {
-    background: rgba(0, 123, 255, 0.2);
-    color: var(--bs-primary);
+    background: rgba(108, 117, 125, 0.2);
+    color: var(--bs-secondary);
   }
 }
 

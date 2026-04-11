@@ -39,12 +39,12 @@
   
   <!-- 返回顶部按钮 -->
   <button 
-    class="btn btn-primary shadow-lg back-to-top" 
+    class="btn shadow-lg back-to-top rounded-circle" 
     id="backToTop" 
     @click="scrollToTop"
     :class="{ 'show': showBackToTop }"
     title="返回顶部"
-    style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;"
+    style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark)); border: none; color: #fff; font-size: 1.5rem;"
   >
     <i class="bi bi-arrow-up"></i>
   </button>

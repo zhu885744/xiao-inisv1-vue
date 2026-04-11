@@ -151,12 +151,12 @@
           </div>
           <div class="d-flex" v-else>
             <!-- 未登录状态 -->
-            <button class="btn btn-outline-primary me-2" @click="method.showLogin()">
+            <button class="btn btn-outline-secondary me-2" @click="method.showLogin()">
               登录
             </button>
             <button 
               v-if="parseInt(store.config.getAllowRegister?.value) === 1" 
-              class="btn btn-outline-success"
+              class="btn btn-outline-secondary"
               @click="method.showRegister()"
             >
               注册
@@ -267,12 +267,12 @@
         <!-- 未登录状态 -->
         <div v-if="utils.is.empty(store.comm.login.user)" class="mb-4">
           <div class="d-grid grid-cols-2 gap-3">
-            <button class="btn btn-outline-primary text-center" type="button" @click="method.showLogin()">
+            <button class="btn btn-outline-secondary text-center" type="button" @click="method.showLogin()">
               <i class="bi bi-person-circle me-1"></i>登录
             </button>
             <button 
               v-if="parseInt(store.config.getAllowRegister?.value) === 1" 
-              class="btn btn-outline-success text-center" 
+              class="btn btn-outline-secondary text-center" 
               type="button" 
               @click="method.showRegister()"
             >
@@ -284,12 +284,12 @@
         <!-- 已登录状态 -->
         <div v-else-if="!utils.is.empty(store.comm.login.user)" class="mb-4">
           <div class="text-center mb-3">
-            <i class="bi bi-person-circle fs-4 text-success"></i>
+            <i class="bi bi-person-circle fs-4 text-secondary"></i>
             <div class="mt-1">{{ store.comm.login.user.nickname }}</div>
             <small class="text-muted">{{ store.comm.login.user.email }}</small>
           </div>
           <button 
-            class="btn btn-danger w-100 mb-3" 
+            class="btn btn-secondary w-100 mb-3" 
             type="button" 
             @click="doSign"
             :disabled="signLoading || hasSigned"
@@ -312,13 +312,13 @@
             <router-link v-if="isAdmin" class="btn btn-outline-secondary text-center" to="/admin" @click="closeSidebar">
               <i class="bi bi-gear-wide-connected me-1"></i>后台管理
             </router-link>
-            <button class="btn btn-outline-success text-center" type="button" @click="method.showPublishNotification()">
+            <button class="btn btn-outline-secondary text-center" type="button" @click="method.showPublishNotification()">
               <i class="bi bi-plus-circle me-1"></i>发布文章
             </button>
             <button class="btn btn-outline-secondary text-center" type="button" @click="clearCache()">
               <i class="bi bi-trash3 me-1"></i>清除缓存
             </button>
-            <button class="btn btn-outline-danger text-center" type="button" @click="method.logout()">
+            <button class="btn btn-outline-secondary text-center" type="button" @click="method.logout()">
               <i class="bi bi-box-arrow-right me-1"></i>退出登录
             </button>
           </div>
@@ -902,12 +902,12 @@ watch(
 <style scoped>
 /* 基础样式 */
 :deep(.nav-link.active) {
-  color: var(--bs-primary) !important;
+  color: var(--bs-secondary) !important;
   font-weight: 500;
   position: relative;
-  border: 1px solid var(--bs-primary) !important;
+  border: 1px solid var(--bs-secondary) !important;
   border-radius: 0.375rem !important;
-  background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
+  background-color: rgba(var(--bs-secondary-rgb), 0.05) !important;
 }
 
 /* 移除PC端的下划线效果 */
@@ -925,7 +925,7 @@ watch(
     transform: translateX(-50%);
     width: 80%;
     height: 2px;
-    background-color: var(--bs-primary);
+    background-color: var(--bs-secondary);
     border-radius: 1px;
   }
 }
@@ -1050,23 +1050,11 @@ watch(
 }
 
 :deep(.btn-outline-secondary.dropdown-toggle:hover) {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
+  border-color: var(--bs-secondary);
+  box-shadow: 0 0 0 3px rgba(var(--bs-secondary-rgb), 0.1);
 }
 
-/* 登录/注册按钮样式优化 */
-:deep(.btn-outline-primary),
-:deep(.btn-outline-success) {
-  transition: all 0.3s ease;
-}
 
-:deep(.btn-outline-primary:hover) {
-  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
-}
-
-:deep(.btn-outline-success:hover) {
-  box-shadow: 0 0 0 3px rgba(var(--bs-success-rgb), 0.1);
-}
 
 /* 搜索容器样式 */
 .search-container {

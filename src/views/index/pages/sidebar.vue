@@ -2,9 +2,9 @@
   <div class="sidebar-container position-sticky top-0" :class="{ 'dark-mode': isDarkMode }">
     <!-- 个人信息卡片 -->
     <div class="card mt-2">
-      <div class="card-header">
-        <h6 class="mb-0">
-          <i class="bi bi-person-circle"></i>
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-person-circle me-2 text-secondary"></i>
           <span>个人信息</span>
         </h6>
       </div>
@@ -32,17 +32,17 @@
           <p v-else class="text-muted mb-3 user-bio">欢迎回来！</p>
           
           <div class="d-grid gap-2 mb-3">
-            <router-link :to="`/author/${store.comm.login.user.id}`" class="btn btn-primary btn-sm rounded-3 fw-medium py-2 text-decoration-none sidebar-btn">
+            <router-link :to="`/author/${store.comm.login.user.id}`" class="btn btn-outline-secondary btn-sm rounded-3 fw-medium py-2 text-decoration-none sidebar-btn">
               <i class="bi bi-person-circle me-1"></i>
               用户中心
             </router-link>
-            <button v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-warning btn-sm rounded-3 fw-medium py-2 sidebar-btn">
+            <button v-if="store.comm.login.user.role === 'admin'" class="btn btn-outline-secondary btn-sm rounded-3 fw-medium py-2 sidebar-btn">
               <i class="bi bi-gear me-1"></i>
               后台管理
             </button>
           </div>
           
-          <div class="mt-3 pt-3 border-top border-light-subtle user-stats">
+          <div class="mt-3 pt-3 border-top border-secondary-subtle user-stats">
             <div class="row g-2">
               <div class="col-4 text-center">
                 <div class="fw-bold fs-6 user-stat-value">{{ userStats.articleCount }}</div>
@@ -77,17 +77,17 @@
           <p class="text-muted mb-3 user-bio">登录后解锁更多功能</p>
           
           <div class="d-grid gap-2 mb-3">
-            <button class="btn btn-primary btn-sm rounded-3 fw-medium py-2 sidebar-btn" @click="$emit('showLogin')">
+            <button class="btn btn-outline-secondary btn-sm rounded-3 fw-medium py-2 sidebar-btn" @click="$emit('showLogin')">
               <i class="bi bi-box-arrow-in-right me-1"></i>
               立即登录
             </button>
-            <button class="btn btn-outline-primary btn-sm rounded-3 fw-medium py-2 sidebar-btn" @click="$emit('showRegister')">
+            <button class="btn btn-outline-secondary btn-sm rounded-3 fw-medium py-2 sidebar-btn" @click="$emit('showRegister')">
               <i class="bi bi-person-plus me-1"></i>
               注册账号
             </button>
           </div>
           
-          <div class="mt-3 pt-3 border-top border-light-subtle user-stats">
+          <div class="mt-3 pt-3 border-top border-secondary-subtle user-stats">
             <div class="row g-2">
               <div class="col-4 text-center">
                 <div class="fw-bold fs-6 user-stat-value">0</div>
@@ -109,9 +109,9 @@
 
     <!-- 等级排行卡片 -->
     <div class="card mt-2">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">
-          <i class="bi bi-trophy-fill text-warning"></i>
+      <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-trophy me-2 text-secondary"></i>
           <span>等级排行</span>
         </h6>
         <button 
@@ -126,7 +126,7 @@
       <div class="card-body">
         <div class="d-grid mb-3">
           <button 
-            class="btn btn-danger btn-sm rounded-3 fw-medium py-2 sidebar-btn sign-btn"
+            class="btn btn-outline-secondary btn-sm rounded-3 fw-medium py-2 sidebar-btn sign-btn"
             @click="doSign"
             :disabled="signLoading || hasSigned"
           >
@@ -215,9 +215,9 @@
 
     <!-- 热门文章卡片 -->
     <div class="card mt-2">
-      <div class="card-header">
-        <h6 class="mb-0">
-          <i class="bi bi-fire text-danger"></i>
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-fire me-2 text-secondary"></i>
           <span>热门文章</span>
         </h6>
       </div>
@@ -258,10 +258,8 @@
                 <div 
                   class="article-rank-badge"
                   :class="{
-                    'article-rank-badge-1': index === 0,
-                    'article-rank-badge-2': index === 1,
-                    'article-rank-badge-3': index === 2,
-                    'article-rank-badge-other': index > 2
+                    'article-rank-badge-top': index < 3,
+                    'article-rank-badge-other': index >= 3
                   }"
                 >
                   {{ index + 1 }}
@@ -289,9 +287,9 @@
 
     <!-- 最新评论卡片 -->
     <div class="card mt-2">
-      <div class="card-header">
-        <h6 class="mb-0">
-          <i class="bi bi-chat-dots-fill text-info"></i>
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-chat-dots me-2 text-secondary"></i>
           <span>最新评论</span>
         </h6>
       </div>
@@ -352,7 +350,7 @@
             </p>
 
             <!-- 关联文章 -->
-            <div class="d-flex align-items-center justify-content-between border-top border-light pt-2 mt-1">
+            <div class="d-flex align-items-center justify-content-between border-top border-secondary-subtle pt-2 mt-1">
               <a
                 href="#"
                 class="text-decoration-none fs-7 fw-medium d-flex align-items-center gap-1 comment-article-link"
@@ -369,9 +367,9 @@
 
     <!-- 标签云卡片 -->
     <div class="card mt-2">
-      <div class="card-header">
-        <h6 class="mb-0">
-          <i class="bi bi-tags-fill text-success"></i>
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-tags me-2 text-secondary"></i>
           <span>标签云</span>
         </h6>
       </div>
@@ -405,9 +403,9 @@
 
     <!-- 快捷导航 -->
     <div class="card mt-2">
-      <div class="card-header">
-        <h6 class="mb-0">
-          <i class="bi bi-compass text-purple"></i>
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-compass me-2 text-secondary"></i>
           <span>快捷导航</span>
         </h6>
       </div>
@@ -417,7 +415,6 @@
             <div 
               @click="router.push(nav.url)"
               class="nav-item cursor-pointer"
-              :style="{ '--nav-color': nav.color }"
             >
               <i :class="nav.icon" class="nav-item-icon"></i>
               <span class="nav-item-name">{{ nav.name }}</span>
@@ -471,12 +468,12 @@ const statsLoading = ref(false)
 // 快速导航数据（从配置中读取）
 const quickNavs = computed(() => {
   return store.comm.siteInfo.quick_navs || [
-    { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
-    { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
-    { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
-    { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
-    { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
-    { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+    { id: 1, name: '归档', icon: 'bi bi-archive', url: '/archive' },
+    { id: 2, name: '分类', icon: 'bi bi-folder', url: '/category/travel' },
+    { id: 3, name: '标签', icon: 'bi bi-tags', url: '/tags' },
+    { id: 4, name: '友链', icon: 'bi bi-link-45deg', url: '/links' },
+    { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
+    { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
   ]
 })
 
@@ -1123,29 +1120,28 @@ onMounted(() => {
 <style scoped>
 /* 卡片基础样式增强 */
 .card {
-  border: none;
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
   background-color: var(--bs-card-bg);
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
   border-bottom: 1px solid var(--bs-border-color);
   background-color: var(--bs-card-header-bg);
-  border-radius: 0.75rem 0.75rem 0 0;
-  padding: 1rem;
+  border-radius: calc(0.5rem - 1px) calc(0.5rem - 1px) 0 0;
+  padding: 0.75rem 1rem;
 }
 
 .card-body {
-  padding: 1.25rem;
+  padding: 1rem;
   background-color: var(--bs-card-bg);
-  border-radius: 0 0 0.75rem 0.75rem;
+  border-radius: 0 0 calc(0.5rem - 1px) calc(0.5rem - 1px);
 }
 
 /* 卡片标题样式 */
@@ -1158,28 +1154,24 @@ onMounted(() => {
 }
 
 .card-header h6 i {
-  margin-right: 0.75rem;
-  font-size: 1.1rem;
-  color: var(--bs-primary);
-  opacity: 0.8;
+  margin-right: 0.5rem;
+  font-size: 1rem;
 }
 
 .card-header h6 span {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--bs-heading-color);
-  letter-spacing: 0.025em;
 }
 
 /* 按钮样式 */
 .sidebar-btn {
   font-size: 0.875rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .sidebar-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  background-color: var(--bs-secondary-bg);
 }
 
 .sidebar-btn:active {
@@ -1195,11 +1187,11 @@ onMounted(() => {
   justify-content: center;
   border-radius: 0.375rem;
   transition: all 0.2s ease;
+  color: var(--bs-secondary);
 }
 
 .sidebar-btn-icon:hover {
-  transform: rotate(15deg);
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--bs-secondary-bg);
 }
 
 .user-avatar {
@@ -1243,24 +1235,18 @@ onMounted(() => {
 .sign-btn {
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .sign-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-}
-
-.sign-btn:active:not(:disabled) {
-  transform: translateY(0);
+  background-color: var(--bs-secondary-bg);
 }
 
 .sign-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-  transition: all 0.2s ease;
 }
 
 .sign-days {
@@ -1287,8 +1273,8 @@ onMounted(() => {
 }
 
 .rank-badge-top {
-  background-color: var(--bs-warning);
-  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+  background-color: var(--bs-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .rank-avatar {
@@ -1322,19 +1308,9 @@ onMounted(() => {
   color: var(--bs-white);
 }
 
-.article-rank-badge-1 {
-  background-color: var(--bs-danger);
-  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
-}
-
-.article-rank-badge-2 {
-  background-color: var(--bs-warning);
-  box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
-}
-
-.article-rank-badge-3 {
-  background-color: var(--bs-success);
-  box-shadow: 0 2px 4px rgba(25, 135, 84, 0.3);
+.article-rank-badge-top {
+  background-color: var(--bs-dark);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .article-rank-badge-other {
@@ -1391,7 +1367,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
   align-items: center;
   justify-content: flex-start;
 }
@@ -1399,23 +1375,20 @@ onMounted(() => {
 .tag-item {
   display: inline-block;
   padding: 0.375rem 0.75rem;
-  background-color: var(--bs-tertiary-bg);
+  background-color: var(--bs-secondary-bg);
   color: var(--bs-body-color);
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 1.5rem;
   text-decoration: none;
   border: 1px solid var(--bs-border-color);
-  transition: all 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
 .tag-item:hover {
-  background-color: var(--bs-primary);
+  background-color: var(--bs-dark);
   color: var(--bs-white);
-  border-color: var(--bs-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--bs-dark);
 }
 
 /* 快捷导航样式 */
@@ -1425,16 +1398,13 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 1rem 0.5rem;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--bs-border-color);
   text-decoration: none;
   color: var(--bs-body-color);
   min-height: 80px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   background-color: var(--bs-card-bg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
 }
 
 .cursor-pointer {
@@ -1442,32 +1412,30 @@ onMounted(() => {
 }
 
 .nav-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.08);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  border-color: var(--bs-primary);
+  background-color: var(--bs-secondary-bg);
+  border-color: var(--bs-secondary);
 }
 
 .nav-item-icon {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
-  color: var(--nav-color, var(--bs-primary));
-  transition: all 0.3s ease;
+  color: var(--bs-secondary);
+  transition: all 0.2s ease;
 }
 
 .nav-item:hover .nav-item-icon {
-  transform: scale(1.1);
+  color: var(--bs-dark);
 }
 
 .nav-item-name {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--bs-body-color);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .nav-item:hover .nav-item-name {
-  color: var(--bs-primary);
+  color: var(--bs-dark);
   font-weight: 600;
 }
 
@@ -1475,42 +1443,42 @@ onMounted(() => {
 .sidebar-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .sidebar-list-item {
   padding: 0.75rem;
-  border-radius: 0.5rem;
-  background-color: var(--bs-tertiary-bg);
+  border-radius: 0.375rem;
+  background-color: var(--bs-secondary-bg);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .sidebar-list-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: var(--bs-tertiary-bg);
+  background-color: var(--bs-secondary-bg);
+  border-color: var(--bs-border-color);
 }
 
 .sidebar-list-item-top {
-  background-color: rgba(255, 193, 7, 0.1);
-  border-left: 3px solid var(--bs-warning);
+  background-color: var(--bs-secondary-bg);
+  border-left: 3px solid var(--bs-dark);
 }
 
 .sidebar-article-item {
   padding: 0.75rem;
-  border-radius: 0.5rem;
-  background-color: var(--bs-tertiary-bg);
+  border-radius: 0.375rem;
+  background-color: var(--bs-secondary-bg);
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .sidebar-article-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: var(--bs-tertiary-bg);
+  background-color: var(--bs-secondary-bg);
+  border-color: var(--bs-border-color);
 }
 
 .sidebar-article-item .flex-grow-1 {
@@ -1528,25 +1496,25 @@ onMounted(() => {
 }
 
 .sidebar-article-item:hover h6.article-title {
-  color: var(--bs-primary);
+  color: var(--bs-dark);
 }
 
 .sidebar-comment-item {
   padding: 0.75rem;
-  border-radius: 0.5rem;
-  background-color: var(--bs-tertiary-bg);
+  border-radius: 0.375rem;
+  background-color: var(--bs-secondary-bg);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .sidebar-comment-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: var(--bs-tertiary-bg);
+  background-color: var(--bs-secondary-bg);
+  border-color: var(--bs-border-color);
 }
 
 .sidebar-comment-item:hover .comment-content {
-  color: var(--bs-primary);
+  color: var(--bs-dark);
   transition: color 0.2s ease;
 }
 
@@ -1779,7 +1747,7 @@ onMounted(() => {
 
 /* 骨架加载器样式 */
 .skeleton-loader {
-  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.1) 50%, var(--bs-tertiary-bg) 75%);
+  background: linear-gradient(90deg, var(--bs-secondary-bg) 25%, var(--bs-tertiary-bg) 50%, var(--bs-secondary-bg) 75%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
   border-radius: 0.25rem;
@@ -1796,43 +1764,39 @@ onMounted(() => {
 
 /* 深色模式适配 */
 .dark-mode {
-  border-color: var(--bs-border-color-dark);
+  border-color: var(--bs-border-color);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.dark-mode {
-  background-color: var(--bs-tertiary-bg-dark);
-  border-bottom-color: var(--bs-border-color-dark);
-}
-
 .dark-mode .sidebar-list-item {
-  background-color: var(--bs-tertiary-bg-dark);
+  background-color: var(--bs-secondary-bg);
 }
 
 .dark-mode .sidebar-list-item-top {
-  background-color: rgba(255, 193, 7, 0.15);
+  background-color: var(--bs-secondary-bg);
+  border-left-color: var(--bs-light);
 }
 
 .dark-mode .sidebar-article-item,
 .dark-mode .sidebar-comment-item {
-  background-color: var(--bs-tertiary-bg-dark);
+  background-color: var(--bs-secondary-bg);
 }
 
 .dark-mode .tag-item {
-  background-color: var(--bs-tertiary-bg-dark);
-  border-color: var(--bs-border-color-dark);
+  background-color: var(--bs-secondary-bg);
+  border-color: var(--bs-border-color);
 }
 
 .dark-mode .nav-item {
-  border-color: var(--bs-border-color-dark);
+  border-color: var(--bs-border-color);
 }
 
 .dark-mode .nav-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  background-color: var(--bs-tertiary-bg);
 }
 
 .dark-mode .skeleton-loader {
-  background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
+  background: linear-gradient(90deg, var(--bs-secondary-bg) 25%, var(--bs-tertiary-bg) 50%, var(--bs-secondary-bg) 75%);
   background-size: 200% 100%;
 }
 

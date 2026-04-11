@@ -11,6 +11,7 @@
     <span 
       v-if="noticeList.length > 0" 
       class="notice-badge position-absolute top-0 end-0 translate-middle badge rounded-pill bg-warning text-dark"
+      style="font-size: 0.75rem; padding: 0.25rem 0.5rem; min-width: 1.4rem; height: 1.4rem;"
     >
       {{ noticeList.length }}
     </span>
@@ -98,10 +99,10 @@
         <div class="modal-body">
           <!-- 公告信息 -->
           <div class="d-flex flex-wrap gap-2 mb-3">
-            <span class="badge bg-primary text-white">
+            <span class="badge text-bg-secondary">
               <i class="bi bi-tag me-1"></i>{{ currentNotice?.type || '系统公告' }}
             </span>
-            <span class="badge bg-secondary">
+            <span class="badge text-bg-secondary">
               <i class="bi bi-calendar3 me-1"></i>{{ formatDate(currentNotice?.create_time) }}
             </span>
           </div>
@@ -116,7 +117,7 @@
             <a
               :href="currentNotice.url"
               :target="currentNotice.target || '_blank'"
-              class="btn btn-primary"
+              class="btn btn-secondary"
             >
               <i class="bi bi-link-45deg me-1"></i>查看详情
             </a>
@@ -250,22 +251,28 @@ onUnmounted(() => {
 /* 悬浮按钮 - 适配Bootstrap5 */
 .notice-float-btn {
   position: fixed;
-  right: 1.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3.5rem;
-  height: 3.5rem;
-  background: linear-gradient(135deg, var(--bs-primary), #c73e54);
+  bottom: 90px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   border: none;
   color: #fff;
   font-size: 1.5rem;
-  z-index: 1055;
+  z-index: 998;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notice-float-btn:hover {
-  transform: translateY(-50%) scale(1.08);
+  transform: translateY(-3px);
   filter: brightness(1.1);
+}
+
+.notice-float-btn:active {
+  transform: translateY(0);
 }
 
 /* 核心丝滑弹窗动画 */
@@ -301,10 +308,11 @@ onUnmounted(() => {
 /* 响应式 */
 @media (max-width: 768px) {
   .notice-float-btn {
-    right: 1rem;
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.25rem;
+    bottom: 70px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
   }
 }
 
@@ -312,7 +320,7 @@ onUnmounted(() => {
 @media (prefers-color-scheme: dark) {
   :root { --bs-light: #212529; }
   .modal-content { background-color: #2b3035; color: #e9ecef; }
-  .modal-header { background-color: var(--bs-primary) !important; }
+  .modal-header { background-color: var(--bs-secondary) !important; }
   .list-group-item { background-color: #2b3035; border-color: #495057; color: #e9ecef; }
   .list-group-item:hover { background-color: #343a40; }
   .text-muted { color: #adb5bd !important; }

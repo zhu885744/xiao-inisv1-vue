@@ -132,7 +132,7 @@
           <!-- 文章标题 -->
           <h3 class="article-title fw-bold mb-1 m-0">
             <span v-if="article.top === 1" class="sticky-icon-inline me-1">
-              <i class="bi bi-pin-angle-fill text-warning"></i>
+              <i class="bi bi-pin-angle-fill text-secondary"></i>
             </span>
             {{ article.title }}
           </h3>
@@ -159,7 +159,7 @@
         <!-- 文章标题 -->
         <h3 class="article-title-list h5 fw-bold mb-2">
           <span v-if="article.top === 1" class="me-2">
-            <i class="bi bi-pin-angle-fill text-warning"></i>
+            <i class="bi bi-pin-angle-fill text-secondary"></i>
           </span>
           {{ article.title }}
         </h3>
@@ -751,8 +751,8 @@ onUnmounted(() => {
 
 /* 置顶文章特殊样式 */
 .sticky-article {
-  border-top: 4px solid #ffc107;
-  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.2);
+  border-top: 4px solid var(--bs-secondary);
+  box-shadow: 0 4px 16px rgba(108, 117, 125, 0.2);
 }
 
 /* 置顶徽章 */
@@ -760,7 +760,7 @@ onUnmounted(() => {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: linear-gradient(135deg, #ffc107, #ff9800);
+  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   color: white;
   font-size: 0.75rem;
   font-weight: bold;
@@ -791,7 +791,7 @@ onUnmounted(() => {
   padding-top: 66.67%;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef); /* 加载时的背景色 */
+  background: linear-gradient(135deg, var(--bs-light), var(--bs-secondary-bg)); /* 加载时的背景色 */
   border-radius: 0.75rem 0.75rem 0 0;
 }
 
@@ -862,19 +862,19 @@ img {
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 700;
-  color: #212529;
+  color: var(--bs-body-color);
   transition: color 0.3s ease;
   margin-bottom: 0.75rem !important;
 }
 
 .article-item-card:hover .article-title {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 摘要 */
 .article-desc {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
   line-height: 1.4;
   margin: 0 0 1rem 0;
   display: -webkit-box;
@@ -890,19 +890,19 @@ img {
   font-size: clamp(1.25rem, 2.2vw, 1.6rem);
   line-height: 1.4;
   font-weight: 700;
-  color: #212529;
+  color: var(--bs-body-color);
   transition: color 0.3s ease;
   margin-bottom: 0.75rem !important;
 }
 
 .article-item-list:hover .article-title-list {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 无图模式摘要 */
 .article-desc-list {
   font-size: 0.95rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
   line-height: 1.6;
   margin: 0.75rem 0 1.25rem 0;
   display: -webkit-box;
@@ -922,7 +922,7 @@ img {
 /* 元信息 */
 .article-meta {
   font-size: 0.75rem;
-  color: #868e96;
+  color: var(--bs-tertiary-color);
   line-height: 1.3;
   margin-top: auto;
 }
@@ -943,7 +943,7 @@ img {
 }
 
 .meta-item:hover {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 .meta-item .bi {
@@ -951,12 +951,12 @@ img {
   margin-right: 0.3rem;
   line-height: 1;
   vertical-align: middle;
-  color: #9ca3af;
+  color: var(--bs-tertiary-color);
   transition: color 0.3s ease;
 }
 
 .meta-item:hover .bi {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 无图模式元信息 */
@@ -965,11 +965,11 @@ img {
 }
 
 .article-item-list:hover .text-sm.text-secondary {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 .article-item-list:hover .text-sm.text-secondary .bi {
-  color: #007bff;
+  color: var(--bs-secondary);
 }
 
 /* 动画效果 */
@@ -1282,16 +1282,16 @@ img {
 }
 
 .sort-tab-btn:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-  color: #007bff;
+  background-color: rgba(108, 117, 125, 0.1);
+  color: var(--bs-secondary);
   transform: translateY(-1px);
 }
 
 .sort-tab-btn.active {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
 }
 
 .sort-tab-btn:first-child {
@@ -1319,11 +1319,6 @@ img {
 [data-bs-theme=dark] .sort-tab-btn:hover {
   background-color: rgba(0, 123, 255, 0.2);
   color: var(--bs-primary);
-}
-
-[data-bs-theme=dark] .sort-tab-btn.active {
-  background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark));
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
 }
 
 /* 分页样式 */
@@ -1364,16 +1359,16 @@ img {
 }
 
 .page-link:hover:not(.disabled) {
-  background: rgba(0, 123, 255, 0.1);
-  color: #007bff;
+  background: rgba(108, 117, 125, 0.1);
+  color: var(--bs-secondary);
   transform: translateY(-1px);
 }
 
 .page-item.active .page-link {
-  background: linear-gradient(135deg, #007bff, #0056b3);
+  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
   color: white;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
 }
 
 .page-item.disabled .page-link {
@@ -1608,6 +1603,10 @@ img {
     color: var(--bs-heading-color);
   }
   
+  .article-item-card:hover .article-title {
+    color: var(--bs-secondary);
+  }
+  
   /* 摘要 */
   .article-desc {
     color: var(--bs-secondary-color);
@@ -1616,6 +1615,10 @@ img {
   /* 无图模式标题 */
   .article-title-list {
     color: var(--bs-heading-color);
+  }
+  
+  .article-item-list:hover .article-title-list {
+    color: var(--bs-secondary);
   }
   
   /* 无图模式摘要 */
@@ -1628,18 +1631,35 @@ img {
     color: var(--bs-tertiary-color);
   }
   
+  .meta-item:hover {
+    color: var(--bs-secondary);
+  }
+  
   .meta-item .bi {
     color: var(--bs-tertiary-color);
   }
   
+  .meta-item:hover .bi {
+    color: var(--bs-secondary);
+  }
+  
+  /* 无图模式元信息 */
+  .article-item-list:hover .text-sm.text-secondary {
+    color: var(--bs-secondary);
+  }
+  
+  .article-item-list:hover .text-sm.text-secondary .bi {
+    color: var(--bs-secondary);
+  }
+  
   /* 加载动画 */
   .article-cover-img:not([src]) {
-    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background: linear-gradient(90deg, var(--bs-body-bg) 25%, var(--bs-secondary-bg) 50%, var(--bs-body-bg) 75%);
   }
   
   /* 骨架加载器暗黑模式 */
   .skeleton {
-    background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
+    background: linear-gradient(90deg, var(--bs-body-bg) 25%, var(--bs-secondary-bg) 50%, var(--bs-body-bg) 75%);
     background-size: 200% 100%;
   }
   
@@ -1654,12 +1674,12 @@ img {
   }
   
   .sort-tab-btn:hover {
-    background-color: rgba(0, 123, 255, 0.2);
-    color: var(--bs-primary);
+    background-color: rgba(108, 117, 125, 0.2);
+    color: var(--bs-secondary);
   }
   
   .sort-tab-btn.active {
-    background-color: var(--bs-primary);
+    background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
     color: white;
   }
   
@@ -1703,7 +1723,7 @@ img {
   
   /* 轮播图加载动画暗黑模式 */
   .carousel-item::before {
-    background: linear-gradient(135deg, #333 0%, #444 100%);
+    background: linear-gradient(135deg, var(--bs-body-bg) 0%, var(--bs-secondary-bg) 100%);
   }
   
   /* 分页暗黑模式 */
@@ -1717,14 +1737,36 @@ img {
   }
   
   .page-link:hover:not(.disabled) {
-    background: rgba(0, 123, 255, 0.2);
-    color: var(--bs-primary);
+    background: rgba(108, 117, 125, 0.2);
+    color: var(--bs-secondary);
+  }
+  
+  .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
+    color: white;
   }
   
   /* 悬停效果 */
   .article-item-card:hover,
   .article-item-list:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* 置顶文章 */
+  .sticky-article {
+    border-top: 4px solid var(--bs-secondary);
+    box-shadow: 0 4px 16px rgba(108, 117, 125, 0.3);
+  }
+  
+  /* 置顶徽章 */
+  .sticky-badge {
+    background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* 封面容器 */
+  .article-cover {
+    background: linear-gradient(135deg, var(--bs-body-bg), var(--bs-secondary-bg));
   }
 }
 </style>

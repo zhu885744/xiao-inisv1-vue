@@ -123,7 +123,7 @@
               <!-- 提交按钮 -->
               <button 
                 type="submit" 
-                class="btn btn-primary"
+                class="btn btn-secondary"
                 :disabled="passwordLoading"
               >
                 <i class="bi bi-key me-2"></i>
@@ -141,19 +141,19 @@
         <h6 class="card-title mb-3">安全提示</h6>
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
-            <i class="bi bi-shield-check text-success me-2"></i>
+            <i class="bi bi-shield-check text-secondary me-2"></i>
             建议使用字母、数字和特殊字符组合的密码
           </li>
           <li class="list-group-item">
-            <i class="bi bi-clock-history text-warning me-2"></i>
+            <i class="bi bi-clock-history text-secondary me-2"></i>
             定期更换密码，建议每3个月更换一次
           </li>
           <li class="list-group-item">
-            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+            <i class="bi bi-exclamation-triangle text-secondary me-2"></i>
             不要在多个网站使用相同的密码
           </li>
           <li class="list-group-item">
-            <i class="bi bi-lock text-info me-2"></i>
+            <i class="bi bi-lock text-secondary me-2"></i>
             不要将密码告诉他人，包括网站客服
           </li>
         </ul>

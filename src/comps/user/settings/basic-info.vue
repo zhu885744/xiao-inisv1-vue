@@ -196,7 +196,7 @@
               <div class="d-flex gap-2">
                 <button 
                   type="submit" 
-                  class="btn btn-primary"
+                  class="btn btn-secondary"
                   :disabled="loading"
                 >
                   <i class="bi bi-save me-2"></i>

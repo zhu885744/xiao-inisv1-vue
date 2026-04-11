@@ -110,13 +110,13 @@
 
             <!-- 提交按钮 -->
             <button 
-              type="submit" 
-              class="btn btn-primary"
-              :disabled="websiteLoading"
-            >
-              <i class="bi bi-save me-2"></i>
-              {{ websiteLoading ? '保存中...' : '保存网站信息' }}
-            </button>
+                type="submit" 
+                class="btn btn-secondary"
+                :disabled="websiteLoading"
+              >
+                <i class="bi bi-save me-2"></i>
+                {{ websiteLoading ? '保存中...' : '保存网站信息' }}
+              </button>
           </form>
         </div>
       </div>
@@ -168,7 +168,7 @@
                 <!-- 提交按钮 -->
                 <button 
                   type="submit" 
-                  class="btn btn-primary"
+                  class="btn btn-secondary"
                   :disabled="emailLoading"
                 >
                   <i class="bi bi-save me-2"></i>
@@ -226,7 +226,7 @@
                 <!-- 提交按钮 -->
                 <button 
                   type="submit" 
-                  class="btn btn-primary"
+                  class="btn btn-secondary"
                   :disabled="phoneLoading"
                 >
                   <i class="bi bi-save me-2"></i>
@@ -244,19 +244,19 @@
           <h6 class="card-title mb-3">安全提示</h6>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
-              <i class="bi bi-shield-check text-success me-2"></i>
+              <i class="bi bi-shield-check text-secondary me-2"></i>
               邮箱和手机号用于账号找回和安全验证
             </li>
             <li class="list-group-item">
-              <i class="bi bi-clock-history text-warning me-2"></i>
+              <i class="bi bi-clock-history text-secondary me-2"></i>
               验证码有效期为5分钟，请及时输入
             </li>
             <li class="list-group-item">
-              <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+              <i class="bi bi-exclamation-triangle text-secondary me-2"></i>
               请勿将验证码透露给他人
             </li>
             <li class="list-group-item">
-              <i class="bi bi-lock text-info me-2"></i>
+              <i class="bi bi-lock text-secondary me-2"></i>
               修改联系方式后，系统会自动同步用户信息
             </li>
           </ul>

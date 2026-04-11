@@ -643,23 +643,7 @@
                             placeholder="输入Bootstrap图标类名，如 bi bi-archive"
                           >
                         </div>
-                        <div class="col-md-6">
-                          <label :for="'nav-color-' + nav.id" class="form-label">图标颜色</label>
-                          <div class="input-group">
-                            <input 
-                              type="color" 
-                              class="form-control form-control-color rounded-3"
-                              :id="'nav-color-' + nav.id"
-                              v-model="nav.color"
-                            >
-                            <input 
-                              type="text" 
-                              class="form-control rounded-3 border-gray-300 shadow-sm"
-                              v-model="nav.color"
-                              placeholder="输入颜色值，如 #6f42c1"
-                            >
-                          </div>
-                        </div>
+
                       </div>
                     </div>
                   </div>
@@ -867,12 +851,12 @@ const globalConfig = ref({
 const sidebarConfig = ref({
   sidebar_enabled: true, // true为开启侧边栏，false为关闭侧边栏
   quick_navs: [
-    { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
-    { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
-    { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
-    { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
-    { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
-    { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+    { id: 1, name: '归档', icon: 'bi bi-archive', url: '/archive' },
+    { id: 2, name: '分类', icon: 'bi bi-folder', url: '/category/travel' },
+    { id: 3, name: '标签', icon: 'bi bi-tags', url: '/tags' },
+    { id: 4, name: '友链', icon: 'bi bi-link-45deg', url: '/links' },
+    { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
+    { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
   ]
 })
 
@@ -1079,14 +1063,23 @@ async function getSidebarConfig() {
     if (response.code === 200 && response.data) {
       const config = response.data.json || {}
       sidebarConfig.value.sidebar_enabled = config.sidebar_enabled !== false // 默认值为true
-      sidebarConfig.value.quick_navs = config.quick_navs || [
-        { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
-        { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
-        { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
-        { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
-        { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
-        { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
-      ]
+      
+      // 处理快捷导航配置，移除color字段
+      if (config.quick_navs) {
+        sidebarConfig.value.quick_navs = config.quick_navs.map(nav => {
+          const { color, ...navWithoutColor } = nav
+          return navWithoutColor
+        })
+      } else {
+        sidebarConfig.value.quick_navs = [
+          { id: 1, name: '归档', icon: 'bi bi-archive', url: '/archive' },
+          { id: 2, name: '分类', icon: 'bi bi-folder', url: '/category/travel' },
+          { id: 3, name: '标签', icon: 'bi bi-tags', url: '/tags' },
+          { id: 4, name: '友链', icon: 'bi bi-link-45deg', url: '/links' },
+          { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
+          { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
+        ]
+      }
     }
   } catch (error) {
     console.error('获取侧边栏配置失败:', error)
@@ -1103,7 +1096,6 @@ function addNavItem() {
     id: newId,
     name: '新导航',
     icon: 'bi bi-link',
-    color: '#007bff',
     url: '/'
   })
 }
@@ -1186,12 +1178,12 @@ function resetSidebarConfig() {
   sidebarConfig.value = {
     sidebar_enabled: true,
     quick_navs: [
-      { id: 1, name: '归档', icon: 'bi bi-archive', color: '#6f42c1', url: '/archive' },
-      { id: 2, name: '分类', icon: 'bi bi-folder', color: '#20c997', url: '/category/travel' },
-      { id: 3, name: '标签', icon: 'bi bi-tags', color: '#0dcaf0', url: '/tags' },
-      { id: 4, name: '友链', icon: 'bi bi-link-45deg', color: '#fd7e14', url: '/links' },
-      { id: 5, name: '关于', icon: 'bi bi-info-circle', color: '#6610f2', url: '/about' },
-      { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', color: '#d63384', url: '/message' }
+      { id: 1, name: '归档', icon: 'bi bi-archive', url: '/archive' },
+      { id: 2, name: '分类', icon: 'bi bi-folder', url: '/category/travel' },
+      { id: 3, name: '标签', icon: 'bi bi-tags', url: '/tags' },
+      { id: 4, name: '友链', icon: 'bi bi-link-45deg', url: '/links' },
+      { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
+      { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
     ]
   }
 }

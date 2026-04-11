@@ -71,7 +71,7 @@
 
                                 <div class="mb-3">
                                     <button type="submit" 
-                                            class="btn btn-primary w-100"
+                                            class="btn btn-secondary w-100"
                                             :disabled="state.item.wait || !isLoginFormValid">
                                         <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status"></span>
                                         {{ state.item.wait ? '登录中...' : '登录' }}
@@ -97,7 +97,7 @@
                                     </div>
                                     <div class="col">
                                         <button type="button" 
-                                                class="btn btn-outline-primary w-100"
+                                                class="btn btn-outline-secondary w-100"
                                                 v-if="parseInt(store.config.getAllowRegister?.value) === 1"
                                                 @click="method.switchType('register')">
                                             注册帐号
@@ -179,7 +179,7 @@
                                                autocomplete="username"
                                                :class="{ 'is-invalid': state.errors.code, 'is-valid': state.valid.code }">
                                         <button type="button" 
-                                                class="btn btn-outline-primary" 
+                                                class="btn btn-outline-secondary" 
                                                 @click="method.code('register')"
                                                 :disabled="state.item.loading || !state.valid.social">
                                             <span v-if="state.item.loading" class="spinner-border spinner-border-sm me-1"></span>
@@ -267,7 +267,7 @@
                                     </div>
                                     <div class="col">
                                         <button type="submit" 
-                                                class="btn btn-primary w-100"
+                                                class="btn btn-secondary w-100"
                                                 :disabled="state.item.wait || !isRegisterFormValid">
                                             <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
                                             {{ state.item.wait ? '注册中...' : '注册' }}
@@ -308,7 +308,7 @@
                                                autocomplete="username"
                                                :class="{ 'is-invalid': state.errors.code, 'is-valid': state.valid.code }">
                                         <button type="button" 
-                                                class="btn btn-outline-primary" 
+                                                class="btn btn-outline-secondary" 
                                                 @click="method.code('reset')"
                                                 :disabled="state.item.loading || !state.valid.social">
                                             <span v-if="state.item.loading" class="spinner-border spinner-border-sm me-1"></span>
@@ -409,7 +409,7 @@
                                     </div>
                                     <div class="col">
                                         <button type="submit" 
-                                                class="btn btn-primary w-100"
+                                                class="btn btn-secondary w-100"
                                                 :disabled="state.item.wait || !isResetFormValid">
                                             <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2"></span>
                                             {{ state.item.wait ? '重置中...' : '重置密码' }}
@@ -732,10 +732,10 @@ const getPasswordStrength = computed(() => {
 
 const getPasswordStrengthClass = computed(() => {
     const strength = parseInt(getPasswordStrength.value)
-    if (strength < 25) return 'bg-danger'
-    if (strength < 50) return 'bg-warning'
-    if (strength < 75) return 'bg-info'
-    return 'bg-success'
+    if (strength < 25) return 'bg-secondary'
+    if (strength < 50) return 'bg-secondary'
+    if (strength < 75) return 'bg-secondary'
+    return 'bg-secondary'
 })
 
 const getPasswordStrengthText = computed(() => {
@@ -1477,7 +1477,7 @@ defineExpose({
 }
 
 .modal-body .text-muted a:hover {
-    color: var(--bs-primary) !important;
+    color: var(--bs-secondary) !important;
     text-decoration: underline !important;
     opacity: 0.8;
 }

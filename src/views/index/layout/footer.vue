@@ -102,7 +102,7 @@ const siteTitle = computed(() => {
 // ICP备案
 const hasIcp = computed(() => !!siteInfo.value?.copy?.code)
 const icpCode = computed(() => siteInfo.value?.copy?.code || '请在后台填写备案号')
-const icpLink = computed(() => siteInfo.value?.copy?.link || 'http://beian.miit.gov.cn/')
+const icpLink = computed(() => siteInfo.value?.copy?.link || 'https://beian.miit.gov.cn/#/Integrated/index')
 
 // 公安备案
 const hasPolice = computed(() => !!siteInfo.value?.police?.code)

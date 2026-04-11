@@ -10,7 +10,7 @@
           </h5>
           <button 
             @click="checkForUpdates" 
-            class="btn btn-sm btn-outline-primary rounded-3 px-4 py-1.5 transition-all hover:bg-primary hover:text-white"
+            class="btn btn-sm btn-outline-secondary rounded-3 px-4 py-1.5 transition-all hover:bg-secondary hover:text-white"
             :disabled="loading"
           >
             <i class="bi" :class="loading ? 'bi-arrow-clockwise spin' : 'bi-refresh'">
@@ -34,7 +34,7 @@
         <p class="mt-3 text-muted">{{ error }}</p>
         <button 
           @click="checkForUpdates" 
-          class="btn btn-sm btn-outline-primary mt-3"
+          class="btn btn-sm btn-outline-secondary mt-3"
         >
           重试
         </button>
@@ -48,7 +48,7 @@
             <i class="bi bi-info-circle  fs-5"></i>
             当前版本信息
           </h6>
-          <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10  border border-primary/20">
+          <div class="p-4 bg-secondary-subtle  border border-secondary/20">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="text-gray-600">主题名称</span>
               <span class="fw-medium">{{ themeName }}</span>
@@ -70,13 +70,13 @@
             <i class="bi bi-star  fs-5"></i>
             最新版本信息
           </h6>
-          <div class="p-4" :class="hasUpdate ? 'bg-gradient-to-r from-success/10 to-secondary/10  border border-success/20' : 'bg-gradient-to-r from-info/10 to-secondary/10  border border-info/20'">
+          <div class="p-4 bg-secondary-subtle border border-secondary/20">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="text-gray-600">最新版本</span>
               <span class="fw-bold" :class="hasUpdate ? 'text-success' : 'text-info'">
                 {{ latestVersion.version }}
-                <span v-if="hasUpdate" class="badge bg-success ms-2">新版本</span>
-                <span v-else class="badge bg-info ms-2">当前最新</span>
+                <span v-if="hasUpdate" class="badge text-bg-secondary ms-2">新版本</span>
+                <span v-else class="badge text-bg-secondary ms-2">当前最新</span>
               </span>
             </div>
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -97,14 +97,14 @@
                 :href="latestVersion.url" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                class="btn btn-success"
+                class="btn btn-secondary"
               >
                 <i class="bi bi-download">下载最新版本</i>
               </a>
               
               <!-- 更新步骤提示 -->
-              <div class="p-4  border border-info/20">
-                <h6 class="fw-bold mb-2 text-info">更新步骤：</h6>
+              <div class="p-4  border border-secondary/20">
+                <h6 class="fw-bold mb-2 text-secondary">更新步骤：</h6>
                 <ol class="list-decimal pl-4 mb-0">
                   <li class="mb-1">删除主题目录内的 <code>static</code> 文件夹和 <code>index.html</code> 文件</li>
                   <li class="mb-1">上传下载的压缩包到主题目录</li>
@@ -125,8 +125,8 @@
             <i class="bi bi-search  fs-5"></i>
             版本检查
           </h6>
-          <div class="p-4 bg-gradient-to-r from-info/10 to-secondary/10 border border-info/20 text-center">
-            <i class="bi bi-info-circle text-info fs-1 mb-3"></i>
+          <div class="p-4 bg-secondary-subtle border border-secondary/20 text-center">
+            <i class="bi bi-info-circle text-secondary fs-1 mb-3"></i>
             <p class="text-muted">点击右上角按钮检查是否有新版本</p>
           </div>
         </div>
