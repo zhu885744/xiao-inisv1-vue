@@ -35,42 +35,29 @@ export default defineConfig(({ mode }) => {
 
       rollupOptions: {
         output: {
-          // 【终极拆包：把超大的编辑器拆成 N 个小文件】
+          // 简化打包配置，避免编辑器插件打包问题
           manualChunks(id) {
-            // 1. 高亮库（瘦身成功）
+            // 1. 高亮库
             if (id.includes('highlight.js')) {
               return 'highlight'
             }
-            // 2. 编辑器核心（单独打包，不与语言混在一起）
-            if (id.includes('codemirror') || id.includes('@codemirror')) {
-              // 核心编辑器
-              if (id.includes('codemirror/lib/codemirror.js') || id.includes('@codemirror/autocomplete') || id.includes('@codemirror/state') || id.includes('@codemirror/view')) {
-                return 'editor-core'
-              }
-              // 编辑器语言（自动拆分小文件）
-              if (id.match(/lang-[a-z]+/i) || id.includes('mode-') || id.includes('language-')) {
-                return 'editor-lang'
-              }
-              // 编辑器插件
-              return 'editor-plugin'
-            }
-            // 3. Vue 全家桶
+            // 2. Vue 全家桶
             if (id.includes('node_modules/vue') || id.includes('vue-router') || id.includes('pinia')) {
               return 'vue'
             }
-            // 4. Bootstrap
+            // 3. Bootstrap
             if (id.includes('bootstrap') || id.includes('@popperjs/core')) {
               return 'bootstrap'
             }
-            // 5. 弹出层
+            // 4. 弹出层
             if (id.includes('@fancyapps/ui')) {
               return 'fancybox'
             }
-            // 6. 解析器
+            // 5. 解析器
             if (id.includes('marked')) {
               return 'marked'
             }
-            // 7. 工具
+            // 6. 工具
             if (id.includes('axios') || id.includes('crypto-js') || id.includes('qs')) {
               return 'utils'
             }

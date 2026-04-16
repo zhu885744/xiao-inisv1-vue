@@ -37,8 +37,8 @@
     <div v-else-if="isAdmin" class="config-content">
       <!-- 导航标签 -->
       <div class="card config-tabs-container mb-2">
-        <div class="tabs-wrapper">
-          <ul class="nav nav-tabs config-nav-tabs" id="configTabs" role="tablist">
+        <div class="tabs-wrapper overflow-x-auto scrollbar-hide" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
+          <ul class="nav nav-tabs config-nav-tabs flex-nowrap" id="configTabs" role="tablist">
             <li class="nav-item" role="presentation">
               <button 
                 class="nav-link active" 
@@ -1930,10 +1930,6 @@ onMounted(async () => {
 
 /* 响应式设计 */
 @media (max-width: 992px) {
-  .config-page {
-    padding: 1.5rem 0;
-  }
-  
   .config-header {
     margin-bottom: 2rem;
   }
@@ -1957,10 +1953,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  .config-page {
-    padding: 1rem 0;
-  }
-  
   .config-tabs-container {
     margin-bottom: 2rem;
   }
@@ -2025,6 +2017,16 @@ onMounted(async () => {
     background-color: var(--bs-dark-bg);
     border-color: var(--bs-dark-border-color);
     color: var(--bs-dark-text);
+  }
+
+  /* 隐藏滚动条 */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 </style>

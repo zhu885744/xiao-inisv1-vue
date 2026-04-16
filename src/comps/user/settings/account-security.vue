@@ -56,19 +56,6 @@
                 autocomplete="username"
                 :value="store.getLogin.user.username || store.getLogin.user.account"
               >
-              <!-- 当前密码 -->
-              <div class="mb-3">
-                <label for="currentPassword" class="form-label">当前密码</label>
-                <input 
-                  type="password" 
-                  id="currentPassword" 
-                  v-model="passwordForm.currentPassword" 
-                  class="form-control"
-                  placeholder="请输入当前密码"
-                  autocomplete="current-password"
-                >
-              </div>
-
               <!-- 新密码 -->
               <div class="mb-3">
                 <label for="newPassword" class="form-label">新密码</label>
@@ -173,7 +160,6 @@ const store = useCommStore()
 // 密码表单数据
 const passwordForm = reactive({
   id: '',
-  currentPassword: '',
   newPassword: '',
   confirmPassword: ''
 })
@@ -236,11 +222,6 @@ const passwordStrengthClass = computed(() => {
 const updatePassword = async () => {
   if (passwordLoading.value) return
   
-  if (!passwordForm.currentPassword) {
-    toast.error('请输入当前密码')
-    return
-  }
-  
   if (!passwordForm.newPassword) {
     toast.error('请输入新密码')
     return
@@ -256,6 +237,11 @@ const updatePassword = async () => {
     return
   }
 
+  // 二次确认
+  if (!confirm('确定要修改密码吗？修改后需要重新登录。')) {
+    return
+  }
+
   passwordLoading.value = true
   try {
     const res = await request.put('/api/users/update', {
@@ -268,7 +254,6 @@ const updatePassword = async () => {
       // 同步用户信息
       await syncUserInfo()
       // 清空表单
-      passwordForm.currentPassword = ''
       passwordForm.newPassword = ''
       passwordForm.confirmPassword = ''
       // 可以选择跳转到登录页重新登录
