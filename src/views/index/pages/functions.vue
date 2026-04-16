@@ -573,6 +573,23 @@
             <div class="card shadow-sm">
               <div class="card-body p-3">
               <form class="comment-config-form">
+                <!-- 全局评论开关 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">全局设置</h3>
+                  <div class="form-check mb-4">
+                    <input 
+                      class="form-check-input rounded border-gray-300"
+                      type="checkbox" 
+                      id="comment_enabled"
+                      v-model="commentConfig.enabled"
+                    >
+                    <label class="form-check-label" for="comment_enabled">
+                      启用全局评论功能
+                    </label>
+                  </div>
+                  <div class="form-text text-muted mt-1">关闭后，所有页面的评论模块将无法进行评论</div>
+                </div>
+                
                 <!-- 速率限制 -->
                 <div class="form-section mb-6">
                   <h3 class="form-section-title mb-4 fw-medium text-gray-700">速率限制</h3>
@@ -1111,6 +1128,7 @@ setDynamicTitle('站点配置')
 
 // 响应式数据
 const commentConfig = ref({
+  enabled: true, // 全局评论开关
   rate_limit: {
     enabled: true,
     max_count: 5,
@@ -1226,6 +1244,7 @@ async function getCommentConfig() {
       const config = response.data.json || {}
       // 填充表单
       commentConfig.value = {
+        enabled: config.enabled === 1, // 全局评论开关
         rate_limit: {
           enabled: config.rate_limit?.enabled === 1,
           max_count: config.rate_limit?.max_count || 5,
@@ -1326,6 +1345,7 @@ async function saveCommentConfig() {
   try {
     // 构建配置对象
     const config = {
+      enabled: commentConfig.value.enabled ? 1 : 0, // 全局评论开关
       rate_limit: {
         enabled: commentConfig.value.rate_limit.enabled ? 1 : 0,
         max_count: commentConfig.value.rate_limit.max_count || 5,

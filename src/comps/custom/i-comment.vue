@@ -9,8 +9,13 @@
       </h3>
     </div>
     <div class="card-body">
+      <!-- 评论功能关闭提示 -->
+      <div v-if="!isCommentEnabled" class="text-center py-5 text-muted">
+        <i class="bi bi-chat-x fs-3 mb-2"></i>
+        <p class="text-sm text-muted mt-2">感谢您的关注，评论功能正在维护中</p>
+      </div>
       <!-- 评论输入框：仅登录状态显示 -->
-      <div class="mb-5" v-if="isLogin">
+      <div class="mb-5" v-if="isCommentEnabled && isLogin">
         <textarea 
           v-model="commentInput"
           class="form-control border border-secondary-subtle bg-body" 
@@ -69,7 +74,7 @@
       </div>
 
       <!-- 未登录引导区：Bootstrap 深色模式适配 -->
-      <div class="mb-5 p-4 bg-body text-center border" v-else>
+      <div class="mb-5 p-4 bg-body text-center border" v-else-if="isCommentEnabled && !isLogin">
         <i class="bi bi-person-circle fs-3  mb-2"></i>
         <p class="mb-3 text-muted">登录后即可发表评论～</p>
         <div class="d-flex gap-2 justify-content-center">
@@ -89,7 +94,7 @@
       </div>
 
       <!-- 评论列表：接收props的评论数据，无数据时展示提示 -->
-      <div class="comments-list" v-if="processedCommentList.length > 0">
+      <div class="comments-list" v-if="isCommentEnabled && processedCommentList.length > 0">
         <div 
           class="comment-item pb-4 mb-4 border-bottom border-secondary-subtle"
           v-for="(item, index) in processedCommentList" 
@@ -292,12 +297,12 @@
       </div>
 
       <!-- 无评论提示 -->
-      <div v-else class="text-center py-5 text-muted">
+      <div v-else-if="isCommentEnabled" class="text-center py-5 text-muted">
         <p class="mb-0 h6">暂无评论，快来抢沙发吧～</p>
       </div>
 
       <!-- 分页控件 -->
-      <div v-if="totalComments > pageSize" class="mt-4">
+      <div v-if="isCommentEnabled && totalComments > pageSize" class="mt-4">
         <nav aria-label="评论分页">
           <ul class="pagination justify-content-center">
             <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -398,6 +403,8 @@ const commentLikeCounts = ref(new Map())
 
 // 评论配置
 const commentConfig = ref({})
+// 评论功能是否开启
+const isCommentEnabled = ref(true)
 // 速率限制相关
 const lastCommentTime = ref(0)
 const isCommenting = ref(false)
@@ -1081,6 +1088,8 @@ onMounted(async () => {
   // 获取评论配置
   const config = await getCommentConfig()
   commentConfig.value = config
+  // 检查评论功能是否开启
+  isCommentEnabled.value = config.enabled !== 0
   // 应用评论配置
   applyCommentConfig()
   

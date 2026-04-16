@@ -341,8 +341,14 @@
                   </h3>
                 </div>
                 <div class="card-body">
+                  <!-- 评论功能关闭提示 -->
+                  <div v-if="!isCommentEnabled" class="text-center py-5 text-muted">
+                    <i class="bi bi-chat-x fs-3 mb-2"></i>
+                    <p class="text-sm text-muted mt-2">感谢您的关注，留言功能正在维护中</p>
+                  </div>
+                  
                   <!-- 留言输入框：仅登录状态显示 -->
-                  <div class="mb-5" v-if="isLogin">
+                  <div class="mb-5" v-else-if="isLogin">
                     <textarea 
                       v-model="messageInput"
                       class="form-control border border-secondary-subtle bg-body" 
@@ -401,7 +407,7 @@
                   </div>
 
                   <!-- 未登录引导区 -->
-                  <div class="mb-5 p-4 bg-body text-center border" v-else>
+                  <div class="mb-5 p-4 bg-body text-center border" v-else-if="!isLogin">
                     <i class="bi bi-person-circle fs-3  mb-2"></i>
                     <p class="mb-3 text-muted">登录后即可发表留言～</p>
                     <div class="d-flex gap-2 justify-content-center">
@@ -421,7 +427,7 @@
                   </div>
 
                   <!-- 留言列表 -->
-                  <div v-if="commentList.length > 0">
+                  <div v-if="isCommentEnabled && commentList.length > 0">
                     <div ref="messagesGrid" class="messages-grid">
                       <div 
                         class="message-item" 
@@ -496,7 +502,7 @@
                   </div>
                   
                   <!-- 无留言提示 -->
-                  <div v-else class="text-center py-5 text-muted">
+                  <div v-else-if="isCommentEnabled" class="text-center py-5 text-muted">
                     <p class="mb-0 h6">暂无留言，快来抢沙发吧～</p>
                   </div>
                   
@@ -509,8 +515,14 @@
                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                          <!-- 评论功能关闭提示 -->
+                          <div v-if="!isCommentEnabled" class="text-center py-4 text-muted">
+                            <i class="bi bi-chat-x fs-3 mb-2"></i>
+                            <p class="mb-0">留言功能暂时关闭</p>
+                          </div>
+                          
                           <!-- 回复列表 -->
-                          <div v-if="selectedMessage && selectedMessage.replies && selectedMessage.replies.length > 0">
+                          <div v-else-if="selectedMessage && selectedMessage.replies && selectedMessage.replies.length > 0">
                             <div 
                               class="reply-item mb-3 p-3 border rounded-3" 
                               v-for="(reply, index) in selectedMessage.replies" 
@@ -537,12 +549,12 @@
                               <p class="mb-0 px-2 py-1 bg-body-tertiary" v-html="processMessageContent(reply.content || '')"></p>
                             </div>
                           </div>
-                          <div v-else class="text-center py-3 text-muted">
+                          <div v-else-if="isCommentEnabled" class="text-center py-3 text-muted">
                             <p class="mb-0">暂无回复</p>
                           </div>
                           
                           <!-- 回复输入框 -->
-                          <div class="mt-4" v-if="isLogin">
+                          <div class="mt-4" v-if="isCommentEnabled && isLogin">
                             <h6 class="mb-2">回复 {{ selectedMessage?.result?.author?.nickname || selectedMessage?.author?.nickname || selectedMessage?.nickname || '用户' }}:</h6>
                             <textarea 
                               v-model="replyInput"
@@ -583,7 +595,7 @@
                           </div>
                         </div>
                         <div class="modal-footer">
-                          <div class="w-100" v-if="isLogin">
+                          <div class="w-100" v-if="isCommentEnabled && isLogin">
                             <div class="d-flex gap-2">
                               <button 
                                 @click="toggleReplyEmojiPicker"
@@ -610,7 +622,7 @@
                   </div>
 
                   <!-- 分页控件 -->
-                  <div v-if="totalComments > pageSize" class="mt-4">
+                  <div v-if="isCommentEnabled && totalComments > pageSize" class="mt-4">
                     <nav aria-label="留言分页">
                       <ul class="pagination justify-content-center">
                         <li class="page-item" :class="{ disabled: currentPage === 1 }">
@@ -949,6 +961,9 @@ const showMessageEmojiPicker = ref(false)
 const showReplyEmojiPicker = ref(false)
 // 发布状态
 const isPublishingMessage = ref(false)
+// 评论配置
+const commentConfig = ref({})
+const isCommentEnabled = ref(true)
 
 // 表情数据
 const owoEmojis = ref(OwOData)
@@ -992,6 +1007,24 @@ const checkPageKey = (key) => {
     return false
   }
   return true
+}
+
+/**
+ * 获取评论配置
+ */
+const getCommentConfig = async () => {
+  try {
+    const response = await request.get('/api/config/one', {
+      key: 'COMMENT'
+    })
+    if (response.code === 200 && response.data) {
+      return response.data.json || {}
+    }
+    return {}
+  } catch (error) {
+    console.error('获取评论配置失败:', error)
+    return {}
+  }
 }
 
 /**
@@ -1745,6 +1778,12 @@ const getMessagePageData = async () => {
       // 更新浏览量
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '留言板')
+      
+      // 获取评论配置
+      const config = await getCommentConfig()
+      commentConfig.value = config
+      // 检查评论功能是否开启
+      isCommentEnabled.value = config.enabled !== 0
     } else {
       error.value = true
       errorMsg.value = '未找到留言页面配置，请联系管理员检查后台'
@@ -1994,6 +2033,14 @@ const handlePublishMessage = async () => {
   const content = messageInput.value.trim()
   if (!content) return
   
+  // 检查评论功能是否开启
+  if (!isCommentEnabled.value) {
+    if (window.Toast) {
+      window.Toast.error('留言功能暂时关闭')
+    }
+    return
+  }
+  
   isPublishingMessage.value = true
   
   try {
@@ -2073,6 +2120,14 @@ const toggleReplyForm = (index, replyIndex = null) => {
 const handleSubmitReply = async (commentId) => {
   const content = replyInput.value.trim()
   if (!content || !commentId) return
+  
+  // 检查评论功能是否开启
+  if (!isCommentEnabled.value) {
+    if (window.Toast) {
+      window.Toast.error('留言功能暂时关闭')
+    }
+    return
+  }
   
   isPublishingMessage.value = true
   
