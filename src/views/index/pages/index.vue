@@ -1,12 +1,12 @@
 <template>
   <!-- 轮播图 -->
-  <div v-if="banners.length > 0 || bannersLoading" class="mt-2">
+  <div v-if="banners.length > 0 || bannersLoading" class="mt-2 rounded">
     <!-- 轮播图加载中 -->
-    <div v-if="bannersLoading" class="carousel-loading card shadow-sm">
+    <div v-if="bannersLoading" class="carousel-loading card shadow-sm rounded">
       <div class="skeleton skeleton-carousel"></div>
     </div>
     <!-- 轮播图内容 -->
-    <div v-else id="carouselExampleControls" class="carousel slide position-relative">
+    <div v-else id="carouselExampleControls" class="carousel slide position-relative rounded">
       <div class="carousel-inner">
         <div 
           v-for="(banner, index) in banners" 
@@ -18,7 +18,7 @@
             <img 
               :src="banner.image" 
               :alt="banner.title" 
-              class="d-block w-100 carousel-img"
+              class="d-block w-100 carousel-img rounded"
             >
           </a>
         </div>
@@ -31,24 +31,6 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Next</span>
       </button>
-    </div>
-  </div>
-
-  <!-- 排序选项 -->
-  <div class="mt-2">
-    <div class="card shadow-sm p-3">
-      <div class="d-flex flex-column">
-        <div class="sort-tabs d-flex border overflow-hidden">
-          <button 
-            v-for="(option, index) in sortOptions" 
-            :key="index"
-            :class="['sort-tab-btn', { active: order === option.value }]"
-            @click="setSortOption(option.value)"
-          >
-            {{ option.label }}
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -297,13 +279,7 @@ const currentPage = ref(1)
 const limit = ref(9)
 const total = ref(0)
 const order = ref('top desc, create_time desc')
-// 排序选项
-const sortOptions = [
-  { label: '最新发布', value: 'top desc, create_time desc' },
-  { label: '最多浏览', value: 'views desc' },
-  { label: '最新更新', value: 'update_time desc' },
-  { label: '按 ID 排序', value: 'id asc' }
-]
+
 // 显示模式：true为有图模式（网格布局），false为无图模式（列表布局）
 const hasImageMode = ref(true)
 // 轮播图数据
@@ -367,13 +343,6 @@ const changePage = (page) => {
 
 // 处理排序变化
 const handleSortChange = () => {
-  currentPage.value = 1
-  getArticleList(1)
-}
-
-// 设置排序选项
-const setSortOption = (value) => {
-  order.value = value
   currentPage.value = 1
   getArticleList(1)
 }
@@ -1068,7 +1037,7 @@ img {
 
 /* 轮播图样式 */
 .carousel-img {
-  height: 400px;
+  height: 300px;
   object-fit: cover;
   transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   width: 100%;
@@ -1101,6 +1070,8 @@ img {
 
 .carousel-item {
   transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 0.25rem;
+  overflow: hidden;
 }
 
 .carousel-item:hover .carousel-img {
@@ -1158,6 +1129,7 @@ img {
   justify-content: center;
   visibility: visible !important;
   z-index: 10;
+  border-radius: 50%;
 }
 
 #carouselExampleControls .carousel-control-prev {
@@ -1187,6 +1159,7 @@ img {
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: block !important;
   visibility: visible !important;
+  border-radius: 0.25rem;
 }
 
 #carouselExampleControls .carousel-control-prev:hover .carousel-control-prev-icon,
@@ -1253,72 +1226,6 @@ img {
 .carousel-item img {
   position: relative;
   z-index: 2;
-}
-
-/* 排序Tab样式 */
-.sort-tabs {
-  width: 100%;
-  display: flex;
-  border: 1px solid #dee2e6;
-  border-radius: 1rem;
-  overflow: hidden;
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.sort-tab-btn {
-  flex: 1;
-  padding: 0.6rem 1.2rem;
-  border: none;
-  background: transparent;
-  color: #6c757d;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.sort-tab-btn:hover {
-  background-color: rgba(108, 117, 125, 0.1);
-  color: var(--bs-secondary);
-  transform: translateY(-1px);
-}
-
-.sort-tab-btn.active {
-  background: linear-gradient(135deg, var(--bs-secondary), var(--bs-dark));
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.4);
-}
-
-.sort-tab-btn:first-child {
-  border-top-left-radius: 1rem;
-  border-bottom-left-radius: 1rem;
-}
-
-.sort-tab-btn:last-child {
-  border-top-right-radius: 1rem;
-  border-bottom-right-radius: 1rem;
-}
-
-/* 排序按钮点击效果 */
-.sort-tab-btn:active {
-  transform: translateY(0);
-}
-
-/* 暗黑模式排序Tab优化 */
-[data-bs-theme=dark] .sort-tabs {
-  border-color: var(--bs-border-color);
-  background-color: var(--bs-body-bg);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-[data-bs-theme=dark] .sort-tab-btn:hover {
-  background-color: rgba(0, 123, 255, 0.2);
-  color: var(--bs-primary);
 }
 
 /* 分页样式 */

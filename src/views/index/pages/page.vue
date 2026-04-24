@@ -656,28 +656,28 @@
         <main class="article-content-wrap card shadow-sm mt-2">
           <div class="p-3">
           <!-- 页面头部：标题+元信息 -->
-            <header class="article-header mt-2">
-              <h1 class="article-title text-center fw-bold mb-3">{{ pageInfo.title }}</h1>
-              <!-- 文章元信息：居中布局、弱化样式 -->
-              <div class="article-meta d-flex flex-wrap justify-content-center align-items-center text-muted gap-4 fs-6">
-                <span class="meta-item d-flex align-items-center">
-                  <i class="bi bi-person-fill me-2"></i>
-                  {{ authorInfo.nickname || '匿名' }}
-                </span>
-                <span class="meta-item d-flex align-items-center">
-                  <i class="bi bi-calendar-fill me-2"></i>
-                  {{ formatTime(pageInfo.publish_time || Date.now() / 1000) }}
-                </span>
-                <span class="meta-item d-flex align-items-center">
-                  <i class="bi bi-chat-fill me-2"></i>
-                  {{ commentCount || 0 }} 评论
-                </span>
-                <span class="meta-item d-flex align-items-center">
-                  <i class="bi bi-eye-fill me-2"></i>
-                  {{ viewCount || 0 }} 浏览
-                </span>
-              </div>
-            </header>
+          <header class="article-header">
+            <h1 class="article-title fw-bold mb-3 text-center">{{ pageInfo.title }}</h1>
+            <!-- 文章元信息：居中布局、弱化样式 -->
+            <div class="article-meta d-flex flex-wrap align-items-center justify-content-center text-muted gap-4 fs-6">
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-person-fill me-2"></i>
+                {{ authorInfo.nickname || '匿名' }}
+              </span>
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-calendar-fill me-2"></i>
+                {{ formatTime(pageInfo.publish_time || Date.now() / 1000) }}
+              </span>
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-chat-fill me-2"></i>
+                {{ commentCount || 0 }} 评论
+              </span>
+              <span class="meta-item d-flex align-items-center">
+                <i class="bi bi-eye-fill me-2"></i>
+                {{ viewCount || 0 }} 浏览
+              </span>
+            </div>
+          </header>
             <div class="article-content mt-4">
               <i-markdown :model-value="pageInfo.content || '暂无页面内容，敬请期待～'" />
             </div>
@@ -2333,14 +2333,24 @@ onUnmounted(() => {
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
   font-weight: 700;
-  color: var(--bs-body-color);
+  margin-bottom: 1.5rem !important;
+  color: var(--bs-heading-color);
+  text-align: center;
+  transition: all 0.3s ease;
 }
 
 /* 文章元信息：弱化样式、统一图标 */
 .article-meta {
   font-size: 0.9rem;
-  color: var(--bs-secondary-color);
+  color: #6b7280;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  margin: 1rem 0 2rem;
+  transition: all 0.3s ease;
 }
 .article-meta .meta-item {
   white-space: nowrap;

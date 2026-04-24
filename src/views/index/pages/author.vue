@@ -156,11 +156,11 @@
                     {{ userInfo.nickname }}
                   </h3>
                   <!-- 头衔 -->
-                  <span v-if="userInfo.title" class="badge text-bg-secondary rounded-full px-3 py-1 text-sm font-medium">
+                  <span v-if="userInfo.title" class="badge text-bg-primary rounded-full px-3 py-1 text-sm font-medium">
                     {{ userInfo.title }}
                   </span>
                   <!-- 等级标识 -->
-                  <span v-if="userLevelInfo" class="badge text-bg-secondary rounded-full px-3 py-1 text-sm font-medium">
+                  <span v-if="userLevelInfo" class="badge text-bg-success rounded-full px-3 py-1 text-sm font-medium">
                     Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
                   </span>
                 </div>
@@ -204,21 +204,21 @@
             <div class="user-tags">
               <div class="d-flex align-items-center gap-3 flex-wrap">
                 <!-- 用户组标识 -->
-                <span v-for="(group, index) in userGroups" :key="index" class="badge text-bg-secondary px-4 py-2 fw-medium cursor-pointer">
+                <span v-for="(group, index) in userGroups" :key="index" class="badge text-bg-info px-4 py-2 fw-medium cursor-pointer">
                   {{ group.name }}
                 </span>
                 <!-- 性别标签 -->
-                <span class="badge text-bg-secondary px-4 py-2 fw-medium cursor-pointer">
+                <span class="badge text-bg-warning px-4 py-2 fw-medium cursor-pointer">
                   <i class="bi" :class="userInfo.gender === 'boy' ? 'bi-gender-male' : 'bi-gender-female'"></i>
                   {{ userInfo.gender === 'boy' ? '男' : userInfo.gender === 'girl' ? '女' : '未知' }}
                 </span>
                 <!-- 等级标签 -->
-                <span class="badge text-bg-secondary px-4 py-2 fw-medium cursor-pointer">
+                <span class="badge text-bg-success px-4 py-2 fw-medium cursor-pointer">
                   <i class="bi bi-activity"></i>
                   Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
                 </span>
                 <!-- 经验值标签 -->
-                <span class="badge text-bg-secondary px-4 py-2 fw-medium cursor-pointer">
+                <span class="badge text-bg-primary px-4 py-2 fw-medium cursor-pointer">
                   <i class="bi bi-star"></i>
                   {{ userInfo.exp }} 经验值
                 </span>
@@ -253,7 +253,7 @@
                 </div>
                 <div class="progress rounded-full overflow-hidden" style="height: 10px;">
                   <div 
-                    class="progress-bar bg-secondary" 
+                    class="progress-bar bg-success" 
                     :style="{ width: experienceProgress + '%' }"
                     role="progressbar"
                     :aria-valuenow="userInfo.exp"
@@ -288,7 +288,7 @@
               <div class="mb-3">
                 <span class="fw-medium text-gray-700">用户组：</span>
                 <div class="d-flex flex-wrap gap-2 mt-2">
-                  <span v-for="(group, index) in userAuthInfo.group.list" :key="index" class="badge text-bg-secondary px-3 py-2 rounded-full">
+                  <span v-for="(group, index) in userAuthInfo.group.list" :key="index" class="badge text-bg-info px-3 py-2 rounded-full">
                     {{ group.name }}
                   </span>
                 </div>
@@ -296,7 +296,7 @@
               <div>
                 <span class="fw-medium text-gray-700">权限范围：</span>
                 <div class="mt-2">
-                  <span class="badge text-bg-secondary px-3 py-2 rounded-full">
+                  <span class="badge text-bg-warning px-3 py-2 rounded-full">
                     {{ userAuthInfo.all ? '全部权限' : '部分权限' }}
                   </span>
                 </div>
@@ -316,14 +316,14 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-6">
-                <div class="p-3 bg-secondary-subtle rounded-3 text-center">
-                  <div class="fs-4 fw-bold text-secondary">{{ userInfo.exp }}</div>
+                <div class="p-3 bg-primary-subtle rounded-3 text-center">
+                  <div class="fs-4 fw-bold text-primary">{{ userInfo.exp }}</div>
                   <div class="text-sm text-muted">经验值</div>
                 </div>
               </div>
               <div class="col-6">
-                <div class="p-3 bg-secondary-subtle rounded-3 text-center">
-                  <div class="fs-4 fw-bold text-secondary">Lv.{{ userLevelInfo?.current.value }}</div>
+                <div class="p-3 bg-success-subtle rounded-3 text-center">
+                  <div class="fs-4 fw-bold text-success">Lv.{{ userLevelInfo?.current.value }}</div>
                   <div class="text-sm text-muted">当前等级</div>
                 </div>
               </div>
@@ -337,14 +337,14 @@
             <div class="d-flex flex-column gap-2">
               <button 
                 @click="copyUserInfo" 
-                class="btn btn-outline-secondary btn-sm px-4 py-2 w-100"
+                class="btn btn-outline-primary btn-sm px-4 py-2 w-100"
               >
                 <i class="bi bi-copy me-2"></i>
                 复制信息
               </button>
               <button 
                 @click="shareUserInfo" 
-                class="btn btn-outline-secondary btn-sm px-4 py-2 w-100"
+                class="btn btn-outline-success btn-sm px-4 py-2 w-100"
               >
                 <i class="bi bi-share me-2"></i>
                 分享主页

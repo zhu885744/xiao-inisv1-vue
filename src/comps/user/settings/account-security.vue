@@ -21,7 +21,7 @@
             </div>
             <div class="space-y-2">
               <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
-              <div class="skeleton-loader" style="height: 6px; width: 100%; border-radius: 3px;"></div>
+              <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
             </div>
             <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
           </div>
@@ -43,32 +43,64 @@
     </div>
 
     <div v-else class="row">
-      <!-- 密码设置 -->
+      <!-- 重置密码 -->
       <div class="col-md-12">
         <div class="card mb-4">
           <div class="card-body">
-            <h6 class="card-title mb-3">密码设置</h6>
-            <form @submit.prevent="updatePassword">
-              <!-- 隐藏的用户名字段，用于可访问性 -->
-              <input 
-                type="text" 
-                class="d-none" 
-                autocomplete="username"
-                :value="store.getLogin.user.username || store.getLogin.user.account"
-              >
+            <h6 class="card-title mb-3">重置密码</h6>
+            <form @submit.prevent="resetPassword">
+              <!-- 邮箱/手机号 -->
+              <div class="mb-3">
+                <label for="contactInput" class="form-label">邮箱/手机号</label>
+                <input 
+                  type="text" 
+                  id="contactInput" 
+                  v-model="resetForm.social" 
+                  class="form-control"
+                  placeholder="请输入您的邮箱或手机号"
+                  @input="validateSocial"
+                >
+                <div v-if="errors.social" class="text-danger small mt-1">{{ errors.social }}</div>
+              </div>
+
+              <!-- 验证码 -->
+              <div class="mb-3">
+                <label for="codeInput" class="form-label">验证码</label>
+                <div class="input-group">
+                  <input 
+                    type="text" 
+                    id="codeInput" 
+                    v-model="resetForm.code" 
+                    class="form-control"
+                    placeholder="请输入验证码"
+                    @input="validateCode"
+                  >
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    :disabled="countdown > 0 || loading"
+                    @click="sendCode"
+                  >
+                    {{ countdown > 0 ? `${countdown}秒后重试` : '获取验证码' }}
+                  </button>
+                </div>
+                <div v-if="errors.code" class="text-danger small mt-1">{{ errors.code }}</div>
+              </div>
+
               <!-- 新密码 -->
               <div class="mb-3">
                 <label for="newPassword" class="form-label">新密码</label>
                 <input 
                   type="password" 
                   id="newPassword" 
-                  v-model="passwordForm.newPassword" 
+                  v-model="resetForm.password" 
                   class="form-control"
                   placeholder="请输入新密码"
                   minlength="6"
                   maxlength="20"
-                  autocomplete="new-password"
+                  @input="validatePassword"
                 >
+                <div v-if="errors.password" class="text-danger small mt-1">{{ errors.password }}</div>
               </div>
 
               <!-- 确认新密码 -->
@@ -77,15 +109,16 @@
                 <input 
                   type="password" 
                   id="confirmPassword" 
-                  v-model="passwordForm.confirmPassword" 
+                  v-model="resetForm.verify" 
                   class="form-control"
                   placeholder="请再次输入新密码"
-                  autocomplete="new-password"
+                  @input="validateVerify"
                 >
+                <div v-if="errors.verify" class="text-danger small mt-1">{{ errors.verify }}</div>
               </div>
 
               <!-- 密码强度提示 -->
-              <div v-if="passwordForm.newPassword" class="mb-3">
+              <div v-if="resetForm.password" class="mb-3">
                 <div class="password-strength">
                   <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted small">密码强度</span>
@@ -111,10 +144,10 @@
               <button 
                 type="submit" 
                 class="btn btn-secondary"
-                :disabled="passwordLoading"
+                :disabled="resetLoading"
               >
-                <i class="bi bi-key me-2"></i>
-                {{ passwordLoading ? '修改中...' : '修改密码' }}
+                <span v-if="resetLoading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ resetLoading ? '重置中...' : '重置密码' }}
               </button>
             </form>
           </div>
@@ -123,7 +156,7 @@
     </div>
 
     <!-- 安全提示 -->
-    <div v-if="!loading" class="card mt-4">
+    <div v-if="!loading" class="card">
       <div class="card-body">
         <h6 class="card-title mb-3">安全提示</h6>
         <ul class="list-group list-group-flush">
@@ -150,23 +183,193 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import request from '@/utils/request'
 import toast from '@/utils/toast'
 import { useCommStore } from '@/store/comm'
 
 const store = useCommStore()
 
-// 密码表单数据
-const passwordForm = reactive({
-  id: '',
-  newPassword: '',
-  confirmPassword: ''
+// 加载状态
+const loading = ref(true)
+const resetLoading = ref(false)
+
+// 重置密码表单数据
+const resetForm = reactive({
+  social: '',
+  code: '',
+  password: '',
+  verify: ''
 })
 
-// 加载状态
-const passwordLoading = ref(false)
-const loading = ref(true)
+// 错误信息
+const errors = reactive({
+  social: '',
+  code: '',
+  password: '',
+  verify: ''
+})
+
+// 验证状态
+const valid = reactive({
+  social: false,
+  code: false,
+  password: false,
+  verify: false
+})
+
+// 倒计时
+const countdown = ref(0)
+let countdownTimer = null
+
+// 验证码防刷缓存
+const getCacheKey = (type, contact) => {
+  return `verify-code-${type}-${contact}`
+}
+
+const getDailyLimitKey = (type, contact) => {
+  return `verify-code-daily-${type}-${contact}`
+}
+
+// 检查是否可以发送验证码
+const canSendCode = (type, contact) => {
+  // 检查时间间隔
+  const cacheKey = getCacheKey(type, contact)
+  const lastSendTime = localStorage.getItem(cacheKey)
+  if (lastSendTime) {
+    const timeDiff = Date.now() - parseInt(lastSendTime)
+    if (timeDiff < 60 * 1000) {
+      return false
+    }
+  }
+  
+  // 检查每日发送上限
+  const dailyLimitKey = getDailyLimitKey(type, contact)
+  const dailyCount = localStorage.getItem(dailyLimitKey)
+  if (dailyCount && parseInt(dailyCount) >= 10) {
+    return false
+  }
+  
+  return true
+}
+
+// 开始倒计时
+const startCountdown = () => {
+  countdown.value = 60
+  
+  // 清除之前的定时器
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+  
+  countdownTimer = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--
+    } else {
+      clearInterval(countdownTimer)
+      countdownTimer = null
+    }
+  }, 1000)
+}
+
+// 记录发送验证码
+const recordSendCode = (type, contact) => {
+  // 记录发送时间
+  const cacheKey = getCacheKey(type, contact)
+  localStorage.setItem(cacheKey, Date.now().toString())
+  
+  // 记录每日发送次数
+  const dailyLimitKey = getDailyLimitKey(type, contact)
+  const currentCount = localStorage.getItem(dailyLimitKey) || '0'
+  const newCount = parseInt(currentCount) + 1
+  localStorage.setItem(dailyLimitKey, newCount.toString())
+  
+  // 设置每日计数过期时间（24小时后）
+  setTimeout(() => {
+    localStorage.removeItem(dailyLimitKey)
+  }, 24 * 60 * 60 * 1000)
+}
+
+// 验证邮箱/手机号
+const validateSocial = () => {
+  const social = resetForm.social
+  if (!social) {
+    errors.social = '请输入邮箱或手机号'
+    valid.social = false
+    return
+  }
+  
+  const isPhone = /^1[3-9]\d{9}$/.test(social)
+  const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(social)
+  
+  if (!isPhone && !isEmail) {
+    errors.social = '请输入正确的邮箱或手机号'
+    valid.social = false
+    return
+  }
+  
+  errors.social = ''
+  valid.social = true
+}
+
+// 验证验证码
+const validateCode = () => {
+  const code = resetForm.code
+  if (!code) {
+    errors.code = '请输入验证码'
+    valid.code = false
+    return
+  }
+  
+  if (code.length < 4) {
+    errors.code = '验证码长度不足'
+    valid.code = false
+    return
+  }
+  
+  errors.code = ''
+  valid.code = true
+}
+
+// 验证密码
+const validatePassword = () => {
+  const password = resetForm.password
+  if (!password) {
+    errors.password = '请输入新密码'
+    valid.password = false
+    return
+  }
+  
+  if (password.length < 6) {
+    errors.password = '密码长度不能少于6位'
+    valid.password = false
+    return
+  }
+  
+  errors.password = ''
+  valid.password = true
+  validateVerify()
+}
+
+// 验证确认密码
+const validateVerify = () => {
+  const verify = resetForm.verify
+  if (!verify) {
+    errors.verify = '请确认新密码'
+    valid.verify = false
+    return
+  }
+  
+  if (verify !== resetForm.password) {
+    errors.verify = '两次输入的密码不一致'
+    valid.verify = false
+    return
+  }
+  
+  errors.verify = ''
+  valid.verify = true
+}
 
 // 密码强度计算
 const calculatePasswordStrength = (password) => {
@@ -192,7 +395,7 @@ const calculatePasswordStrength = (password) => {
 
 // 密码强度值
 const passwordStrengthValue = computed(() => {
-  return calculatePasswordStrength(passwordForm.newPassword)
+  return calculatePasswordStrength(resetForm.password)
 })
 
 // 密码强度宽度
@@ -218,75 +421,90 @@ const passwordStrengthClass = computed(() => {
   return 'bg-success'
 })
 
-// 更新密码
-const updatePassword = async () => {
-  if (passwordLoading.value) return
-  
-  if (!passwordForm.newPassword) {
-    toast.error('请输入新密码')
+// 发送验证码
+const sendCode = async () => {
+  validateSocial()
+  if (!valid.social) {
     return
   }
   
-  if (passwordForm.newPassword.length < 6) {
-    toast.error('新密码长度不能少于6位')
+  const social = resetForm.social
+  
+  // 检查防刷
+  if (!canSendCode('reset', social)) {
+    toast.error('发送过于频繁，请60秒后再试')
     return
   }
   
-  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    toast.error('两次输入的密码不一致')
-    return
-  }
-
-  // 二次确认
-  if (!confirm('确定要修改密码吗？修改后需要重新登录。')) {
-    return
-  }
-
-  passwordLoading.value = true
   try {
-    const res = await request.put('/api/users/update', {
-      id: passwordForm.id,
-      password: passwordForm.newPassword
+    loading.value = true
+    const { code: resCode, msg } = await request.post('/api/comm/reset-password', {
+      social
     })
-
-    if (res.code === 200) {
-      toast.success('密码修改成功，请重新登录')
-      // 同步用户信息
-      await syncUserInfo()
-      // 清空表单
-      passwordForm.newPassword = ''
-      passwordForm.confirmPassword = ''
-      // 可以选择跳转到登录页重新登录
-      // setTimeout(() => {
-      //   store.commit('auth/LOGOUT')
-      //   window.location.href = '/#/login'
-      // }, 2000)
+    
+    if (resCode === 200 || resCode === 201) {
+      toast.success('验证码发送成功！')
+      recordSendCode('reset', social)
+      startCountdown()
     } else {
-      toast.error(res.msg || '密码修改失败')
+      toast.error(msg || '发送验证码失败！')
     }
   } catch (error) {
-    console.error('修改密码失败:', error)
-    toast.error('网络错误，请稍后重试')
+    toast.error('网络异常，验证码发送失败！')
   } finally {
-    passwordLoading.value = false
+    loading.value = false
   }
 }
 
-// 同步用户信息
-const syncUserInfo = async () => {
+// 重置密码
+const resetPassword = async () => {
+  // 手动触发验证
+  validateSocial()
+  validateCode()
+  validatePassword()
+  validateVerify()
+  
+  if (!valid.social || !valid.code || !valid.password || !valid.verify) {
+    toast.warning('请检查表单填写是否正确')
+    return
+  }
+
   try {
-    await store.checkLoginState()
+    resetLoading.value = true
+    const { code: resCode, msg } = await request.post('/api/comm/reset-password', {
+      social: resetForm.social,
+      code: resetForm.code,
+      password: resetForm.password
+    })
+
+    if (resCode !== 200) {
+      throw new Error(msg || '重置密码失败！')
+    }
+
+    toast.success('密码修改成功，请重新登录')
+    // 清空表单
+    resetForm.social = ''
+    resetForm.code = ''
+    resetForm.password = ''
+    resetForm.verify = ''
+    // 可以选择跳转到登录页重新登录
+    // setTimeout(() => {
+    //   store.commit('auth/LOGOUT')
+    //   window.location.href = '/#/login'
+    // }, 2000)
+
   } catch (error) {
-    console.error('同步用户信息失败:', error)
+    toast.error(error.message || '网络异常，请稍后再试！')
+  } finally {
+    resetLoading.value = false
   }
 }
 
 // 获取用户信息
 const fetchUserInfo = () => {
   const loginState = store.getLogin
-  const userInfo = loginState.user
-  if (userInfo) {
-    passwordForm.id = userInfo.id
+  if (loginState.user) {
+    // 可以在这里获取用户信息，用于后续操作
   }
   loading.value = false
 }
@@ -294,6 +512,14 @@ const fetchUserInfo = () => {
 // 组件挂载时获取用户信息
 onMounted(() => {
   fetchUserInfo()
+})
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
 })
 </script>
 
