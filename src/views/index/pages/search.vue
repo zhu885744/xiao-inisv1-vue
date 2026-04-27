@@ -2,165 +2,164 @@
 <template>
   <div class="card mt-2">
     <div class="card-header">
-      <span class="card-title">搜索</span>
-    </div>
-    <div class="card-body">
-    <!-- 搜索头部 -->
-    <div class="search-header">
-      <div class="search-header-content">
-        <!-- 搜索范围选择 -->
-        <div class="mt-2">
-          <div class="btn-group w-100" role="group" aria-label="搜索范围">
-            <button
-              type="button"
-              class="btn" 
-              :class="searchScope === 'all' ? 'btn-primary' : 'btn-outline-primary'"
-              @click="searchScope = 'all'"
+      <div class="search-header">
+        <div class="search-header-content">
+          <!-- 搜索范围选择 -->
+          <div class="mt-2">
+            <div class="btn-group w-100" role="group" aria-label="搜索范围">
+              <button
+                type="button"
+                class="btn" 
+                :class="searchScope === 'all' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="searchScope = 'all'"
+              >
+                <i class="bi bi-search"></i> 全部
+              </button>
+              <button
+                type="button"
+                class="btn" 
+                :class="searchScope === 'article' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="searchScope = 'article'"
+              >
+                <i class="bi bi-file-earmark-text"></i> 文章
+              </button>
+              <button
+                type="button"
+                class="btn" 
+                :class="searchScope === 'page' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="searchScope = 'page'"
+              >
+                <i class="bi bi-file-earmark"></i> 页面
+              </button>
+              <button
+                type="button"
+                class="btn" 
+                :class="searchScope === 'tag' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="searchScope = 'tag'"
+              >
+                <i class="bi bi-tag"></i> 标签
+              </button>
+            </div>
+          </div>
+          <!-- 搜索输入框 -->
+          <div class="input-group mt-2">
+            <input
+              ref="searchInput"
+              type="text"
+              v-model="searchQuery"
+              class="form-control form-control-lg"
+              :placeholder="getSearchPlaceholder()"
+              @input="handleInput"
+              @keyup.enter="performSearch"
             >
-              <i class="bi bi-search"></i> 全部
-            </button>
             <button
+              class="btn btn-primary"
               type="button"
-              class="btn" 
-              :class="searchScope === 'article' ? 'btn-primary' : 'btn-outline-primary'"
-              @click="searchScope = 'article'"
+              @click="performSearch"
+              :disabled="loading"
             >
-              <i class="bi bi-file-earmark-text"></i> 文章
-            </button>
-            <button
-              type="button"
-              class="btn" 
-              :class="searchScope === 'page' ? 'btn-primary' : 'btn-outline-primary'"
-              @click="searchScope = 'page'"
-            >
-              <i class="bi bi-file-earmark"></i> 页面
-            </button>
-            <button
-              type="button"
-              class="btn" 
-              :class="searchScope === 'tag' ? 'btn-primary' : 'btn-outline-primary'"
-              @click="searchScope = 'tag'"
-            >
-              <i class="bi bi-tag"></i> 标签
+              <i class="bi" :class="loading ? 'bi-arrow-clockwise spin' : 'bi-search'"></i>
+              <span class="ms-2">搜索</span>
             </button>
           </div>
-        </div>
-        <!-- 搜索输入框 -->
-        <div class="input-group mt-2">
-          <input
-            ref="searchInput"
-            type="text"
-            v-model="searchQuery"
-            class="form-control form-control-lg"
-            :placeholder="getSearchPlaceholder()"
-            @input="handleInput"
-            @keyup.enter="performSearch"
-          >
-          <button
-            class="btn btn-primary"
-            type="button"
-            @click="performSearch"
-            :disabled="loading"
-          >
-            <i class="bi" :class="loading ? 'bi-arrow-clockwise spin' : 'bi-search'"></i>
-            <span class="ms-2">搜索</span>
-          </button>
         </div>
       </div>
     </div>
-
-    <!-- 搜索内容区域 -->
-    <div class="search-content">
-        <!-- 搜索历史 -->
-        <div v-if="!loading && searchQuery === '' && searchHistory.length > 0" class="mt-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-muted">
-              <i class="bi bi-clock-history me-1"></i>搜索历史
-            </h6>
-            <button @click="clearSearchHistory" class="btn btn-sm btn-outline-secondary">
-              清除历史
-            </button>
-          </div>
-          <div class="card">
-            <div class="list-group list-group-flush">
-              <div
-                v-for="(item, index) in searchHistory"
-                :key="index"
-                class="list-group-item d-flex justify-content-between align-items-center"
-                @click="useSearchHistory(item)"
-                style="cursor: pointer;"
-              >
-                <span>{{ item }}</span>
-                <button @click.stop="searchHistory.splice(index, 1); localStorage.setItem('search-history', JSON.stringify(searchHistory))" class="btn btn-sm text-muted">
-                  <i class="bi bi-trash"></i>
+    <div class="card-body">
+      <!-- 搜索内容区域 -->
+      <div class="mt-2">
+        <div class="card">
+          <div class="card-body">
+            <!-- 搜索历史 -->
+            <div v-if="!loading && searchQuery === '' && searchHistory.length > 0">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted">
+                  <i class="bi bi-clock-history me-1"></i>搜索历史
+                </h6>
+                <button @click="clearSearchHistory" class="btn btn-sm btn-outline-secondary">
+                  清除历史
                 </button>
               </div>
+              <div class="list-group list-group-flush">
+                <div
+                  v-for="(item, index) in searchHistory"
+                  :key="index"
+                  class="list-group-item d-flex justify-content-between align-items-center"
+                  @click="useSearchHistory(item)"
+                  style="cursor: pointer;"
+                >
+                  <span>{{ item }}</span>
+                  <button @click.stop="searchHistory.splice(index, 1); localStorage.setItem('search-history', JSON.stringify(searchHistory))" class="btn btn-sm text-muted">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 搜索结果 -->
-        <div v-else-if="!loading && searchResults.length > 0" class="mt-4">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-muted">
-              <i class="bi bi-search me-1"></i>搜索结果 ({{ searchResults.length }})
-            </h6>
-          </div>
-          <div class="result-list">
-            <div
-              v-for="result in searchResults"
-              :key="result.id || result.key"
-              @click="navigateToResult(result)"
-              class="result-item mb-3"
-              :class="`result-${result.type}`"
-            >
-              <div class="card h-100 transition-all duration-300 hover:shadow-sm">
-                <div class="card-body">
-                  <div class="d-flex align-items-start">
-                    <div class="result-icon-container me-3">
-                      <i :class="[getResultIcon(result.type), 'result-icon']"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                      <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0 font-medium">{{ result.title || result.name }}</h5>
-                        <span class="result-type-badge" :class="`badge-${result.type}`">
-                          {{ getResultTypeName(result.type) }}
-                        </span>
-                      </div>
-                      <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2">{{ result.abstract }}</p>
-                      <div v-if="result.create_time" class="text-xs text-gray-400">
-                        {{ formatDate(result.create_time) }}
+            <!-- 搜索结果 -->
+            <div v-else-if="!loading && searchResults.length > 0">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted">
+                  <i class="bi bi-search me-1"></i>搜索结果 ({{ searchResults.length }})
+                </h6>
+              </div>
+              <div class="result-list">
+                <div
+                  v-for="result in searchResults"
+                  :key="result.id || result.key"
+                  @click="navigateToResult(result)"
+                  class="result-item mb-3"
+                  :class="`result-${result.type}`"
+                >
+                  <div class="card h-100 transition-all duration-300 hover:shadow-sm">
+                    <div class="card-body">
+                      <div class="d-flex align-items-start">
+                        <div class="result-icon-container me-3">
+                          <i :class="[getResultIcon(result.type), 'result-icon']"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0 font-medium">{{ result.title || result.name }}</h5>
+                            <span class="result-type-badge" :class="`badge-${result.type}`">
+                              {{ getResultTypeName(result.type) }}
+                            </span>
+                          </div>
+                          <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2">{{ result.abstract }}</p>
+                          <div v-if="result.create_time" class="text-xs text-gray-400">
+                            {{ formatDate(result.create_time) }}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- 无结果 -->
+            <div v-else-if="!loading && searchQuery !== '' && searchResults.length === 0" class="text-center py-12">
+              <div class="mb-4">
+                <i class="bi bi-search text-5xl text-muted"></i>
+              </div>
+              <p class="text-muted">没有找到与 "{{ searchQuery }}" 相关的结果</p>
+            </div>
+
+            <!-- 加载中 -->
+            <div v-else-if="loading" class="text-center py-12">
+              <div class="spinner-border text-primary mb-4" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="text-muted">搜索中...</p>
+            </div>
+
+            <!-- 初始状态 -->
+            <div v-else-if="!loading && searchQuery === '' && searchHistory.length === 0" class="text-center py-12">
+              <p class="mt-4 text-muted">请输入关键词开始搜索</p>
+            </div>
           </div>
         </div>
-
-        <!-- 无结果 -->
-        <div v-else-if="!loading && searchQuery !== '' && searchResults.length === 0" class="text-center py-12">
-          <div class="mb-4">
-            <i class="bi bi-search text-5xl text-muted"></i>
-          </div>
-          <p class="text-muted">没有找到与 "{{ searchQuery }}" 相关的结果</p>
-        </div>
-
-        <!-- 加载中 -->
-        <div v-else-if="loading" class="text-center py-12">
-          <div class="spinner-border text-primary mb-4" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="text-muted">搜索中...</p>
-        </div>
-
-        <!-- 初始状态 -->
-        <div v-else-if="!loading && searchQuery === '' && searchHistory.length === 0" class="text-center py-12">
-          <p class="mt-4 text-muted">请输入关键词开始搜索</p>
-        </div>
+      </div>
     </div>
-  </div>
   </div>
 </template>
 

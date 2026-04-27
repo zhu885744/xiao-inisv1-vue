@@ -35,16 +35,17 @@ const renderMarkdown = (content) => {
   
   processedContent = processedContent.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
     try {
-      const highlighted = hljs.highlight(code.trim(), { language: lang || 'plaintext' }).value
+      const safeLang = (lang === 'language' || !lang) ? 'plaintext' : lang
+      const highlighted = hljs.highlight(code.trim(), { language: safeLang }).value
       return `<div class="code-block-container">
         <div class="code-block-header">
-          <span class="code-language">${lang || 'plaintext'}</span>
+          <span class="code-language">${safeLang}</span>
           <button class="copy-button" data-code="${code.replace(/"/g, '&quot;')}">
             <i class="bi bi-clipboard"></i>
             <span class="copy-text">复制</span>
           </button>
         </div>
-        <pre class="hljs"><code class="language-${lang || 'plaintext'}">${highlighted}</code></pre>
+        <pre class="hljs"><code class="language-${safeLang}">${highlighted}</code></pre>
       </div>`
     } catch (error) {
       console.error('代码高亮处理失败:', error)

@@ -213,14 +213,14 @@
                 <div class="modal-body">
                   <p class="text-center mb-4">感谢您的支持，您的打赏将帮助我们持续创作优质内容</p>
                   <div class="row">
-                    <div class="col-md-6 text-center">
+                    <div class="col-6 text-center">
                       <h6 class="mb-2">微信支付</h6>
-                      <img :src="rewardConfig.wechat" alt="微信收款码" class="img-fluid rounded" style="max-width: 200px;" v-if="rewardConfig.wechat">
+                      <img :src="rewardConfig.wechat" alt="微信收款码" class="img-fluid rounded" style="max-width: 150px;" v-if="rewardConfig.wechat">
                       <p class="text-muted" v-else>未设置微信收款码</p>
                     </div>
-                    <div class="col-md-6 text-center">
+                    <div class="col-6 text-center">
                       <h6 class="mb-2">支付宝</h6>
-                      <img :src="rewardConfig.alipay" alt="支付宝收款码" class="img-fluid rounded" style="max-width: 200px;" v-if="rewardConfig.alipay">
+                      <img :src="rewardConfig.alipay" alt="支付宝收款码" class="img-fluid rounded" style="max-width: 150px;" v-if="rewardConfig.alipay">
                       <p class="text-muted" v-else>未设置支付宝收款码</p>
                     </div>
                   </div>

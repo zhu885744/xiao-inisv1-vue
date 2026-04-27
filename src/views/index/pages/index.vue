@@ -718,12 +718,6 @@ onUnmounted(() => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* 置顶文章特殊样式 */
-.sticky-article {
-  border-top: 4px solid var(--bs-secondary);
-  box-shadow: 0 4px 16px rgba(108, 117, 125, 0.2);
-}
-
 /* 置顶徽章 */
 .sticky-badge {
   position: absolute;
@@ -1009,7 +1003,7 @@ img {
 
 @media (max-width: 576px) {
   .grid-article-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
   
@@ -1018,20 +1012,39 @@ img {
   }
   
   .article-title {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .article-desc {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
   }
   
   .article-meta {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
+    line-height: 1.2;
   }
   
   .article-content {
-    padding: 1.25rem !important;
+    padding: 1rem !important;
   }
   
   .sticky-badge {
-    font-size: 0.75rem;
-    padding: 4px 10px;
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    top: 6px;
+    right: 6px;
+  }
+  
+  .meta-item {
+    font-size: 0.65rem;
+  }
+  
+  .meta-item .bi {
+    font-size: 0.8em;
   }
 }
 
@@ -1657,12 +1670,6 @@ img {
   .article-item-card:hover,
   .article-item-list:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* 置顶文章 */
-  .sticky-article {
-    border-top: 4px solid var(--bs-secondary);
-    box-shadow: 0 4px 16px rgba(108, 117, 125, 0.3);
   }
   
   /* 置顶徽章 */

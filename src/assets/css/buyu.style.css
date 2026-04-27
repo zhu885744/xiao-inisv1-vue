@@ -276,3 +276,45 @@ body {
   text-align: center;
   margin-top: 0.5rem;
 }
+
+/* 搜索结果类型标签样式 */
+.result-type-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* 文章类型标签 */
+.badge-article {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+/* 页面类型标签 */
+.badge-page {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+/* 标签类型标签 */
+.badge-tag {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+/* 深色模式适配 */
+[data-bs-theme=dark] .badge-article {
+  background-color: rgba(30, 136, 229, 0.2);
+  color: #64b5f6;
+}
+
+[data-bs-theme=dark] .badge-page {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #81c784;
+}
+
+[data-bs-theme=dark] .badge-tag {
+  background-color: rgba(156, 39, 176, 0.2);
+  color: #ce93d8;
+}

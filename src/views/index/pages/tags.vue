@@ -1555,7 +1555,7 @@ img {
 
 @media (max-width: 576px) {
   .grid-article-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.8rem;
   }
   
@@ -1564,11 +1564,32 @@ img {
   }
   
   .article-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .article-desc {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
   }
   
   .article-meta {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
+    line-height: 1.2;
+  }
+  
+  .article-content {
+    padding: 1rem !important;
+  }
+  
+  .meta-item {
+    font-size: 0.65rem;
+  }
+  
+  .meta-item .bi {
+    font-size: 0.8em;
   }
   
   /* 标签卡片网格响应式调整 */
@@ -1846,7 +1867,7 @@ img {
 
 @media (max-width: 576px) {
   .grid-article-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
   
@@ -1855,15 +1876,32 @@ img {
   }
   
   .article-title {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .article-desc {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
   }
   
   .article-meta {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
+    line-height: 1.2;
   }
   
   .article-content {
-    padding: 1.25rem !important;
+    padding: 1rem !important;
+  }
+  
+  .meta-item {
+    font-size: 0.65rem;
+  }
+  
+  .meta-item .bi {
+    font-size: 0.8em;
   }
   
   /* 标签卡片网格响应式调整 */

@@ -133,7 +133,7 @@
               <form class="global-config-form">
                 <!-- 网站基本信息 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">网站基本信息</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">网站基本信息</h3>
                   <div class="row g-4">
                     <div class="col-md-6">
                       <label for="site-title" class="form-label">网站标题</label>
@@ -206,7 +206,7 @@
 
                 <!-- 显示设置 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">显示设置</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">显示设置</h3>
                   <div class="row g-4">
                     <div class="col-md-6">
                       <div class="d-flex align-items-center justify-content-between">
@@ -232,7 +232,7 @@
 
                 <!-- 备案信息 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">备案信息</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">备案信息</h3>
                   <div class="row g-4">
                     <div class="col-md-6">
                       <label for="copy-code" class="form-label">ICP 备案号</label>
@@ -283,7 +283,7 @@
 
                 <!-- 登录协议提示配置 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">登录协议提示配置</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">登录协议提示配置</h3>
                   <div class="row g-4">
                     <div class="col-12">
                       <div class="d-flex align-items-center justify-content-between mb-3">
@@ -333,7 +333,7 @@
 
                 <!-- 悬浮按钮设置 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">右侧悬浮按钮设置</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">右侧悬浮按钮设置</h3>
                   <div class="row g-4">
                     <div class="col-12">
                       <div class="d-flex align-items-center justify-content-between mb-3">
@@ -575,7 +575,7 @@
               <form class="comment-config-form">
                 <!-- 全局评论开关 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">全局设置</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">全局设置</h3>
                   <div class="form-check mb-4">
                     <input 
                       class="form-check-input rounded border-gray-300"
@@ -592,7 +592,7 @@
                 
                 <!-- 速率限制 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">速率限制</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">速率限制</h3>
                   <div class="form-check mb-4">
                     <input 
                       class="form-check-input rounded border-gray-300"
@@ -640,7 +640,7 @@
 
                 <!-- 评论长度限制 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">评论长度</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">评论长度</h3>
                   <div class="row g-4">
                     <div class="col-md-4">
                       <label for="max_length" class="form-label">最大长度</label>
@@ -662,7 +662,7 @@
 
                 <!-- 内容要求 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">内容要求</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">内容要求</h3>
                   <div class="form-check mb-3">
                     <input 
                       class="form-check-input rounded border-gray-300"
@@ -689,7 +689,7 @@
 
                 <!-- 敏感词 -->
                 <div class="form-section mb-6" v-if="commentConfig.sensitive_filter">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">敏感词设置</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">敏感词设置</h3>
                   <div class="mb-3">
                     <label for="sensitive_words" class="form-label">敏感词列表</label>
                     <textarea 
@@ -705,7 +705,7 @@
 
                 <!-- 邮件通知 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">邮件通知</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">邮件通知</h3>
                   <div class="form-check mb-4">
                     <input 
                       class="form-check-input rounded border-gray-300"
@@ -792,7 +792,7 @@
               <form class="sidebar-config-form">
                 <!-- 侧边栏启用设置 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">基础设置</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">基础设置</h3>
                   <div class="row g-4">
                     <div class="col-md-6">
                       <div class="d-flex align-items-center justify-content-between">
@@ -819,7 +819,7 @@
                 <!-- 快捷导航配置 -->
                 <div class="form-section mb-6">
                   <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="form-section-title fw-medium text-gray-700">快捷导航配置</h3>
+                    <h3 class="form-section-title fw-medium text-primary">快捷导航配置</h3>
                     <button 
                       type="button" 
                       class="btn btn-sm btn-primary rounded-3"
@@ -922,7 +922,7 @@
             <!-- 打赏设置 -->
             <div class="card shadow-sm">
               <div class="card-body p-3">
-                <h3 class="form-section-title mb-4 fw-medium text-gray-700">打赏设置</h3>
+                <h3 class="form-section-title mb-4 fw-medium text-primary">打赏设置</h3>
                 <div class="row g-4">
                   <div class="col-md-6">
                     <div class="d-flex align-items-center justify-content-between">
@@ -1009,7 +1009,7 @@
               <form class="custom-code-config-form">
                 <!-- CSS代码 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">CSS代码</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">CSS代码</h3>
                   <div class="mb-3">
                     <textarea 
                       class="form-control rounded-3 border-gray-300 shadow-sm"
@@ -1024,7 +1024,7 @@
 
                 <!-- JavaScript代码 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">JavaScript代码</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">JavaScript代码</h3>
                   <div class="mb-3">
                     <textarea 
                       class="form-control rounded-3 border-gray-300 shadow-sm"
@@ -1039,7 +1039,7 @@
 
                 <!-- 头部HTML代码 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">头部HTML代码</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">头部HTML代码</h3>
                   <div class="mb-3">
                     <textarea 
                       class="form-control rounded-3 border-gray-300 shadow-sm"
@@ -1054,7 +1054,7 @@
 
                 <!-- 底部HTML代码 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">底部HTML代码</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">底部HTML代码</h3>
                   <div class="mb-3">
                     <textarea 
                       class="form-control rounded-3 border-gray-300 shadow-sm"
@@ -1069,7 +1069,7 @@
 
                 <!-- 网站统计代码 -->
                 <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-gray-700">网站统计代码</h3>
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">网站统计代码</h3>
                   <div class="mb-3">
                     <textarea 
                       class="form-control rounded-3 border-gray-300 shadow-sm"

@@ -30,13 +30,13 @@
     </div>
     <!-- 全局页脚 -->
     <i-footer></i-footer>
+
+    <!-- 悬浮按钮组件 -->
+    <i-float-buttons></i-float-buttons>
   </template>
 
   <!-- 检查客户端页面更新 -->
   <upgrade-page></upgrade-page>
-  
-  <!-- 悬浮按钮组件 -->
-  <i-float-buttons></i-float-buttons>
 </template>
 
 <script setup>
