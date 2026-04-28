@@ -2,8 +2,13 @@
   <!-- 配置初始化组件 -->
   <ConfigInit />
   
+  <!-- 维护页面：单独显示，不使用任何布局 -->
+  <template v-if="$route.path === '/maintenance'">
+    <router-view></router-view>
+  </template>
+  
   <!-- 基于路由的布局切换 -->
-  <template v-if="$route.path.startsWith('/admin')">
+  <template v-else-if="$route.path.startsWith('/admin')">
     <!-- 使用路由视图，让 admin 路由的父组件 (base.vue) 处理布局 -->
     <router-view></router-view>
   </template>

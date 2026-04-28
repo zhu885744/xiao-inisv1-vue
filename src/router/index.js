@@ -4,6 +4,7 @@ import utils from '@/utils/utils'
 import { useCommStore } from '@/store/comm'
 import config from '@/utils/config'
 import { setupRouteTitle } from '@/utils/usePageTitle'
+import axios from '@/utils/request'
 
 /**
  * 路由管理配置
@@ -28,6 +29,17 @@ const routes = [
   {
     path: '/index',
     redirect: '/'
+  },
+
+  // 维护页面路由
+  {
+    path: '/maintenance',
+    name: '维护页面',
+    component: () => import('@/views/maintenance.vue'),
+    meta: { 
+      title: '网站维护', 
+      requiresAuth: false
+    }
   },
 
   // 核心路由
@@ -393,7 +405,26 @@ const router = createRouter({
 })
 
 // 全局前置守卫：通用权限校验
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  // 维护模式检查
+  if (to.path !== '/maintenance') {
+    const maintenanceEnabled = await checkMaintenanceMode()
+    console.log('维护模式检查结果:', maintenanceEnabled)
+    
+    if (maintenanceEnabled) {
+      const isAdmin = await checkCurrentUserAdmin()
+      console.log('管理员检查结果:', isAdmin)
+      
+      if (!isAdmin) {
+        console.log('非管理员用户，跳转到维护页面')
+        next('/maintenance')
+        return
+      } else {
+        console.log('管理员用户，允许访问')
+      }
+    }
+  }
+
   // 权限校验
   if (to.meta.requiresAuth) {
     const commStore = useCommStore()
@@ -474,6 +505,75 @@ const checkAdminPermission = (userInfo) => {
   
   // 检查是否为管理员
   return userAuth?.all || userGroups.some(group => group.key === 'admin')
+}
+
+// 检查维护模式是否开启
+const checkMaintenanceMode = async () => {
+  try {
+    const response = await axios.get('/api/config/one', { key: 'xiao_functions' })
+    console.log('维护模式检查响应:', response)
+    if (response.code === 200 && response.data) {
+      let siteInfo
+      if (response.data.data && response.data.data.json) {
+        siteInfo = response.data.data.json
+      } else if (response.data.json) {
+        siteInfo = response.data.json
+      } else {
+        siteInfo = response.data
+      }
+      
+      console.log('维护配置:', siteInfo.maintenance)
+      
+      // 检查维护模式是否开启（处理布尔值和字符串类型）
+      const isEnabled = siteInfo.maintenance?.enabled === true || 
+                        siteInfo.maintenance?.enabled === 'true' ||
+                        siteInfo.maintenance?.enabled === 1
+      
+      console.log('维护模式是否开启:', isEnabled)
+      
+      if (isEnabled) {
+        // 检查维护是否已结束
+        if (siteInfo.maintenance.end_time) {
+          try {
+            const endTime = new Date(siteInfo.maintenance.end_time).getTime()
+            if (Date.now() > endTime) {
+              console.log('维护已结束')
+              return false
+            }
+          } catch (e) {
+            console.error('解析维护结束时间失败:', e)
+          }
+        }
+        return true
+      }
+    }
+  } catch (error) {
+    console.error('检查维护模式失败:', error)
+  }
+  return false
+}
+
+// 检查当前用户是否为管理员
+const checkCurrentUserAdmin = async () => {
+  try {
+    const commStore = useCommStore()
+    const userInfo = commStore.getLogin.user
+    
+    if (utils.is.empty(userInfo)) {
+      // 尝试刷新用户信息
+      await commStore.checkLoginState()
+      const updatedUserInfo = commStore.getLogin.user
+      if (!utils.is.empty(updatedUserInfo)) {
+        return checkAdminPermission(updatedUserInfo)
+      }
+      return false
+    }
+    
+    return checkAdminPermission(userInfo)
+  } catch (error) {
+    console.error('检查管理员权限失败:', error)
+    return false
+  }
 }
 
 // 设置路由标题管理

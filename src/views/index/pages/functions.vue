@@ -534,6 +534,67 @@
                   </div>
                 </div>
 
+                <!-- 网站维护设置 -->
+                <div class="form-section mb-6">
+                  <h3 class="form-section-title mb-4 fw-medium text-primary">网站维护设置</h3>
+                  <div class="row g-4">
+                    <div class="col-12">
+                      <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                          <label class="form-label fw-medium mb-0">启用网站维护模式</label>
+                          <p class="form-text text-muted mt-1 mb-0">开启后非管理员用户将看到维护页面</p>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="maintenance_enabled_switch"
+                            v-model="globalConfig.maintenance.enabled"
+                          >
+                          <label class="form-check-label" for="maintenance_enabled_switch">
+                            {{ globalConfig.maintenance.enabled ? '开启' : '关闭' }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-if="globalConfig.maintenance.enabled" class="col-md-6">
+                      <label for="maintenance_title" class="form-label">维护标题</label>
+                      <input 
+                        type="text" 
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        id="maintenance_title"
+                        v-model="globalConfig.maintenance.title"
+                        placeholder="输入维护标题，如：网站维护中"
+                      >
+                      <div class="form-text text-muted mt-1">维护页面显示的标题</div>
+                    </div>
+
+                    <div v-if="globalConfig.maintenance.enabled" class="col-md-6">
+                      <label for="maintenance_end_time" class="form-label">维护结束时间</label>
+                      <input 
+                        type="datetime-local" 
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        id="maintenance_end_time"
+                        v-model="globalConfig.maintenance.end_time"
+                      >
+                      <div class="form-text text-muted mt-1">维护结束时间，到达后自动关闭维护模式</div>
+                    </div>
+
+                    <div v-if="globalConfig.maintenance.enabled" class="col-12">
+                      <label for="maintenance_content" class="form-label">维护内容</label>
+                      <textarea 
+                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        id="maintenance_content"
+                        v-model="globalConfig.maintenance.content"
+                        rows="3"
+                        placeholder="输入维护说明内容，如：我们正在对网站进行维护升级，感谢您的耐心等待。"
+                      ></textarea>
+                      <div class="form-text text-muted mt-1">维护页面显示的详细说明</div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- 保存按钮 -->
                 <div class="form-actions mt-8">
                   <button 
@@ -1196,6 +1257,12 @@ const globalConfig = ref({
     enabled: true,
     wechat: '',
     alipay: ''
+  },
+  maintenance: {
+    enabled: false,
+    title: '网站维护中',
+    content: '我们正在对网站进行维护升级，感谢您的耐心等待。',
+    end_time: ''
   }
 })
 
@@ -1327,6 +1394,12 @@ async function getGlobalConfig() {
           enabled: config.reward?.enabled !== false,
           wechat: config.reward?.wechat || '',
           alipay: config.reward?.alipay || ''
+        },
+        maintenance: {
+          enabled: config.maintenance?.enabled === true,
+          title: config.maintenance?.title || '网站维护中',
+          content: config.maintenance?.content || '我们正在对网站进行维护升级，感谢您的耐心等待。',
+          end_time: config.maintenance?.end_time || ''
         }
       }
     }
