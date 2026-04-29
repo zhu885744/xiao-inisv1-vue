@@ -64,7 +64,7 @@
                                 </label>
                                 <select v-model="state.struct.json.audit" class="form-select">
                                     <option v-for="item in state.select.audit" :key="item.value" :value="item.value">
-                                        {{ item.label }} <small class="text-muted">({{ item.subtitle }})</small>
+                                        {{ item.label }} ({{ item.subtitle }})
                                     </option>
                                 </select>
                             </div>
@@ -79,7 +79,7 @@
                                 </label>
                                 <select v-model="state.struct.json.comment.allow" class="form-select">
                                     <option v-for="item in state.select.comment.allow" :key="item.value" :value="item.value">
-                                        {{ item.label }} <small class="text-muted">({{ item.value }})</small>
+                                        {{ item.label }} ({{ item.value }})
                                     </option>
                                 </select>
                             </div>

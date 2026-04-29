@@ -9,8 +9,9 @@
   
   <!-- 基于路由的布局切换 -->
   <template v-else-if="$route.path.startsWith('/admin')">
-    <!-- 使用路由视图，让 admin 路由的父组件 (base.vue) 处理布局 -->
-    <router-view></router-view>
+    <transition name="fade" mode="out-in">
+      <router-view key="$route.fullPath"></router-view>
+    </transition>
   </template>
   <template v-else>
     <!-- Index布局 -->
@@ -21,7 +22,9 @@
       <template v-if="store.siteInfo?.sidebar_enabled !== false">
         <div class="row">
           <div class="col-lg-9">
-            <router-view></router-view>
+            <transition name="slide-fade" mode="out-in">
+              <router-view key="$route.fullPath"></router-view>
+            </transition>
           </div>
           <!-- 全局侧边栏 -->
           <div class="col-lg-3 d-none d-lg-block">
@@ -30,7 +33,9 @@
         </div>
       </template>
       <template v-else>
-        <router-view></router-view>
+        <transition name="slide-fade" mode="out-in">
+          <router-view key="$route.fullPath"></router-view>
+        </transition>
       </template>
     </div>
     <!-- 全局页脚 -->
@@ -157,4 +162,33 @@ onUnmounted(() => {
 </script>
 
 <style>
+/* 淡入淡出动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滑动淡入动画 */
+.slide-fade-enter-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.slide-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.slide-fade-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.slide-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
 </style>

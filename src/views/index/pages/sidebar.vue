@@ -388,9 +388,9 @@
         </div>
 
         <!-- 标签云 -->
-        <div v-else class="tag-cloud">
+        <div v-else class="d-flex flex-wrap gap-2">
           <router-link
-            class="tag-item"
+            class="badge text-bg-light text-dark text-decoration-none"
             v-for="tag in tagList"
             :key="tag.id"
             :to="`/tag/${tag.id}`"
