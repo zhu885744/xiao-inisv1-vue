@@ -14,7 +14,7 @@
     <div class="card shadow-sm rounded-3 mt-2">
       <div class="card-body text-center py-5">
         <i class="bi bi-bell-slash text-muted fs-3 d-block mb-4"></i>
-        <h5 class="text-muted mb-0">功能开发当中，敬请期待！</h5>
+        <h5 class="text-muted mb-0">页面功能正在开发当中，敬请期待！</h5>
       </div>
     </div>
   </div>

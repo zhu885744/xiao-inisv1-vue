@@ -51,7 +51,7 @@
         <!-- 标签卡片网格 -->
         <div class="tags-grid card shadow-sm mt-2 bg-body rounded-3">
           <div class="card-header">
-            <span class="tags-count-title">标签 <span class="text-sm text-muted">({{ totalTags }})</span></span>
+            <span class="tags-count-title">标签页 <span class="text-sm text-muted">({{ totalTags }})</span></span>
           </div>
           <div class="tags-grid-container">
             <div 

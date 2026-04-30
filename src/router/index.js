@@ -1,3 +1,5 @@
+// src/router/index.js
+// 主路由管理配置
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import cache from '@/utils/cache'
 import utils from '@/utils/utils'
@@ -31,7 +33,7 @@ const routes = [
     redirect: '/'
   },
 
-  // 维护页面路由
+  // 网站维护页面路由
   {
     path: '/maintenance',
     name: '维护页面',
