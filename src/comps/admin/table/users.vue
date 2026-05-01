@@ -104,9 +104,12 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import utils from '@/utils/utils.js'
 import axios from '@/utils/request.js'
 import iTable from '@/comps/custom/i-table.vue'
+
+const router = useRouter()
 
 const emit  = defineEmits(['refresh','update:init'])
 const props = defineProps({
@@ -184,7 +187,7 @@ const method = {
         }
     },
     edit: struct => {
-        window.location.href = '/admin/users/write/' + parseInt(struct.id)
+        router.push({ path: '/admin/users/write/' + parseInt(struct.id) })
     },
     handleAvatarError(event) {
         event.target.src = '/static/images/avatar.png'

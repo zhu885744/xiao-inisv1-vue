@@ -1,5 +1,13 @@
-// src/router/index.js
-// 主路由管理配置
+/**
+ * 路由配置与权限管理
+ * 
+ * 主要功能：
+ * 1. 定义应用所有路由规则，按模块分组管理
+ * 2. 实现维护模式检查与权限控制
+ * 3. 配置全局路由守卫（前置/后置/错误处理）
+ * 4. 支持 hash/history 两种路由模式
+ */
+
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import cache from '@/utils/cache'
 import utils from '@/utils/utils'
@@ -8,426 +16,347 @@ import config from '@/utils/config'
 import { setupRouteTitle } from '@/utils/usePageTitle'
 import axios from '@/utils/request'
 
-/**
- * 路由管理配置
- * 优化点：
- * 1. 分组路由配置，按功能模块组织
- * 2. 优化路由懒加载
- * 3. 增强路由守卫和错误处理
- * 4. 添加详细的类型定义和注释
- * 5. 优化路由配置的可维护性
- */
-
-// 读取配置
+/** 路由基础路径，从配置读取 */
 const ROUTER_BASE = config.getSync('base_url') || '/'
-// 从配置文件同步获取路由模式
+
+/** 路由模式（hash/history），从配置读取 */
 const ROUTER_MODE = config.getSync('router_mode') || 'hash'
 
-console.log('路由模式:', ROUTER_MODE)
+/**
+ * 维护模式缓存对象
+ * 用于减少重复的API请求
+ * @property {boolean} enabled - 维护模式是否开启
+ * @property {number} lastChecked - 上次检查时间戳
+ * @property {number} cacheDuration - 缓存有效期（毫秒），默认1分钟
+ */
+let maintenanceModeCache = {
+  enabled: false,
+  lastChecked: 0,
+  cacheDuration: 60 * 1000
+}
 
-// 1. 定义路由规则，按功能模块分组
+/**
+ * 路由配置数组
+ * 按功能模块分组：重定向、维护页面、核心页面、用户相关、文章相关、分类标签、独立页面、管理路由、404兜底
+ * 
+ * 路由meta字段说明：
+ * - title: 页面标题
+ * - requiresAuth: 是否需要登录
+ * - isAdmin: 是否需要管理员权限
+ * - keepAlive: 是否缓存组件
+ */
 const routes = [
-  // 重定向路由
+  // ========== 重定向路由 ==========
   {
     path: '/index',
     redirect: '/'
   },
 
-  // 网站维护页面路由
+  // ========== 维护页面路由 ==========
   {
     path: '/maintenance',
     name: '维护页面',
     component: () => import('@/views/maintenance.vue'),
-    meta: { 
-      title: '网站维护', 
-      requiresAuth: false
-    }
+    meta: { title: '网站维护', requiresAuth: false }
   },
 
-  // 核心路由
+  // ========== 核心页面路由 ==========
   {
     path: '/',
     name: '首页',
     component: () => import('@/views/index/pages/index.vue'),
-    meta: { 
-      title: '首页', 
-      requiresAuth: false,
-      keepAlive: true
-    }
+    meta: { title: '首页', requiresAuth: false, keepAlive: true }
   },
   {
     path: '/search',
     name: '搜索页面',
     component: () => import('@/views/index/pages/search.vue'),
-    meta: { 
-      title: '搜索', 
-      requiresAuth: false
-    }
+    meta: { title: '搜索', requiresAuth: false }
   },
   {
     path: '/messages',
     name: '通知中心',
     component: () => import('@/views/index/pages/messages.vue'),
-    meta: { 
-      title: '通知中心', 
-      requiresAuth: false
-    }
+    meta: { title: '通知中心', requiresAuth: false }
   },
-  // 用户相关路由
+
+  // ========== 用户相关路由 ==========
   {
     path: '/user',
     name: '用户设置',
     component: () => import('@/views/index/pages/user.vue'),
-    meta: { 
-      title: '用户设置', 
-      requiresAuth: true
-    }
+    meta: { title: '用户设置', requiresAuth: true }
   },
   {
     path: '/author/:id',
     name: '用户主页',
     component: () => import('@/views/index/pages/author.vue'),
-    meta: { 
-      title: '用户主页', 
-      requiresAuth: false
-    },
+    meta: { title: '用户主页', requiresAuth: false },
     props: true
   },
 
-  // 文章相关路由
+  // ========== 文章相关路由 ==========
   {
     path: '/archives/:id',
     name: '文章详情',
     component: () => import('@/views/index/pages/archives.vue'),
-    meta: { 
-      title: '文章详情', 
-      requiresAuth: false
-    },
+    meta: { title: '文章详情', requiresAuth: false },
     props: true
   },
 
-  // 分类相关路由
+  // ========== 分类相关路由 ==========
   {
     path: '/category/:id',
     name: '分类页面',
     component: () => import('@/views/index/pages/category.vue'),
-    meta: { 
-      title: '分类页面', 
-      requiresAuth: false
-    },
+    meta: { title: '分类页面', requiresAuth: false },
     props: true
   },
 
-  // 标签相关路由
+  // ========== 标签相关路由 ==========
   {
     path: '/tags',
     name: '标签页面',
     component: () => import('@/views/index/pages/tags.vue'),
-    meta: { 
-      title: '标签', 
-      requiresAuth: false
-    }
+    meta: { title: '标签', requiresAuth: false }
   },
   {
     path: '/tag/:id',
     name: '单个标签页面',
     component: () => import('@/views/index/pages/tags.vue'),
-    meta: { 
-      title: '单个标签页面', 
-      requiresAuth: false
-    },
+    meta: { title: '单个标签页面', requiresAuth: false },
     props: true
   },
 
-  // 独立页面路由
+  // ========== 独立页面路由 ==========
   {
     path: '/archive',
     name: '归档页面',
     component: () => import('@/views/index/pages/page.vue'),
-    meta: { 
-      title: '网站统计', 
-      requiresAuth: false
-    },
+    meta: { title: '网站统计', requiresAuth: false },
     props: { pageKey: 'archive' }
   },
   {
     path: '/links',
     name: '友链页面',
     component: () => import('@/views/index/pages/page.vue'),
-    meta: { 
-      title: '友链', 
-      requiresAuth: false
-    },
+    meta: { title: '友链', requiresAuth: false },
     props: { pageKey: 'links' }
   },
   {
     path: '/:key',
     name: '独立页面',
     component: () => import('@/views/index/pages/page.vue'),
-    meta: { 
-      title: '独立页面', 
-      requiresAuth: false
-    },
+    meta: { title: '独立页面', requiresAuth: false },
     props: true,
     beforeEnter: (to, from, next) => {
       const currentKey = (to.params.key || '').trim()
-      if (!currentKey) {
-        next('/404')
-      } else {
-        next()
-      }
+      next(currentKey ? undefined : '/404')
     }
   },
 
-  // 管理相关路由
+  // ========== 主题功能路由 ==========
   {
     path: '/functions',
     name: '主题设置',
     component: () => import('@/views/index/pages/functions.vue'),
-    meta: { 
-      title: '主题设置', 
-      requiresAuth: true, 
-      isAdmin: true
-    }
+    meta: { title: '主题设置', requiresAuth: true, isAdmin: true }
   },
   {
     path: '/upgrade/theme',
     name: '版本更新',
     component: () => import('@/views/index/pages/theme-upgrade.vue'),
-    meta: { 
-      title: '版本更新', 
-      requiresAuth: true
-    }
+    meta: { title: '版本更新', requiresAuth: true }
   },
 
-  // 管理相关路由
-  {
-    path: '/functions',
-    name: '主题设置',
-    component: () => import('@/views/index/pages/functions.vue'),
-    meta: { 
-      title: '主题设置', 
-      requiresAuth: true, 
-      isAdmin: true
-    }
-  },
-  {
-    path: '/upgrade/theme',
-    name: '版本更新',
-    component: () => import('@/views/index/pages/theme-upgrade.vue'),
-    meta: { 
-      title: '版本更新', 
-      requiresAuth: true
-    }
-  },
-
-  // Admin路由系统
+  // ========== 后台管理路由 ==========
   {
     path: '/admin',
     name: 'admin',
     component: () => import('@/views/admin/layout/base.vue'),
-    meta: { 
-      title: '后台管理', 
-      requiresAuth: true, 
-      isAdmin: true
-    },
+    meta: { title: '后台管理', requiresAuth: true, isAdmin: true },
     children: [
-      {
-        path: '',
-        name: 'admin-home',
-        meta: { title: '控制台' },
-        component: () => import('@/views/admin/pages/index.vue'),
-      },
-      {
-        path: 'index',
-        redirect: ''
-      },
-      {
-        path: 'users',
-        name: 'admin-users',
-        meta: { title: '用户管理' },
-        component: () => import('@/views/admin/pages/users.vue'),
-      },
-      {
-        path: 'banner',
-        name: 'admin-banner',
-        meta: { title: '轮播管理' },
-        component: () => import('@/views/admin/pages/banner.vue'),
-      },
-      {
-        path: 'links',
-        name: 'admin-links',
-        meta: { title: '友链管理' },
-        component: () => import('@/views/admin/pages/links.vue'),
-      },
-      {
-        path: 'tags',
-        name: 'admin-tags',
-        meta: { title: '标签管理' },
-        component: () => import('@/views/admin/pages/tags.vue'),
-      },
-      {
-        path: 'placard',
-        name: 'admin-placard',
-        meta: { title: '公告管理' },
-        component: () => import('@/views/admin/pages/placard.vue'),
-      },
-      {
-        path: 'level',
-        name: 'admin-level',
-        meta: { title: '等级管理' },
-        component: () => import('@/views/admin/pages/level.vue'),
-      },
-      {
-        path: 'comment',
-        name: 'admin-comment',
-        meta: { title: '评论管理' },
-        component: () => import('@/views/admin/pages/comment.vue'),
-      },
-      {
-        path: 'article',
-        name: 'admin-article',
-        meta: { title: '文章列表' },
-        component: () => import('@/views/admin/pages/article.vue'),
-      },
-      {
-        path: 'article/write/:id?',
-        name: 'admin-article-write',
-        meta: { title: '撰写文章' },
-        component: () => import('@/views/admin/pages/article-write[id].vue'),
-      },
-      {
-        path: 'article/group',
-        name: 'admin-article-group',
-        meta: { title: '文章分组' },
-        component: () => import('@/views/admin/pages/article-group.vue'),
-      },
-      {
-        path: 'pages',
-        name: 'admin-pages',
-        meta: { title: '页面列表' },
-        component: () => import('@/views/admin/pages/pages.vue'),
-      },
-      {
-        path: 'pages/write/:id?',
-        name: 'admin-pages-write',
-        meta: { title: '撰写页面' },
-        component: () => import('@/views/admin/pages/pages-write[id].vue'),
-      },
-      {
-        path: 'links/group',
-        name: 'admin-links-group',
-        meta: { title: '友链分组' },
-        component: () => import('@/views/admin/pages/links-group.vue'),
-      },
-      {
-        path: 'auth/rules',
-        name: 'admin-auth-rules',
-        meta: { title: '权限规则' },
-        component: () => import('@/views/admin/pages/auth-rules.vue'),
-      },
-      {
-        path: 'auth/group',
-        name: 'admin-auth-group',
-        meta: { title: '权限分组' },
-        component: () => import('@/views/admin/pages/auth-group.vue'),
-      },
-      {
-        path: 'auth/pages',
-        name: 'admin-auth-pages',
-        meta: { title: '管理页面' },
-        component: () => import('@/views/admin/pages/auth-pages.vue'),
-      },
-      {
-        path: 'api/keys',
-        name: 'admin-api-keys',
-        meta: { title: '接口密钥' },
-        component: () => import('@/views/admin/pages/api-keys.vue'),
-      },
-      {
-        path: 'system',
-        name: 'admin-system',
-        meta: { title: '系统配置' },
-        component: () => import('@/views/admin/pages/system.vue'),
-      },
-      {
-        path: 'ip/black',
-        name: 'admin-ip-black',
-        meta: { title: 'IP黑名单' },
-        component: () => import('@/views/admin/pages/ip-black.vue'),
-      },
-      {
-        path: 'qps/warn',
-        name: 'admin-qps-warn',
-        meta: { title: 'QPS预警' },
-        component: () => import('@/views/admin/pages/qps-warn.vue'),
-      }
+      { path: '', name: 'admin-home', meta: { title: '控制台' }, component: () => import('@/views/admin/pages/index.vue') },
+      { path: 'index', redirect: '' },
+      { path: 'users', name: 'admin-users', meta: { title: '用户管理' }, component: () => import('@/views/admin/pages/users.vue') },
+      { path: 'banner', name: 'admin-banner', meta: { title: '轮播管理' }, component: () => import('@/views/admin/pages/banner.vue') },
+      { path: 'links', name: 'admin-links', meta: { title: '友链管理' }, component: () => import('@/views/admin/pages/links.vue') },
+      { path: 'tags', name: 'admin-tags', meta: { title: '标签管理' }, component: () => import('@/views/admin/pages/tags.vue') },
+      { path: 'placard', name: 'admin-placard', meta: { title: '公告管理' }, component: () => import('@/views/admin/pages/placard.vue') },
+      { path: 'level', name: 'admin-level', meta: { title: '等级管理' }, component: () => import('@/views/admin/pages/level.vue') },
+      { path: 'comment', name: 'admin-comment', meta: { title: '评论管理' }, component: () => import('@/views/admin/pages/comment.vue') },
+      { path: 'article', name: 'admin-article', meta: { title: '文章列表' }, component: () => import('@/views/admin/pages/article.vue') },
+      { path: 'article/write/:id?', name: 'admin-article-write', meta: { title: '撰写文章' }, component: () => import('@/views/admin/pages/article-write[id].vue') },
+      { path: 'article/group', name: 'admin-article-group', meta: { title: '文章分组' }, component: () => import('@/views/admin/pages/article-group.vue') },
+      { path: 'pages', name: 'admin-pages', meta: { title: '页面列表' }, component: () => import('@/views/admin/pages/pages.vue') },
+      { path: 'pages/write/:id?', name: 'admin-pages-write', meta: { title: '撰写页面' }, component: () => import('@/views/admin/pages/pages-write[id].vue') },
+      { path: 'links/group', name: 'admin-links-group', meta: { title: '友链分组' }, component: () => import('@/views/admin/pages/links-group.vue') },
+      { path: 'auth/rules', name: 'admin-auth-rules', meta: { title: '权限规则' }, component: () => import('@/views/admin/pages/auth-rules.vue') },
+      { path: 'auth/group', name: 'admin-auth-group', meta: { title: '权限分组' }, component: () => import('@/views/admin/pages/auth-group.vue') },
+      { path: 'auth/pages', name: 'admin-auth-pages', meta: { title: '管理页面' }, component: () => import('@/views/admin/pages/auth-pages.vue') },
+      { path: 'api/keys', name: 'admin-api-keys', meta: { title: '接口密钥' }, component: () => import('@/views/admin/pages/api-keys.vue') },
+      { path: 'system', name: 'admin-system', meta: { title: '系统配置' }, component: () => import('@/views/admin/pages/system.vue') },
+      { path: 'ip/black', name: 'admin-ip-black', meta: { title: 'IP黑名单' }, component: () => import('@/views/admin/pages/ip-black.vue') },
+      { path: 'qps/warn', name: 'admin-qps-warn', meta: { title: 'QPS预警' }, component: () => import('@/views/admin/pages/qps-warn.vue') }
     ]
   },
 
-  // 404 兜底路由（必须放在最后！）
+  // ========== 404兜底路由（必须放在最后） ==========
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/error.vue'),
-    meta: { 
-      title: '页面不存在', 
-      requiresAuth: false
-    }
+    meta: { title: '页面不存在', requiresAuth: false }
   }
 ]
 
-// 2. 动态创建路由历史对象（适配两种模式）
+/**
+ * 创建路由历史对象
+ * 根据配置动态选择 hash 或 history 模式
+ * 
+ * @returns {RouterHistory} 路由历史对象
+ */
 const createRouterHistory = () => {
-  // 再次检查路由模式，确保使用最新的配置值
   const currentMode = config.getSync('router_mode') || 'hash'
-  console.log('路由模式:', currentMode)
   return currentMode === 'history'
     ? createWebHistory(ROUTER_BASE)
     : createWebHashHistory(ROUTER_BASE)
 }
 
-// 3. 创建路由实例
+/**
+ * 创建路由实例
+ * 配置路由历史、路由表和滚动行为
+ */
 const router = createRouter({
   history: createRouterHistory(),
   routes,
-  // 路由跳转后回到顶部
+  /**
+   * 滚动行为配置
+   * - 有保存的滚动位置则恢复
+   * - 路由路径变化时滚动到顶部
+   */
   scrollBehavior: (to, from, savedPosition) => {
-    // 只有在真正的路由跳转时才滚动到顶部
-    // 避免Fancybox等模态框关闭时触发滚动
     if (savedPosition) {
       return savedPosition
-    } else {
-      // 只有当路由路径发生变化时才滚动到顶部
-      if (to.path !== from.path) {
-        return { top: 0, left: 0 }
-      }
     }
+    return to.path !== from.path ? { top: 0, left: 0 } : undefined
   }
 })
 
-// 全局前置守卫：通用权限校验
+/**
+ * 检查网站维护模式
+ * 优先使用缓存，避免频繁API请求
+ * 
+ * @returns {Promise<boolean>} 是否开启维护模式
+ */
+const checkMaintenanceMode = async () => {
+  const now = Date.now()
+  
+  // 使用缓存结果（有效期1分钟）
+  if (now - maintenanceModeCache.lastChecked < maintenanceModeCache.cacheDuration) {
+    return maintenanceModeCache.enabled
+  }
+
+  try {
+    const response = await axios.get('/api/config/one', { key: 'xiao_functions' })
+    if (response.code === 200 && response.data) {
+      // 兼容多种数据结构
+      const siteInfo = response.data.data?.json || response.data.json || response.data
+      
+      // 检查维护模式是否开启（兼容布尔值、字符串、数字）
+      const isEnabled = siteInfo.maintenance?.enabled === true || 
+                        siteInfo.maintenance?.enabled === 'true' ||
+                        siteInfo.maintenance?.enabled === 1
+
+      let isStillEnabled = isEnabled
+      
+      // 检查维护是否已结束
+      if (isEnabled && siteInfo.maintenance?.end_time) {
+        try {
+          const endTime = new Date(siteInfo.maintenance.end_time).getTime()
+          isStillEnabled = now <= endTime
+        } catch (e) {
+          console.error('解析维护结束时间失败:', e)
+        }
+      }
+
+      // 更新缓存
+      maintenanceModeCache = {
+        enabled: isStillEnabled,
+        lastChecked: now,
+        cacheDuration: maintenanceModeCache.cacheDuration
+      }
+      return isStillEnabled
+    }
+  } catch (error) {
+    console.error('检查维护模式失败:', error)
+  }
+  
+  maintenanceModeCache.lastChecked = now
+  return false
+}
+
+/**
+ * 检查用户是否具有管理员权限
+ * 
+ * @param {Object} userInfo - 用户信息对象
+ * @returns {boolean} 是否为管理员
+ */
+const checkAdminPermission = (userInfo) => {
+  if (!userInfo) return false
+  
+  // 兼容多种用户信息结构
+  const userAuth = userInfo.result?.auth || userInfo?.auth
+  const userGroups = userAuth?.group?.list || userInfo?.group?.list || []
+  
+  // 检查是否有全部权限或属于admin组
+  return userAuth?.all || userGroups.some(group => group.key === 'admin')
+}
+
+/**
+ * 检查当前登录用户是否为管理员
+ * 
+ * @returns {Promise<boolean>} 是否为管理员
+ */
+const checkCurrentUserAdmin = async () => {
+  try {
+    const commStore = useCommStore()
+    let userInfo = commStore.getLogin.user
+    
+    // 用户信息为空时尝试刷新
+    if (utils.is.empty(userInfo)) {
+      await commStore.checkLoginState()
+      userInfo = commStore.getLogin.user
+      if (utils.is.empty(userInfo)) {
+        return false
+      }
+    }
+    
+    return checkAdminPermission(userInfo)
+  } catch (error) {
+    console.error('检查管理员权限失败:', error)
+    return false
+  }
+}
+
+/**
+ * 全局前置守卫
+ * 处理维护模式检查和权限校验
+ */
 router.beforeEach(async (to, from, next) => {
-  // 维护模式检查
+  // 维护模式检查（维护页面除外）
   if (to.path !== '/maintenance') {
     const maintenanceEnabled = await checkMaintenanceMode()
-    console.log('维护模式检查结果:', maintenanceEnabled)
-    
     if (maintenanceEnabled) {
       const isAdmin = await checkCurrentUserAdmin()
-      console.log('管理员检查结果:', isAdmin)
-      
       if (!isAdmin) {
-        console.log('非管理员用户，跳转到维护页面')
         next('/maintenance')
         return
-      } else {
-        console.log('管理员用户，允许访问')
       }
     }
   }
 
-  // 权限校验
+  // 登录权限校验
   if (to.meta.requiresAuth) {
     const commStore = useCommStore()
     const userInfo = commStore.getLogin.user
@@ -440,16 +369,13 @@ router.beforeEach(async (to, from, next) => {
 
     // 管理员权限校验
     if (to.meta.isAdmin) {
-      // 尝试从缓存中获取管理员权限状态，减少重复计算
-      const cachedAdminStatus = cache.get(`admin_status_${userInfo.id || 'unknown'}`)
-      let isAdmin
+      const cacheKey = `admin_status_${userInfo.id || 'unknown'}`
+      let isAdmin = cache.get(cacheKey)
       
-      if (cachedAdminStatus !== null) {
-        isAdmin = cachedAdminStatus
-      } else {
+      // 缓存未命中时重新计算
+      if (isAdmin === null) {
         isAdmin = checkAdminPermission(userInfo)
-        // 缓存管理员权限状态，有效期1小时
-        cache.set(`admin_status_${userInfo.id || 'unknown'}`, isAdmin, 60)
+        cache.set(cacheKey, isAdmin, 60) // 缓存1小时
       }
       
       if (!isAdmin) {
@@ -462,9 +388,11 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
-// 全局后置守卫：缓存路由历史
+/**
+ * 全局后置守卫
+ * 缓存路由历史记录（最多保存10条，有效期7天）
+ */
 router.afterEach((to) => {
-  // 缓存路由历史，保存最近10条
   const historyKey = 'router_history'
   const history = cache.get(historyKey) || []
   
@@ -479,107 +407,31 @@ router.afterEach((to) => {
     timestamp: Date.now()
   })
   
-  // 只保留最近10条记录
-  const limitedHistory = filteredHistory.slice(0, 10)
-  
-  // 缓存路由历史，有效期7天
-  cache.set(historyKey, limitedHistory, 24 * 7)
+  // 只保留最近10条记录，缓存7天
+  cache.set(historyKey, filteredHistory.slice(0, 10), 24 * 7)
 })
 
-// 全局错误处理（捕获路由加载/跳转错误）
+/**
+ * 全局错误处理
+ * 捕获路由加载和跳转过程中的错误
+ */
 router.onError((error) => {
-  console.error(`[路由错误] ${error.type}: ${error.message}`)
-  // 处理组件加载错误
-  if (error.message.includes('Failed to fetch dynamically imported module')) {
-    console.error('组件加载失败，可能是网络问题或文件不存在')
-    // 跳转到404页面
+  console.error('[路由错误]', error)
+  
+  // 处理组件加载失败（网络问题或文件不存在）
+  if (error.message?.includes('Failed to fetch dynamically imported module')) {
     router.push('/404').catch(() => {})
   }
 })
 
-// 检查管理员权限
-const checkAdminPermission = (userInfo) => {
-  if (!userInfo) return false
-  
-  // 检查不同可能的用户信息结构
-  const userAuth = userInfo.result?.auth || userInfo?.auth
-  const userGroups = userAuth?.group?.list || userInfo?.group?.list || []
-  
-  // 检查是否为管理员
-  return userAuth?.all || userGroups.some(group => group.key === 'admin')
-}
+/**
+ * 设置路由标题管理
+ * 自动更新页面标题
+ */
+setupRouteTitle(router)
 
-// 检查维护模式是否开启
-const checkMaintenanceMode = async () => {
-  try {
-    const response = await axios.get('/api/config/one', { key: 'xiao_functions' })
-    console.log('维护模式检查响应:', response)
-    if (response.code === 200 && response.data) {
-      let siteInfo
-      if (response.data.data && response.data.data.json) {
-        siteInfo = response.data.data.json
-      } else if (response.data.json) {
-        siteInfo = response.data.json
-      } else {
-        siteInfo = response.data
-      }
-      
-      console.log('维护配置:', siteInfo.maintenance)
-      
-      // 检查维护模式是否开启（处理布尔值和字符串类型）
-      const isEnabled = siteInfo.maintenance?.enabled === true || 
-                        siteInfo.maintenance?.enabled === 'true' ||
-                        siteInfo.maintenance?.enabled === 1
-      
-      console.log('维护模式是否开启:', isEnabled)
-      
-      if (isEnabled) {
-        // 检查维护是否已结束
-        if (siteInfo.maintenance.end_time) {
-          try {
-            const endTime = new Date(siteInfo.maintenance.end_time).getTime()
-            if (Date.now() > endTime) {
-              console.log('维护已结束')
-              return false
-            }
-          } catch (e) {
-            console.error('解析维护结束时间失败:', e)
-          }
-        }
-        return true
-      }
-    }
-  } catch (error) {
-    console.error('检查维护模式失败:', error)
-  }
-  return false
-}
-
-// 检查当前用户是否为管理员
-const checkCurrentUserAdmin = async () => {
-  try {
-    const commStore = useCommStore()
-    const userInfo = commStore.getLogin.user
-    
-    if (utils.is.empty(userInfo)) {
-      // 尝试刷新用户信息
-      await commStore.checkLoginState()
-      const updatedUserInfo = commStore.getLogin.user
-      if (!utils.is.empty(updatedUserInfo)) {
-        return checkAdminPermission(updatedUserInfo)
-      }
-      return false
-    }
-    
-    return checkAdminPermission(userInfo)
-  } catch (error) {
-    console.error('检查管理员权限失败:', error)
-    return false
-  }
-}
-
-// 设置路由标题管理
-setupRouteTitle(router);
-
-// 导出路由实例
+/**
+ * 导出路由实例
+ * @type {Router}
+ */
 export default router
