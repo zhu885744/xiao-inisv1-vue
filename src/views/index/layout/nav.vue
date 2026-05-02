@@ -510,7 +510,7 @@ const method = {
   logout: async () => {
     try {
       // 1. 调用后端退出登录接口（DELETE 请求）
-      const response = await axios.del('/api/comm/logout')
+      const response = await axios.delete('/api/comm/logout')
       
       // 2. 处理接口响应（根据后端返回状态码判断）
       if (response.code === 200) {
@@ -534,7 +534,7 @@ const method = {
       }
     } catch (error) {
       // 网络错误/接口调用失败
-      // console.error('退出登录接口调用失败:', error)
+      console.error('退出登录接口调用失败:', error)
       
       // 兜底清理前端状态（即使接口失败，也清理本地Token）
       utils.set.cookie(globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN', '', -1)
