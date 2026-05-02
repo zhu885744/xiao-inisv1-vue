@@ -68,95 +68,91 @@
     <div class="card-body">
       <!-- 搜索内容区域 -->
       <div class="mt-2">
-        <div class="card">
-          <div class="card-body">
-            <!-- 搜索历史 -->
-            <div v-if="!loading && searchQuery === '' && searchHistory.length > 0">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="text-muted">
-                  <i class="bi bi-clock-history me-1"></i>搜索历史
-                </h6>
-                <button @click="clearSearchHistory" class="btn btn-sm btn-outline-secondary">
-                  清除历史
-                </button>
-              </div>
-              <div class="list-group list-group-flush">
-                <div
-                  v-for="(item, index) in searchHistory"
-                  :key="index"
-                  class="list-group-item d-flex justify-content-between align-items-center"
-                  @click="useSearchHistory(item)"
-                  style="cursor: pointer;"
-                >
-                  <span>{{ item }}</span>
-                  <button @click.stop="searchHistory.splice(index, 1); localStorage.setItem('search-history', JSON.stringify(searchHistory))" class="btn btn-sm text-muted">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </div>
+        <!-- 搜索历史 -->
+        <div v-if="!loading && searchQuery === '' && searchHistory.length > 0">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-muted">
+              <i class="bi bi-clock-history me-1"></i>搜索历史
+            </h6>
+            <button @click="clearSearchHistory" class="btn btn-sm btn-outline-secondary">
+              清除历史
+            </button>
+          </div>
+          <div class="search-history-tags d-flex flex-wrap gap-2">
+            <div
+              v-for="(item, index) in searchHistory"
+              :key="index"
+              class="search-history-tag position-relative d-inline-block"
+              @click="useSearchHistory(item)"
+              style="cursor: pointer;"
+            >
+              <span class="badge text-bg-light text-dark pe-6">{{ item }}</span>
+              <button @click.stop="removeSearchHistory(index)" class="close-badge-btn">
+                <i class="bi bi-x"></i>
+              </button>
             </div>
+          </div>
+        </div>
 
-            <!-- 搜索结果 -->
-            <div v-else-if="!loading && searchResults.length > 0">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="text-muted">
-                  <i class="bi bi-search me-1"></i>搜索结果 ({{ searchResults.length }})
-                </h6>
-              </div>
-              <div class="result-list">
-                <div
-                  v-for="result in searchResults"
-                  :key="result.id || result.key"
-                  @click="navigateToResult(result)"
-                  class="result-item mb-3"
-                  :class="`result-${result.type}`"
-                >
-                  <div class="card h-100 transition-all duration-300 hover:shadow-sm">
-                    <div class="card-body">
-                      <div class="d-flex align-items-start">
-                        <div class="result-icon-container me-3">
-                          <i :class="[getResultIcon(result.type), 'result-icon']"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                          <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title mb-0 font-medium">{{ result.title || result.name }}</h5>
-                            <span class="result-type-badge" :class="`badge-${result.type}`">
-                              {{ getResultTypeName(result.type) }}
-                            </span>
-                          </div>
-                          <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2">{{ result.abstract }}</p>
-                          <div v-if="result.create_time" class="text-xs text-gray-400">
-                            {{ formatDate(result.create_time) }}
-                          </div>
-                        </div>
+        <!-- 搜索结果 -->
+        <div v-else-if="!loading && searchResults.length > 0">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-muted">
+              <i class="bi bi-search me-1"></i>搜索结果 ({{ searchResults.length }})
+            </h6>
+          </div>
+          <div class="result-list">
+            <div
+              v-for="result in searchResults"
+              :key="result.id || result.key"
+              @click="navigateToResult(result)"
+              class="result-item mb-3"
+              :class="`result-${result.type}`"
+            >
+              <div class="card h-100 transition-all duration-300 hover:shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-start">
+                    <div class="result-icon-container me-3">
+                      <i :class="[getResultIcon(result.type), 'result-icon']"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0 font-medium">{{ result.title || result.name }}</h5>
+                        <span class="result-type-badge" :class="`badge-${result.type}`">
+                          {{ getResultTypeName(result.type) }}
+                        </span>
+                      </div>
+                      <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2">{{ result.abstract }}</p>
+                      <div v-if="result.create_time" class="text-xs text-gray-400">
+                        {{ formatDate(result.create_time) }}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- 无结果 -->
-            <div v-else-if="!loading && searchQuery !== '' && searchResults.length === 0" class="text-center py-12">
-              <div class="mb-4">
-                <i class="bi bi-search text-5xl text-muted"></i>
-              </div>
-              <p class="text-muted">没有找到与 "{{ searchQuery }}" 相关的结果</p>
-            </div>
-
-            <!-- 加载中 -->
-            <div v-else-if="loading" class="text-center py-12">
-              <div class="spinner-border text-primary mb-4" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="text-muted">搜索中...</p>
-            </div>
-
-            <!-- 初始状态 -->
-            <div v-else-if="!loading && searchQuery === '' && searchHistory.length === 0" class="text-center py-12">
-              <p class="mt-4 text-muted">请输入关键词开始搜索</p>
-            </div>
           </div>
+        </div>
+
+        <!-- 无结果 -->
+        <div v-else-if="!loading && searchQuery !== '' && searchResults.length === 0" class="text-center py-12">
+          <div class="mb-4">
+            <i class="bi bi-search text-5xl text-muted"></i>
+          </div>
+          <p class="text-muted">没有找到与 "{{ searchQuery }}" 相关的结果</p>
+        </div>
+
+        <!-- 加载中 -->
+        <div v-else-if="loading" class="text-center py-12">
+          <div class="spinner-border text-primary mb-4" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-muted">搜索中...</p>
+        </div>
+
+        <!-- 初始状态 -->
+        <div v-else-if="!loading && searchQuery === '' && searchHistory.length === 0" class="text-center py-12">
+          <p class="mt-4 text-muted">请输入关键词开始搜索</p>
         </div>
       </div>
     </div>
@@ -234,6 +230,12 @@ const saveSearchHistory = (query) => {
 const clearSearchHistory = () => {
   searchHistory.value = []
   localStorage.removeItem('search-history')
+}
+
+// 删除单条搜索历史
+const removeSearchHistory = (index) => {
+  searchHistory.value.splice(index, 1)
+  localStorage.setItem('search-history', JSON.stringify(searchHistory.value))
 }
 
 // 使用搜索历史
@@ -534,3 +536,32 @@ onUnmounted(() => {
   cleanup()
 })
 </script>
+
+<style scoped>
+.close-badge-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #999;
+  border: none;
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1;
+}
+
+.close-badge-btn:hover {
+  background-color: #666;
+}
+
+.close-badge-btn i {
+  margin: 0;
+}
+</style>

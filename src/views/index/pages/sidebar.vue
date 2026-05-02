@@ -107,6 +107,99 @@
       </div>
     </div>
 
+    <!-- 人生倒计时卡片 -->
+    <div class="card mt-2">
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-clock-history me-2 text-secondary"></i>
+          <span>人生倒计时</span>
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="countdown-container">
+          <!-- 今日已过去 -->
+          <div class="countdown-item mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-sun me-1"></i>今日
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.todayHours }} 小时</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-primary" 
+                :style="{ width: countdownData.todayPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.todayPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">24小时</span>
+            </div>
+          </div>
+
+          <!-- 本周已过去 -->
+          <div class="countdown-item mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-calendar-week me-1"></i>本周
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.weekDays }} 天</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-success" 
+                :style="{ width: countdownData.weekPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.weekPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">7天</span>
+            </div>
+          </div>
+
+          <!-- 本月已过去 -->
+          <div class="countdown-item mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-calendar-month me-1"></i>本月
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.monthDays }} 天</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-warning" 
+                :style="{ width: countdownData.monthPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.monthPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.monthTotalDays }}天</span>
+            </div>
+          </div>
+
+          <!-- 本年已过去 -->
+          <div class="countdown-item">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-calendar3 me-1"></i>本年
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.yearMonths }} 月</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-danger" 
+                :style="{ width: countdownData.yearPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.yearPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">12月</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 等级排行卡片 -->
     <div class="card mt-2">
       <div class="card-header border-bottom d-flex justify-content-between align-items-center">
@@ -475,6 +568,47 @@ const quickNavs = computed(() => {
     { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
     { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
   ]
+})
+
+// 人生倒计时数据计算
+const countdownData = computed(() => {
+  const now = new Date()
+  const currentHour = now.getHours()
+  const currentDayOfWeek = now.getDay() === 0 ? 7 : now.getDay()
+  const currentDayOfMonth = now.getDate()
+  const currentMonth = now.getMonth() + 1
+  const currentYear = now.getFullYear()
+  
+  // 获取本月总天数
+  const lastDayOfMonth = new Date(currentYear, currentMonth, 0).getDate()
+  
+  // 今日已过去小时数
+  const todayHours = currentHour
+  const todayPercent = (todayHours / 24) * 100
+  
+  // 本周已过去天数 (周一为第一天)
+  const weekDays = currentDayOfWeek - 1
+  const weekPercent = (weekDays / 7) * 100
+  
+  // 本月已过去天数
+  const monthDays = currentDayOfMonth - 1
+  const monthPercent = (monthDays / lastDayOfMonth) * 100
+  
+  // 本年已过去月数
+  const yearMonths = currentMonth - 1
+  const yearPercent = (yearMonths / 12) * 100
+  
+  return {
+    todayHours,
+    todayPercent,
+    weekDays,
+    weekPercent,
+    monthDays,
+    monthPercent,
+    monthTotalDays: lastDayOfMonth,
+    yearMonths,
+    yearPercent
+  }
 })
 
 // 图片缓存
@@ -1389,6 +1523,77 @@ onMounted(() => {
   background-color: var(--bs-dark);
   color: var(--bs-white);
   border-color: var(--bs-dark);
+}
+
+/* 人生倒计时样式 */
+.countdown-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.countdown-item {
+  position: relative;
+}
+
+.countdown-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--bs-body-color);
+  display: flex;
+  align-items: center;
+}
+
+.countdown-label i {
+  font-size: 1rem;
+  margin-right: 0.25rem;
+}
+
+.countdown-value {
+  font-size: 0.875rem;
+  color: var(--bs-emphasis-color);
+}
+
+.countdown-percent {
+  font-size: 0.75rem;
+}
+
+.sidebar-progress {
+  border-radius: 0.25rem;
+  background-color: var(--bs-tertiary-bg);
+  overflow: hidden;
+}
+
+.sidebar-progress .progress-bar {
+  border-radius: 0.25rem;
+  transition: width 0.3s ease;
+}
+
+.bg-gradient {
+  background-image: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+}
+
+/* 倒计时颜色 */
+.bg-primary {
+  background-color: #0d6efd;
+}
+
+.bg-success {
+  background-color: #198754;
+}
+
+.bg-warning {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.bg-danger {
+  background-color: #dc3545;
+}
+
+/* 深色模式倒计时适配 */
+.dark-mode .bg-warning {
+  background-color: #f0a500;
+  color: #000;
 }
 
 /* 快捷导航样式 */
