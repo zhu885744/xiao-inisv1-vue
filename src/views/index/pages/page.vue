@@ -115,7 +115,7 @@
 
           <!-- 文章归档时间线 -->
           <div class="archive-timeline mt-6">
-            <h2 class="timeline-title mb-4">文章归档</h2>
+            <h2 class="timeline-title mb-4">文章归档（{{ archiveStats.articleCount || 0 }}篇）</h2>
             
             <!-- 加载状态 -->
             <div v-if="articlesLoading" class="d-flex justify-content-center py-5">
