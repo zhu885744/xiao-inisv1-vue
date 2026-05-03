@@ -164,6 +164,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import request from '@/utils/request'
 import toast from '@/utils/toast'
+import cache from '@/utils/cache'
 import { useCommStore } from '@/store/comm'
 import { usePageTitle } from '@/utils/usePageTitle'
 
@@ -236,14 +237,36 @@ const compareVersions = (version1, version2) => {
 }
 
 // 检查更新
-const checkForUpdates = async () => {
+const checkForUpdates = async (forceRefresh = false) => {
   loading.value = true
   error.value = ''
-  
+
   try {
     // 获取当前版本
     currentVersion.value = currentVersionComputed.value
-    
+
+    // 缓存键
+    const cacheKey = 'theme_version_info'
+    const cacheExpire = 60 * 60 // 缓存1小时
+
+    // 尝试从缓存获取版本信息（除非强制刷新）
+    if (!forceRefresh) {
+      const cachedData = cache.get(cacheKey)
+      if (cachedData) {
+        latestVersion.value = cachedData.latestVersion
+        versionHistory.value = cachedData.versionHistory || []
+        lastCheckTime.value = cachedData.lastCheckTime
+        loading.value = false
+        // 检查是否有新版本
+        if (hasUpdate.value) {
+          toast.info(`发现新版本 xiao ${latestVersion.value.version} 版本`, {
+            duration: 5000
+          })
+        }
+        return
+      }
+    }
+
     // 调用API获取最新版本
     const res = await request.get('/api/upgrade/list', {
       type: 'theme',
@@ -252,13 +275,22 @@ const checkForUpdates = async () => {
       sort: 'create_time',
       order: 'desc'
     })
-    
+
     if (res.code === 200) {
       // 即使列表为空，也认为请求成功
       if (res.data.list.length > 0) {
         latestVersion.value = res.data.list[0]
         versionHistory.value = res.data.list
-        
+
+        // 缓存版本信息
+        const cacheData = {
+          latestVersion: latestVersion.value,
+          versionHistory: versionHistory.value,
+          lastCheckTime: formatDate(Date.now())
+        }
+        cache.set(cacheKey, cacheData, cacheExpire)
+        lastCheckTime.value = formatDate(Date.now())
+
         // 检查是否有新版本
         if (hasUpdate.value) {
           // 显示新版本通知
@@ -270,10 +302,14 @@ const checkForUpdates = async () => {
         // 列表为空，重置版本信息
         latestVersion.value = null
         versionHistory.value = []
+        // 也缓存空结果，避免频繁请求
+        cache.set(cacheKey, {
+          latestVersion: null,
+          versionHistory: [],
+          lastCheckTime: formatDate(Date.now())
+        }, cacheExpire)
+        lastCheckTime.value = formatDate(Date.now())
       }
-      
-      // 更新检测时间
-      lastCheckTime.value = formatDate(Date.now())
     } else {
       error.value = res.msg || '获取版本信息失败'
     }

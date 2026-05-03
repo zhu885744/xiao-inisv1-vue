@@ -1095,28 +1095,39 @@ const getPageData = async (pageKey) => {
 const initPage = async () => {
   // 优先使用props.pageKey，然后使用route.params.key，最后兜底空字符串
   const currentKey = (props.pageKey || route.params.key || '').trim()
-  
+
   // 如果是归档页面，直接加载统计信息
   if (currentKey === 'archive') {
     setDynamicTitle('加载中...')
     await getArchivePageData()
-    fetchArchiveStats()
-    await fetchArticles()
+    // 并行获取归档统计数据和文章列表
+    await Promise.all([
+      fetchArchiveStats(),
+      fetchArticles()
+    ])
     startArchiveAutoRefresh()
-  } 
-  // 如果是友链页面，加载友链数据
+  }
+  // 如果是友链页面，并行加载友链数据和评论
   else if (currentKey === 'links') {
     setDynamicTitle('加载中...')
-    await getLinksPageData()
-    await fetchLinks()
+    // 并行获取友链页面数据和友链列表
+    await Promise.all([
+      getLinksPageData(),
+      fetchLinks()
+    ])
+    // 获取评论
     await getLinksComments(currentPage.value, pageSize.value)
-  } 
-  // 如果是留言页面，加载留言页面数据
+  }
+  // 如果是留言页面，并行加载留言页面数据和评论
   else if (currentKey === 'message') {
     setDynamicTitle('加载中...')
+    // 首先获取留言页面数据
     await getMessagePageData()
-    await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
-    await calculateMessageStats()
+    // 然后并行获取评论和统计数据
+    await Promise.all([
+      getComments(pageInfo.value.id, currentPage.value, pageSize.value),
+      calculateMessageStats()
+    ])
   } else if (checkPageKey(currentKey)) {
     // 普通独立页面
     getPageData(currentKey)

@@ -865,12 +865,25 @@ const formatTime = (time) => {
 // 获取等级数据
 const getLevelInfo = async () => {
   try {
+    // 缓存键
+    const cacheKey = 'sidebar_level_info'
+    const cacheExpire = 60 * 60 // 缓存1小时
+
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      levelInfo.value = cachedData
+      return
+    }
+
     const res = await request.get('/api/level/all', {
       page: 1,
       limit: 20
     })
     if (res.code === 200) {
       levelInfo.value = res
+      // 缓存数据
+      cache.set(cacheKey, res, cacheExpire)
     }
   } catch (error) {
     // console.error('获取等级数据失败:', error)

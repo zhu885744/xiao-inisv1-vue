@@ -17,7 +17,7 @@
         <img 
           v-if="store.comm.siteInfo?.avatar" 
           :src="store.comm.siteInfo.avatar" 
-          alt="网站图标" 
+          alt="网站LOGO" 
           style="width: 45px;border-radius: 50%;"
         >
         <span v-else class="fw-bold">{{ store.comm.siteInfo?.title || '未设置网站名' }}</span>

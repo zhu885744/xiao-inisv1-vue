@@ -353,48 +353,20 @@ const goToArticle = (articleId) => {
 // 获取封面图片 - 响应式处理
 const getCoverImg = (article) => {
   // 1. 优先使用文章自身封面
-  if (article.covers && article.covers.trim() !== '') {
-    // 响应式图片处理
-    const screenWidth = window.innerWidth
-    const devicePixelRatio = window.devicePixelRatio || 1
-    
-    // 根据屏幕宽度和像素密度确定图片尺寸
-    let imageSize = 'medium' // 默认中等尺寸
-    
-    if (screenWidth < 768) {
-      // 移动设备
-      imageSize = 'small'
-    } else if (screenWidth < 1200) {
-      // 平板设备
-      imageSize = 'medium'
-    } else {
-      // 桌面设备
-      imageSize = 'large'
-    }
-    
-    // 如果像素密度高，使用更大的图片
-    if (devicePixelRatio > 1.5) {
-      if (imageSize === 'small') imageSize = 'medium'
-      else if (imageSize === 'medium') imageSize = 'large'
-    }
-    
-    // 这里假设图片URL支持通过参数调整尺寸
-    // 如果后端支持，可以在这里修改URL来获取不同尺寸的图片
-    // 例如: article.covers + '?size=' + imageSize
-    // 目前暂时返回原始URL
-    return article.covers
+  if (article.covers && typeof article.covers === 'string' && article.covers.trim() !== '') {
+    return article.covers.trim()
   }
-  
+
   // 2. 尝试从result中获取封面
-  if (article.result && article.result.covers && article.result.covers.trim() !== '') {
-    return article.result.covers
+  if (article.result && article.result.covers && typeof article.result.covers === 'string' && article.result.covers.trim() !== '') {
+    return article.result.covers.trim()
   }
-  
+
   // 3. 尝试从covers字段的其他可能位置获取
-  if (article.cover && article.cover.trim() !== '') {
-    return article.cover
+  if (article.cover && typeof article.cover === 'string' && article.cover.trim() !== '') {
+    return article.cover.trim()
   }
-  
+
   // 4. 使用导入的本地默认封面图片
   return defaultCover
 }
@@ -445,25 +417,23 @@ const preloadImage = (src) => {
 // 图片加载失败处理
 const handleImageError = (event) => {
   const img = event.target
-  // 使用 requestAnimationFrame 优化 DOM 操作，减少重绘
+  const currentSrc = img.src
+
+  // 如果当前不是默认封面且不是loading图，则尝试加载默认封面
+  const isDefaultOrLoading = currentSrc === defaultCover || currentSrc.includes('ljz.gif')
+
   requestAnimationFrame(() => {
-    // 移除 loading 样式
     img.classList.remove('lazy-loading')
-    
-    // 尝试加载默认图片
-    if (img.src !== defaultCover && !img.src.includes('ljz.gif')) {
+    img.dataset.loaded = 'true'
+
+    if (!isDefaultOrLoading) {
+      // 尝试加载默认图片
       img.src = defaultCover
     } else {
       // 如果默认图片也加载失败，显示错误状态
       img.classList.add('lazy-error')
-      // 标记为已加载（失败状态）
-      img.dataset.loaded = 'true'
+      img.onerror = null
     }
-    
-    // 防止无限错误循环
-    img.onerror = null
-    // 清理 data-observed 属性，释放内存
-    delete img.dataset.observed
   })
 }
 
@@ -476,88 +446,65 @@ const initIntersectionObserver = () => {
   }
 
   observer = new IntersectionObserver((entries) => {
-    // 批量处理观察到的图片
-    const imagesToLoad = []
-    
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target
-        const dataSrc = img.dataset.src
-        
-        // 检查是否已经加载过（通过自定义属性标记）
-        const isLoaded = img.dataset.loaded === 'true'
-        const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
-        
-        // 只有当图片没有加载过且 data-src 存在时才加载
-        if (dataSrc && !isLoaded && isDefaultCover) {
-          imagesToLoad.push(img)
-        }
+        loadImage(img)
+        observer.unobserve(img)
       }
-    })
-    
-    // 立即加载所有可见图片
-    imagesToLoad.forEach(img => {
-      // 再次检查，避免重复加载
-      const dataSrc = img.dataset.src
-      const isLoaded = img.dataset.loaded === 'true'
-      const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
-      
-      if (dataSrc && !isLoaded && isDefaultCover) {
-        img.src = dataSrc
-        img.classList.add('lazy-loading')
-      }
-      // 停止观察
-      observer.unobserve(img)
     })
   }, {
-    rootMargin: '50px 0px 50px 0px', // 提前 50px 开始加载
-    threshold: 0.01, // 只要有 1% 的区域可见就开始加载
-    root: null // 使用默认根元素（视口）
+    rootMargin: '100px 0px 100px 0px', // 提前 100px 开始加载
+    threshold: 0.01,
+    root: null
   })
+}
+
+// 加载单张图片
+const loadImage = (img) => {
+  const dataSrc = img.dataset.src
+  const isLoaded = img.dataset.loaded === 'true'
+
+  if (dataSrc && !isLoaded) {
+    img.src = dataSrc
+    img.classList.add('lazy-loading')
+    img.dataset.loaded = 'true'
+
+    // 图片加载成功后移除 loading 类，添加 loaded 类
+    img.onload = () => {
+      img.classList.remove('lazy-loading')
+      img.classList.add('lazy-loaded')
+      img.onload = null
+    }
+  }
 }
 
 // 观察所有懒加载图片
 const observeLazyImages = () => {
   nextTick(() => {
-    const lazyImages = document.querySelectorAll('.lazy-img')
+    const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed="true"])')
     if (lazyImages.length === 0) return
-    
-    // 立即加载可视区域内的图片
-    const visibleImages = Array.from(lazyImages).filter(img => {
-      const rect = img.getBoundingClientRect()
-      return rect.top < window.innerHeight + 300 && rect.bottom > -100
-    })
-    
-    // 直接加载可视区域内的图片
-    visibleImages.forEach(img => {
+
+    lazyImages.forEach(img => {
       const dataSrc = img.dataset.src
       const isLoaded = img.dataset.loaded === 'true'
-      const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
-      
-      if (dataSrc && !isLoaded && isDefaultCover) {
-        img.src = dataSrc
-        // 移除 data-observed 标记，让 IntersectionObserver 可以重新观察
-        delete img.dataset.observed
-      }
-    })
-    
-    // 延迟观察其他图片
-    setTimeout(() => {
-      const remainingImages = Array.from(lazyImages).filter(img => {
-        const dataSrc = img.dataset.src
-        const isLoaded = img.dataset.loaded === 'true'
-        const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
-        // 只观察还没有加载过且没有被观察过的图片
-        return dataSrc && !isLoaded && isDefaultCover && !img.dataset.observed
-      })
-      
-      remainingImages.forEach(img => {
+
+      if (dataSrc && !isLoaded) {
+        const rect = img.getBoundingClientRect()
+        const isVisible = rect.top < window.innerHeight + 300 && rect.bottom > -100
+
+        if (isVisible) {
+          // 可视区域内的图片直接加载
+          loadImage(img)
+        }
+        // 标记为已观察
+        img.dataset.observed = 'true'
+        // 添加到 IntersectionObserver
         if (observer) {
           observer.observe(img)
-          img.dataset.observed = 'true'
         }
-      })
-    }, 200)
+      }
+    })
   })
 }
 
@@ -565,13 +512,7 @@ const observeLazyImages = () => {
 const loadAllImages = () => {
   const lazyImages = document.querySelectorAll('.lazy-img')
   lazyImages.forEach(img => {
-    const dataSrc = img.dataset.src
-    const isLoaded = img.dataset.loaded === 'true'
-    const isDefaultCover = img.src === defaultCover || img.src.includes('ljz.gif')
-    
-    if (dataSrc && !isLoaded && isDefaultCover) {
-      img.src = dataSrc
-    }
+    loadImage(img)
   })
 }
 
@@ -581,10 +522,10 @@ const getTagsList = async () => {
     // 缓存键包含页码信息，确保不同页码的标签列表有不同的缓存
     const cacheKey = `tags_list_page_${tagCurrentPage.value}_${tagPageSize.value}`
     const cacheExpire = 60 // 缓存60分钟
-    
+
     // 尝试从缓存获取标签列表
     let tagsList = cache.get(cacheKey)
-    
+
     // 如果缓存不存在，从API获取
     if (!tagsList) {
       // 参考分类页面的实现方式，从API获取标签列表
@@ -619,15 +560,17 @@ const getTagsList = async () => {
       tagsCount.value = tagsList.length
     }
 
-    // 为每个标签获取文章数量
-    for (const tag of tagsList) {
-      await getTagArticleCount(tag)
+    // 批量获取标签文章数量（使用Promise.all并行请求，但限制并发数）
+    const batchSize = 5 // 每批最多5个标签
+    for (let i = 0; i < tagsList.length; i += batchSize) {
+      const batch = tagsList.slice(i, i + batchSize)
+      await Promise.all(batch.map(tag => getTagArticleCount(tag)))
     }
 
     tags.value = tagsList
     // 更新标签总数
     tagsCount.value = tagsList.length
-    
+
     // 移除默认选择第一个标签的逻辑，现在通过路由参数或手动导航选择标签
   } catch (err) {
     tags.value = []
@@ -694,13 +637,11 @@ const getTagArticles = async (tagId, page = 1) => {
     if (cachedArticles) {
       articles.value = cachedArticles.data || []
       total.value = cachedArticles.total || 0
-      // 数据更新后，观察新图片
+      // 数据更新后，等待 DOM 更新完成再观察图片
       nextTick(() => {
-        observeLazyImages()
-        // 再次检查，确保图片加载
         setTimeout(() => {
           observeLazyImages()
-        }, 300)
+        }, 50)
       })
       return
     }
@@ -735,15 +676,13 @@ const getTagArticles = async (tagId, page = 1) => {
         data: articlesData,
         total: totalCount
       }, cacheExpire)
-      
-      // 数据更新后，观察新图片
+
+      // 数据更新后，等待 DOM 更新完成再观察图片
       nextTick(() => {
-        observeLazyImages()
-        // 再次检查，确保图片加载
         setTimeout(() => {
           observeLazyImages()
-        }, 300)
-      });
+        }, 50)
+      })
     } else {
       articles.value = [];
       total.value = 0;
@@ -826,10 +765,19 @@ const loadTagFromProps = async (tagId) => {
         setDynamicTitle(tag.name)
         // 缓存标签详情
         cache.set(cacheKey, tag, cacheExpire)
-        // 获取标签文章数量
-        await getTagArticleCount(tag)
-        // 获取标签文章列表
-        await getTagArticles(tag.id, 1)
+
+        // 并行获取标签文章数量和文章列表（优化性能）
+        await Promise.all([
+          getTagArticleCount(tag),
+          getTagArticles(tag.id, 1)
+        ])
+
+        // 额外触发一次图片观察，确保懒加载生效
+        nextTick(() => {
+          setTimeout(() => {
+            observeLazyImages()
+          }, 100)
+        })
       } else {
         // 如果标签不存在，显示错误信息
         error.value = true
@@ -858,7 +806,14 @@ const initPage = async () => {
   articles.value = []
   total.value = 0
   currentPage.value = 1
-  
+
+  // 清理旧的 IntersectionObserver，重新初始化
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+  initIntersectionObserver()
+
   try {
     // 获取标签列表
     await getTagsList()

@@ -97,6 +97,7 @@ import BasicInfoSettings from '@/comps/user/settings/basic-info.vue'
 import AccountSecuritySettings from '@/comps/user/settings/account-security.vue'
 import ContactInfoSettings from '@/comps/user/settings/contact-info.vue'
 import toast from '@/utils/toast'
+import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
 
 // 使用页面标题管理
@@ -105,18 +106,6 @@ setDynamicTitle('用户设置');
 import { useCommStore } from '@/store/comm'
 
 const store = useCommStore()
-
-// 组件挂载时的逻辑
-onMounted(async () => {
-  // 手动触发登录态校验
-  await store.checkLoginState()
-  
-  if (!isLogin.value) {
-    toast.error('请先登录')
-    // 跳转到首页
-    window.location.href = '/'
-  }
-})
 
 // 加载状态
 const loading = ref(false)
@@ -127,24 +116,43 @@ const isLogin = computed(() => {
   return loginState.finish && Object.keys(loginState.user).length > 0
 })
 
-// 获取用户信息
-const fetchUserInfo = async () => {
+// 获取用户信息（添加缓存避免频繁调用）
+const fetchUserInfo = async (forceRefresh = false) => {
+  // 检查缓存
+  const cacheKey = 'user_login_state'
+  const cacheExpire = 5 // 缓存5分钟
+
+  if (!forceRefresh) {
+    const cachedState = cache.get(cacheKey)
+    if (cachedState) {
+      return cachedState
+    }
+  }
+
   loading.value = true
   try {
-    await store.checkLoginState()
+    const state = await store.checkLoginState()
+
+    // 缓存登录状态
+    if (state.finish && Object.keys(state.user).length > 0) {
+      cache.set(cacheKey, state, cacheExpire)
+    }
+
+    return state
   } catch (error) {
     console.error('获取用户信息失败:', error)
+    return null
   } finally {
     loading.value = false
   }
 }
 
-// 检查登录状态
+// 组件挂载时的逻辑
 onMounted(async () => {
-  // 手动触发登录态校验
-  await store.checkLoginState()
-  
-  if (!isLogin.value) {
+  // 检查登录状态
+  const loginState = await fetchUserInfo()
+
+  if (!loginState || !loginState.finish || Object.keys(loginState.user).length === 0) {
     toast.error('请先登录')
     // 跳转到首页
     window.location.href = '/'

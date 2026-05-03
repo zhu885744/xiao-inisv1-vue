@@ -164,6 +164,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from '@/utils/request'
 import Toast from '@/utils/toast'
+import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
 
 // Router
@@ -260,13 +261,26 @@ const handleInput = () => {
 const performSearch = async () => {
   const query = searchQuery.value.trim()
   if (!query) return
-  
+
   loading.value = true
   searchResults.value = []
-  
+
   try {
+    // 缓存键包含搜索关键词和搜索范围
+    const cacheKey = `search_results_${searchScope.value}_${query}`
+    const cacheExpire = 5 // 缓存5分钟
+
+    // 尝试从缓存获取搜索结果
+    const cachedResults = cache.get(cacheKey)
+    if (cachedResults) {
+      searchResults.value = cachedResults
+      saveSearchHistory(query)
+      loading.value = false
+      return
+    }
+
     let results = []
-    
+
     // 根据搜索范围执行不同的搜索
     switch (searchScope.value) {
       case 'article':
@@ -288,18 +302,18 @@ const performSearch = async () => {
           searchPages(query),
           searchTags(query)
         ])
-        
+
         // 合并并优化搜索结果
         const optimizedResults = []
         const seenIds = new Set() // 用于去重
-        
+
         // 1. 首先添加文章结果，按相关性排序
         if (articleResults.length > 0) {
           // 按创建时间降序排序
           const sortedArticles = articleResults.sort((a, b) => {
             return new Date(b.create_time || 0) - new Date(a.create_time || 0)
           })
-          
+
           // 去重并添加文章结果
           sortedArticles.forEach(article => {
             if (!seenIds.has(article.id)) {
@@ -308,14 +322,14 @@ const performSearch = async () => {
             }
           })
         }
-        
+
         // 2. 然后添加页面结果
         if (pageResults.length > 0) {
           // 按创建时间降序排序
           const sortedPages = pageResults.sort((a, b) => {
             return new Date(b.create_time || 0) - new Date(a.create_time || 0)
           })
-          
+
           // 去重并添加页面结果
           sortedPages.forEach(page => {
             if (!seenIds.has(page.id)) {
@@ -324,12 +338,12 @@ const performSearch = async () => {
             }
           })
         }
-        
+
         // 3. 最后添加标签结果，限制数量
         if (tagResults.length > 0) {
           // 限制标签数量
           const relevantTags = tagResults.slice(0, 3)
-          
+
           // 去重并添加标签结果
           relevantTags.forEach(tag => {
             if (!seenIds.has(tag.id)) {
@@ -338,14 +352,17 @@ const performSearch = async () => {
             }
           })
         }
-        
+
         results = optimizedResults
         break
     }
-    
+
     // 设置搜索结果
     searchResults.value = results
-    
+
+    // 缓存搜索结果
+    cache.set(cacheKey, results, cacheExpire)
+
     // 保存搜索历史
     saveSearchHistory(query)
   } catch (error) {
