@@ -1179,9 +1179,39 @@ import { ref, onMounted, computed } from 'vue'
 import { useCommStore } from '@/store/comm'
 import toast from '@/utils/toast'
 import request from '@/utils/request'
+import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
 
 const store = useCommStore()
+
+// 共享的xiao_functions配置缓存
+let cachedXiaoFunctionsConfig = null
+let cachedXiaoFunctionsKey = ''
+let cachedXiaoFunctionsTime = 0
+const CACHE_EXPIRE = 5 * 60 * 1000 // 5分钟缓存
+
+// 获取xiao_functions配置的共享方法
+async function getXiaoFunctionsConfig() {
+  const now = Date.now()
+  // 如果缓存存在且未过期，直接返回
+  if (cachedXiaoFunctionsConfig && (now - cachedXiaoFunctionsTime) < CACHE_EXPIRE) {
+    return cachedXiaoFunctionsConfig
+  }
+  
+  const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+  if (response.code === 200 && response.data) {
+    cachedXiaoFunctionsConfig = response.data.json || {}
+    cachedXiaoFunctionsTime = now
+    return cachedXiaoFunctionsConfig
+  }
+  return {}
+}
+
+// 清除xiao_functions缓存
+function clearXiaoFunctionsCache() {
+  cachedXiaoFunctionsConfig = null
+  cachedXiaoFunctionsTime = 0
+}
 
 // 页面标题管理
 const { setDynamicTitle } = usePageTitle()
@@ -1337,74 +1367,68 @@ async function getCommentConfig() {
 // 获取全局配置
 async function getGlobalConfig() {
   try {
-    const response = await request.get('/api/config/one', {
-      key: 'xiao_functions'
-    })
-    if (response.code === 200 && response.data) {
-      const config = response.data.json || {}
-      // 填充表单
-      globalConfig.value = {
-        title: config.title || '',
-        description: config.description || '',
-        keyword: config.keyword || '',
-        avatar: config.avatar || '',
-        favicon: config.favicon || '',
-        date: config.date || Math.floor(Date.now() / 1000).toString(),
-        display_mode: config.display_mode !== false, // 默认值为 true
-        copy: {
-          code: config.copy?.code || '',
-          link: config.copy?.link || 'http://beian.mps.gov.cn/'
-        },
-        police: {
-          code: config.police?.code || '',
-          link: config.police?.link || 'https://beian.mps.gov.cn/#/query/webSearch'
-        },
-        auth_dialog_agreement: {
-          enabled: config.auth_dialog_agreement?.enabled !== false,
-          user_agreement_url: config.auth_dialog_agreement?.user_agreement_url || '/user-agreement',
-          usage_specification_url: config.auth_dialog_agreement?.usage_specification_url || '/usage-specification'
-        },
-        float_buttons: {
-          enabled: config.float_buttons?.enabled !== false,
-          style: config.float_buttons?.style || 'rounded',
-          position: config.float_buttons?.position || 'center',
-          show_back_to_top: config.float_buttons?.show_back_to_top !== false,
-          show_notice: config.float_buttons?.show_notice !== false,
-          buttons: config.float_buttons?.buttons || [
-            {
-              id: 1,
-              name: 'QQ',
-              icon: 'bi bi-qq',
-              url: 'https://qm.qq.com/q/56SYi6MAta',
-              tooltip: '加入交流群',
-              enabled: true
-            },
-            {
-              id: 2,
-              name: '微信',
-              icon: 'bi bi-wechat',
-              url: '',
-              tooltip: '扫码添加微信',
-              enabled: true,
-              image_url: 'https://img1.zhuxu.asia/2026/U5PbclFMPJ.png'
-            }
-          ]
-        },
-        reward: {
-          enabled: config.reward?.enabled !== false,
-          wechat: config.reward?.wechat || '',
-          alipay: config.reward?.alipay || ''
-        },
-        maintenance: {
-          enabled: config.maintenance?.enabled === true,
-          title: config.maintenance?.title || '网站维护中',
-          content: config.maintenance?.content || '我们正在对网站进行维护升级，感谢您的耐心等待。',
-          end_time: config.maintenance?.end_time || ''
-        }
+    const config = await getXiaoFunctionsConfig()
+    // 填充表单
+    globalConfig.value = {
+      title: config.title || '',
+      description: config.description || '',
+      keyword: config.keyword || '',
+      avatar: config.avatar || '',
+      favicon: config.favicon || '',
+      date: config.date || Math.floor(Date.now() / 1000).toString(),
+      display_mode: config.display_mode !== false, // 默认值为 true
+      copy: {
+        code: config.copy?.code || '',
+        link: config.copy?.link || 'http://beian.mps.gov.cn/'
+      },
+      police: {
+        code: config.police?.code || '',
+        link: config.police?.link || 'https://beian.mps.gov.cn/#/query/webSearch'
+      },
+      auth_dialog_agreement: {
+        enabled: config.auth_dialog_agreement?.enabled !== false,
+        user_agreement_url: config.auth_dialog_agreement?.user_agreement_url || '/user-agreement',
+        usage_specification_url: config.auth_dialog_agreement?.usage_specification_url || '/usage-specification'
+      },
+      float_buttons: {
+        enabled: config.float_buttons?.enabled !== false,
+        style: config.float_buttons?.style || 'rounded',
+        position: config.float_buttons?.position || 'center',
+        show_back_to_top: config.float_buttons?.show_back_to_top !== false,
+        show_notice: config.float_buttons?.show_notice !== false,
+        buttons: config.float_buttons?.buttons || [
+          {
+            id: 1,
+            name: 'QQ',
+            icon: 'bi bi-qq',
+            url: 'https://qm.qq.com/q/56SYi6MAta',
+            tooltip: '加入交流群',
+            enabled: true
+          },
+          {
+            id: 2,
+            name: '微信',
+            icon: 'bi bi-wechat',
+            url: '',
+            tooltip: '扫码添加微信',
+            enabled: true,
+            image_url: 'https://img1.zhuxu.asia/2026/U5PbclFMPJ.png'
+          }
+        ]
+      },
+      reward: {
+        enabled: config.reward?.enabled !== false,
+        wechat: config.reward?.wechat || '',
+        alipay: config.reward?.alipay || ''
+      },
+      maintenance: {
+        enabled: config.maintenance?.enabled === true,
+        title: config.maintenance?.title || '网站维护中',
+        content: config.maintenance?.content || '我们正在对网站进行维护升级，感谢您的耐心等待。',
+        end_time: config.maintenance?.end_time || ''
       }
     }
   } catch (error) {
-    console.error('获取全局配置失败:', error)
     toast.error('获取全局配置失败')
   }
 }
@@ -1478,7 +1502,9 @@ async function saveGlobalConfig() {
       message.value = '全局配置保存成功！'
       messageType.value = 'success'
       toast.success('全局配置保存成功')
-      // 保存成功后强制刷新站点信息，更新缓存
+      // 清除配置缓存
+      clearXiaoFunctionsCache()
+      // 保存成功后强制刷新站点信息
       await store.fetchSiteInfo(true)
     } else {
       message.value = '全局配置保存失败：' + (response.msg || '未知错误')
@@ -1547,31 +1573,26 @@ function moveFloatButton(index, direction) {
 // 获取侧边栏配置
 async function getSidebarConfig() {
   try {
-    // 从后端API获取配置
-    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
-    if (response.code === 200 && response.data) {
-      const config = response.data.json || {}
-      sidebarConfig.value.sidebar_enabled = config.sidebar_enabled !== false // 默认值为true
-      
-      // 处理快捷导航配置，移除color字段
-      if (config.quick_navs) {
-        sidebarConfig.value.quick_navs = config.quick_navs.map(nav => {
-          const { color, ...navWithoutColor } = nav
-          return navWithoutColor
-        })
-      } else {
-        sidebarConfig.value.quick_navs = [
-          { id: 1, name: '归档', icon: 'bi bi-archive', url: '/archive' },
-          { id: 2, name: '分类', icon: 'bi bi-folder', url: '/category/travel' },
-          { id: 3, name: '标签', icon: 'bi bi-tags', url: '/tags' },
-          { id: 4, name: '友链', icon: 'bi bi-link-45deg', url: '/links' },
-          { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
-          { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
-        ]
-      }
+    const config = await getXiaoFunctionsConfig()
+    sidebarConfig.value.sidebar_enabled = config.sidebar_enabled !== false // 默认值为true
+    
+    // 处理快捷导航配置，移除color字段
+    if (config.quick_navs) {
+      sidebarConfig.value.quick_navs = config.quick_navs.map(nav => {
+        const { color, ...navWithoutColor } = nav
+        return navWithoutColor
+      })
+    } else {
+      sidebarConfig.value.quick_navs = [
+        { id: 1, name: '归档', icon: 'bi bi-archive', url: '/archive' },
+        { id: 2, name: '分类', icon: 'bi bi-folder', url: '/category/travel' },
+        { id: 3, name: '标签', icon: 'bi bi-tags', url: '/tags' },
+        { id: 4, name: '友链', icon: 'bi bi-link-45deg', url: '/links' },
+        { id: 5, name: '关于', icon: 'bi bi-info-circle', url: '/about' },
+        { id: 6, name: '留言', icon: 'bi bi-chat-left-dots', url: '/message' }
+      ]
     }
   } catch (error) {
-    console.error('获取侧边栏配置失败:', error)
     toast.error('获取侧边栏配置失败')
   }
 }
@@ -1597,19 +1618,15 @@ function removeNavItem(index) {
 // 获取自定义代码配置
 async function getCustomCodeConfig() {
   try {
-    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
-    if (response.code === 200 && response.data) {
-      const config = response.data.json || {}
-      customCodeConfig.value = config.custom_code || {
-        css: '',
-        js: '',
-        header: '',
-        footer: '',
-        analytics: ''
-      }
+    const config = await getXiaoFunctionsConfig()
+    customCodeConfig.value = config.custom_code || {
+      css: '',
+      js: '',
+      header: '',
+      footer: '',
+      analytics: ''
     }
   } catch (error) {
-    console.error('获取自定义代码配置失败:', error)
     toast.error('获取自定义代码配置失败')
   }
 }
@@ -1621,12 +1638,8 @@ async function saveSidebarConfig() {
   messageType.value = ''
   
   try {
-    // 先获取当前全局配置，避免覆盖其他配置项
-    const configResponse = await request.get('/api/config/one', { key: 'xiao_functions' })
-    let currentConfig = {}
-    if (configResponse.code === 200 && configResponse.data) {
-      currentConfig = configResponse.data.json || {}
-    }
+    // 使用缓存的配置（如果存在且未过期）
+    const currentConfig = await getXiaoFunctionsConfig()
     
     // 更新sidebar_enabled和quick_navs字段
     const updatedConfig = {
@@ -1645,7 +1658,9 @@ async function saveSidebarConfig() {
       message.value = '侧边栏配置保存成功！'
       messageType.value = 'success'
       toast.success('侧边栏配置保存成功')
-      // 保存成功后强制刷新站点信息，更新缓存
+      // 清除配置缓存
+      clearXiaoFunctionsCache()
+      // 保存成功后强制刷新站点信息
       await store.fetchSiteInfo(true)
     } else {
       message.value = '侧边栏配置保存失败：' + (response.msg || '未知错误')
@@ -1653,7 +1668,6 @@ async function saveSidebarConfig() {
       toast.error('侧边栏配置保存失败')
     }
   } catch (error) {
-    console.error('保存侧边栏配置失败:', error)
     message.value = '保存失败：网络错误'
     messageType.value = 'error'
     toast.error('保存失败：网络错误')
@@ -1752,19 +1766,15 @@ function resetGlobalConfig() {
   }
 }
 
-// 重置自定义代码配置
+// 保存自定义代码配置
 async function saveCustomCodeConfig() {
   saving.value = true
   message.value = ''
   messageType.value = ''
   
   try {
-    // 先获取当前配置，避免覆盖其他设置
-    const configResponse = await request.get('/api/config/one', { key: 'xiao_functions' })
-    let currentConfig = {}
-    if (configResponse.code === 200 && configResponse.data) {
-      currentConfig = configResponse.data.json || {}
-    }
+    // 使用缓存的配置（如果存在且未过期）
+    const currentConfig = await getXiaoFunctionsConfig()
     
     // 更新自定义代码配置
     const updatedConfig = {
@@ -1782,13 +1792,14 @@ async function saveCustomCodeConfig() {
       message.value = '自定义代码保存成功！'
       messageType.value = 'success'
       toast.success('自定义代码保存成功')
+      // 清除配置缓存
+      clearXiaoFunctionsCache()
     } else {
       message.value = '自定义代码保存失败：' + (response.msg || '未知错误')
       messageType.value = 'error'
       toast.error('自定义代码保存失败')
     }
   } catch (error) {
-    console.error('保存自定义代码失败:', error)
     message.value = '保存失败：网络错误'
     messageType.value = 'error'
     toast.error('保存失败：网络错误')

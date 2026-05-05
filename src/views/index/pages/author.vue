@@ -362,6 +362,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import request from '@/utils/request'
 import toast from '@/utils/toast'
+import cache from '@/utils/cache'
 import defaultAvatar from '@/assets/img/avatar.png'
 import { useCommStore } from '@/store/comm'
 import { usePageTitle } from '@/utils/usePageTitle'
@@ -451,24 +452,37 @@ const userGroups = computed(() => {
 })
 
 // 方法
-// 获取用户信息
+// 获取用户信息（带缓存）
 const fetchUserInfo = async () => {
   loading.value = true
   error.value = ''
   
   try {
+    // 缓存键
+    const cacheKey = `author_user_info_${userId.value}`
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取用户信息
+    const cachedUserInfo = cache.get(cacheKey)
+    if (cachedUserInfo) {
+      userInfo.value = cachedUserInfo
+      loading.value = false
+      return
+    }
+    
     const res = await request.get('/api/users/one', {
       id: userId.value
     })
     
     if (res.code === 200 && res.data) {
       userInfo.value = res.data
+      // 缓存用户信息
+      cache.set(cacheKey, res.data, cacheExpire)
     } else {
       error.value = res.msg || '获取用户信息失败'
       userInfo.value = null
     }
   } catch (err) {
-    // console.error('获取用户信息失败:', err)
     error.value = '网络错误，请稍后重试'
     userInfo.value = null
   } finally {

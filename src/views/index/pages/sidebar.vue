@@ -1171,43 +1171,6 @@ const initUserStats = async () => {
   }
 }
 
-// 签到相关方法
-const checkSignStatus = async () => {
-  // 等待用户登录状态完全初始化
-  if (!store.comm.login.finish) {
-    // 如果登录状态未初始化，延迟重试
-    setTimeout(checkSignStatus, 100)
-    return
-  }
-  
-  if (!store.comm.login.user) return
-  
-  const userId = store.comm.login.user.id
-  const cacheKey = `sign_status_${userId}`
-  const cacheExpire = 60 // 缓存60分钟（签到状态一天内不变）
-  
-  // 尝试从缓存获取
-  const cachedData = cache.get(cacheKey)
-  if (cachedData) {
-    hasSigned.value = cachedData.hasSigned
-    signDays.value = cachedData.signDays
-    return
-  }
-  
-  try {
-    const response = await request.get('/api/exp/sign-status')
-    if (response.code === 200) {
-      hasSigned.value = response.data?.hasSigned || false
-      signDays.value = response.data?.signDays || 0
-      
-      // 缓存数据
-      cache.set(cacheKey, { hasSigned: hasSigned.value, signDays: signDays.value }, cacheExpire)
-    }
-  } catch (error) {
-    // console.error('获取签到状态失败：', error)
-  }
-}
-
 const doSign = async () => {
   if (!store.comm.login.finish || !store.comm.login.user) {
     Toast.warning('请先登录')
@@ -1254,9 +1217,8 @@ onMounted(() => {
     getLevelRank(),
     getTagList(),
     getLatestComments(),
-    checkSignStatus(),
     initUserStats(),
-    getLevelInfo() // 获取等级数据
+    getLevelInfo()
   ]).then(() => {
     // 数据加载完成后观察图片
     setTimeout(observeLazyImages, 100)

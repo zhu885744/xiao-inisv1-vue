@@ -630,7 +630,7 @@ const getTagArticles = async (tagId, page = 1) => {
   try {
     // 缓存键
     const cacheKey = `tag_articles_${tagId}_page_${page}_limit_${limit.value}`
-    const cacheExpire = 30 // 缓存30分钟
+    const cacheExpire = 60 // 缓存60分钟
     
     // 尝试从缓存获取文章列表
     const cachedArticles = cache.get(cacheKey)
@@ -741,8 +741,6 @@ const loadTagFromProps = async (tagId) => {
       if (cachedTag.articleCount === undefined || cachedTag.articleCount === null) {
         await getTagArticleCount(cachedTag)
       }
-      // 获取标签文章列表
-      await getTagArticles(tagId, 1)
       return
     }
     
@@ -766,11 +764,8 @@ const loadTagFromProps = async (tagId) => {
         // 缓存标签详情
         cache.set(cacheKey, tag, cacheExpire)
 
-        // 并行获取标签文章数量和文章列表（优化性能）
-        await Promise.all([
-          getTagArticleCount(tag),
-          getTagArticles(tag.id, 1)
-        ])
+        // 获取标签文章数量
+        await getTagArticleCount(tag)
 
         // 额外触发一次图片观察，确保懒加载生效
         nextTick(() => {
@@ -815,22 +810,24 @@ const initPage = async () => {
   initIntersectionObserver()
 
   try {
-    // 获取标签列表
-    await getTagsList()
-    
     // 检查是否有路由参数中的标签ID
     const tagIdFromRoute = route.params.id
+    
     if (tagIdFromRoute) {
-      await loadTagFromProps(tagIdFromRoute)
+      // 有标签ID时，并行获取标签列表和标签详情+文章
+      await Promise.all([
+        getTagsList(),
+        loadTagFromProps(tagIdFromRoute),
+        getTagArticles(tagIdFromRoute, 1)
+      ])
     } else {
-      // 如果没有标签ID，更新页面标题为"标签"
+      // 没有标签ID时，只获取标签列表
+      await getTagsList()
       setDynamicTitle('标签')
     }
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
-    // console.error('初始化页面失败:', err)
-    // 更新页面标题
     setDynamicTitle('网络异常')
   } finally {
     loading.value = false

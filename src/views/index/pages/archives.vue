@@ -318,6 +318,9 @@ const shareCount = ref(0)
 const collectCount = ref(0)
 // 当前页面链接
 const currentUrl = ref('')
+const userActionsCache = new Map()
+const USER_ACTIONS_CACHE_KEY = 'article_user_actions'
+const USER_ACTIONS_CACHE_EXPIRE = 10
 
 // 路由实例
 const router = useRouter()
@@ -378,10 +381,6 @@ const getArticleDetail = async (id) => {
             articleInfo.value = cachedArticle
             error.value = false
             setDynamicTitle(articleInfo.value.title)
-            // 初始化文章操作状态（获取点赞数、收藏数等）
-            await initArticleActions()
-            // 获取文章评论
-            getComments(articleInfo.value.id, currentPage.value)
           }
       } else {
         error.value = true
@@ -393,10 +392,14 @@ const getArticleDetail = async (id) => {
       articleInfo.value = cachedArticle
       error.value = false
       setDynamicTitle(articleInfo.value.title)
-      // 初始化文章操作状态（获取点赞数、收藏数等）
-      await initArticleActions()
-      // 获取文章评论
-      getComments(articleInfo.value.id, currentPage.value)
+    }
+    
+    // 获取文章详情后，并行执行操作状态检查和评论获取
+    if (!error.value) {
+      await Promise.all([
+        initArticleActions(),
+        getComments(articleInfo.value.id, currentPage.value)
+      ])
     }
   } catch (err) {
     error.value = true
@@ -416,7 +419,7 @@ const getComments = async (articleId, page = 1) => {
   try {
     // 缓存键
     const cacheKey = `article_comments_${articleId}_${page}`
-    const cacheExpire = 5 // 缓存5分钟
+    const cacheExpire = 15 // 缓存15分钟
     
     // 尝试从缓存获取评论数据
     let cachedComments = cache.get(cacheKey)
@@ -530,6 +533,18 @@ const handleCommentPageChange = async (page) => {
 }
 
 /**
+ * 清除用户操作缓存
+ */
+const clearUserActionsCache = () => {
+  const articleId = articleInfo.value.id
+  const userId = store.comm.login.user.id
+  if (articleId && userId) {
+    const cacheKey = `${USER_ACTIONS_CACHE_KEY}_${userId}_${articleId}`
+    userActionsCache.delete(cacheKey)
+  }
+}
+
+/**
  * 处理文章点赞
  */
 const handleLike = async () => {
@@ -539,11 +554,8 @@ const handleLike = async () => {
 
     // 确保isLiked.value是布尔值
     const currentState = !!isLiked.value
-    // console.log('点赞操作，当前状态:', currentState)
-    // console.log('准备发送的state:', currentState ? 0 : 1)
 
     const userId = store.comm.login.user.id
-    // console.log('当前用户ID:', userId)
 
     const res = await request.post('/api/exp/like', {
       bind_id: articleId,
@@ -553,8 +565,6 @@ const handleLike = async () => {
       uid: userId // 显式传递用户ID
     })
 
-    // console.log('点赞API响应:', res)
-
     if (res.code === 200) {
       // 计算新状态
       const newState = !currentState
@@ -563,6 +573,9 @@ const handleLike = async () => {
       // 更新点赞数，确保不小于0
       likeCount.value = newState ? likeCount.value + 1 : Math.max(0, likeCount.value - 1)
       
+      // 清除用户操作缓存
+      clearUserActionsCache()
+      
       // 强制更新articleInfo中的result数据，确保页面刷新后状态正确
       if (articleInfo.value.result) {
         if (userId) {
@@ -570,34 +583,24 @@ const handleLike = async () => {
             articleInfo.value.result.like = []
           }
           if (newState) {
-            // 如果是点赞，确保用户ID在like数组中
             if (!articleInfo.value.result.like.includes(userId)) {
               articleInfo.value.result.like.push(userId)
             }
           } else {
-            // 如果是取消点赞，确保用户ID不在like数组中
             articleInfo.value.result.like = articleInfo.value.result.like.filter(id => id !== userId)
           }
         }
       }
       
-      // console.log('更新后的点赞状态:', isLiked.value)
-      // console.log('更新后的点赞数:', likeCount.value)
-      
-      // 不再立即重新检查状态，因为API可能有延迟，会导致状态被覆盖
-      // 本地状态已经正确更新，页面刷新时会通过initArticleActions重新获取正确状态
-      
       if (window.Toast) {
         window.Toast.success(newState ? '点赞成功！' : '取消点赞成功！')
       }
     } else {
-      // console.error('点赞操作失败，API返回码:', res.code)
       if (window.Toast) {
         window.Toast.error(res.msg || '操作失败')
       }
     }
   } catch (error) {
-    // console.error('点赞操作失败：', error)
     if (window.Toast) {
       window.Toast.error('网络异常，操作失败')
     }
@@ -652,11 +655,8 @@ const handleCollect = async () => {
 
     // 确保isCollected.value是布尔值
     const currentState = !!isCollected.value
-    // console.log('收藏操作，当前状态:', currentState)
-    // console.log('准备发送的state:', currentState ? 0 : 1)
 
     const userId = store.comm.login.user.id
-    // console.log('当前用户ID:', userId)
 
     const res = await request.post('/api/exp/collect', {
       bind_id: articleId,
@@ -666,8 +666,6 @@ const handleCollect = async () => {
       uid: userId // 显式传递用户ID
     })
 
-    // console.log('收藏API响应:', res)
-
     if (res.code === 200) {
       // 计算新状态
       const newState = !currentState
@@ -676,6 +674,9 @@ const handleCollect = async () => {
       // 更新收藏数，确保不小于0
       collectCount.value = newState ? collectCount.value + 1 : Math.max(0, collectCount.value - 1)
       
+      // 清除用户操作缓存
+      clearUserActionsCache()
+      
       // 强制更新articleInfo中的result数据，确保页面刷新后状态正确
       if (articleInfo.value.result) {
         if (userId) {
@@ -683,34 +684,24 @@ const handleCollect = async () => {
             articleInfo.value.result.collect = []
           }
           if (newState) {
-            // 如果是收藏，确保用户ID在collect数组中
             if (!articleInfo.value.result.collect.includes(userId)) {
               articleInfo.value.result.collect.push(userId)
             }
           } else {
-            // 如果是取消收藏，确保用户ID不在collect数组中
             articleInfo.value.result.collect = articleInfo.value.result.collect.filter(id => id !== userId)
           }
         }
       }
       
-      // console.log('更新后的收藏状态:', isCollected.value)
-      // console.log('更新后的收藏数:', collectCount.value)
-      
-      // 不再立即重新检查状态，因为API可能有延迟，会导致状态被覆盖
-      // 本地状态已经正确更新，页面刷新时会通过initArticleActions重新获取正确状态
-      
       if (window.Toast) {
         window.Toast.success(newState ? '收藏成功！' : '取消收藏成功！')
       }
     } else {
-      // console.error('收藏操作失败，API返回码:', res.code)
       if (window.Toast) {
         window.Toast.error(res.msg || '操作失败')
       }
     }
   } catch (error) {
-    // console.error('收藏操作失败：', error)
     if (window.Toast) {
       window.Toast.error('网络异常，操作失败')
     }
@@ -752,35 +743,50 @@ const checkUserActions = async () => {
       return
     }
     
-    // 检查是否已点赞
-    const likeRes = await request.get('/api/exp/one', {
-      where: JSON.stringify({
-        uid: String(userId),
-        type: 'like',
-        bind_id: articleId,
-        bind_type: 'article',
-        state: 1 // 只查询有效状态的记录
-      })
-    })
-    // 确保isLiked.value是布尔值，并且只在记录存在且状态为1时为true
-    isLiked.value = !!likeRes.data && likeRes.data.state === 1
-    // console.log('检查点赞状态：', likeRes.data, '，状态值：', likeRes.data?.state, '，设置为：', isLiked.value)
+    // 构建缓存键（基于用户ID和文章ID）
+    const cacheKey = `${USER_ACTIONS_CACHE_KEY}_${userId}_${articleId}`
     
-    // 检查是否已收藏
-    const collectRes = await request.get('/api/exp/one', {
-      where: JSON.stringify({
-        uid: String(userId),
-        type: 'collect',
-        bind_id: articleId,
-        bind_type: 'article',
-        state: 1 // 只查询有效状态的记录
+    // 尝试从缓存获取用户操作状态
+    const cachedActions = userActionsCache.get(cacheKey)
+    if (cachedActions && (Date.now() - cachedActions.timestamp) < USER_ACTIONS_CACHE_EXPIRE * 60 * 1000) {
+      isLiked.value = cachedActions.isLiked
+      isCollected.value = cachedActions.isCollected
+      return
+    }
+    
+    // 并行检查点赞和收藏状态
+    const [likeRes, collectRes] = await Promise.all([
+      request.get('/api/exp/one', {
+        where: JSON.stringify({
+          uid: String(userId),
+          type: 'like',
+          bind_id: articleId,
+          bind_type: 'article',
+          state: 1
+        })
+      }),
+      request.get('/api/exp/one', {
+        where: JSON.stringify({
+          uid: String(userId),
+          type: 'collect',
+          bind_id: articleId,
+          bind_type: 'article',
+          state: 1
+        })
       })
-    })
-    // 确保isCollected.value是布尔值，并且只在记录存在且状态为1时为true
+    ])
+    
+    // 更新状态
+    isLiked.value = !!likeRes.data && likeRes.data.state === 1
     isCollected.value = !!collectRes.data && collectRes.data.state === 1
-    // console.log('检查收藏状态：', collectRes.data, '，状态值：', collectRes.data?.state, '，设置为：', isCollected.value)
+    
+    // 缓存用户操作状态
+    userActionsCache.set(cacheKey, {
+      isLiked: isLiked.value,
+      isCollected: isCollected.value,
+      timestamp: Date.now()
+    })
   } catch (error) {
-    // console.error('检查用户操作状态失败：', error)
     // 出错时默认设置为未操作状态
     isLiked.value = false
     isCollected.value = false

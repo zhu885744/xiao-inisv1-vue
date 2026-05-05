@@ -11,7 +11,7 @@
                 type="button"
                 class="btn" 
                 :class="searchScope === 'all' ? 'btn-primary' : 'btn-outline-primary'"
-                @click="searchScope = 'all'"
+                @click="changeSearchScope('all')"
               >
                 <i class="bi bi-search"></i> 全部
               </button>
@@ -19,7 +19,7 @@
                 type="button"
                 class="btn" 
                 :class="searchScope === 'article' ? 'btn-primary' : 'btn-outline-primary'"
-                @click="searchScope = 'article'"
+                @click="changeSearchScope('article')"
               >
                 <i class="bi bi-file-earmark-text"></i> 文章
               </button>
@@ -27,7 +27,7 @@
                 type="button"
                 class="btn" 
                 :class="searchScope === 'page' ? 'btn-primary' : 'btn-outline-primary'"
-                @click="searchScope = 'page'"
+                @click="changeSearchScope('page')"
               >
                 <i class="bi bi-file-earmark"></i> 页面
               </button>
@@ -35,7 +35,7 @@
                 type="button"
                 class="btn" 
                 :class="searchScope === 'tag' ? 'btn-primary' : 'btn-outline-primary'"
-                @click="searchScope = 'tag'"
+                @click="changeSearchScope('tag')"
               >
                 <i class="bi bi-tag"></i> 标签
               </button>
@@ -51,6 +51,9 @@
               :placeholder="getSearchPlaceholder()"
               @input="handleInput"
               @keyup.enter="performSearch"
+              @keydown.up.prevent="handleKeyUp"
+              @keydown.down.prevent="handleKeyDown"
+              @keydown.enter.prevent="handleEnterKey"
             >
             <button
               class="btn btn-primary"
@@ -68,6 +71,26 @@
     <div class="card-body">
       <!-- 搜索内容区域 -->
       <div class="mt-2">
+        <!-- 热门搜索 -->
+        <div v-if="!loading && searchQuery === '' && searchHistory.length === 0">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-muted">
+              <i class="bi bi-trending-up me-1"></i>热门搜索
+            </h6>
+          </div>
+          <div class="search-history-tags d-flex flex-wrap gap-2">
+            <div
+              v-for="(item, index) in hotSearches"
+              :key="index"
+              class="search-history-tag position-relative d-inline-block"
+              @click="useSearchHistory(item)"
+              style="cursor: pointer;"
+            >
+              <span class="badge text-bg-light text-dark">{{ item }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- 搜索历史 -->
         <div v-if="!loading && searchQuery === '' && searchHistory.length > 0">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -103,11 +126,11 @@
           </div>
           <div class="result-list">
             <div
-              v-for="result in searchResults"
+              v-for="(result, index) in searchResults"
               :key="result.id || result.key"
               @click="navigateToResult(result)"
               class="result-item mb-3"
-              :class="`result-${result.type}`"
+              :class="`result-${result.type} ${selectedIndex === index ? 'result-selected' : ''}`"
             >
               <div class="card h-100 transition-all duration-300 hover:shadow-sm">
                 <div class="card-body">
@@ -117,12 +140,12 @@
                     </div>
                     <div class="flex-grow-1">
                       <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0 font-medium">{{ result.title || result.name }}</h5>
+                        <h5 class="card-title mb-0 font-medium" v-html="highlightKeyword(result.title || result.name)"></h5>
                         <span class="result-type-badge" :class="`badge-${result.type}`">
                           {{ getResultTypeName(result.type) }}
                         </span>
                       </div>
-                      <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2">{{ result.abstract }}</p>
+                      <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2" v-html="highlightKeyword(result.abstract)"></p>
                       <div v-if="result.create_time" class="text-xs text-gray-400">
                         {{ formatDate(result.create_time) }}
                       </div>
@@ -140,6 +163,17 @@
             <i class="bi bi-search text-5xl text-muted"></i>
           </div>
           <p class="text-muted">没有找到与 "{{ searchQuery }}" 相关的结果</p>
+          <p class="text-muted text-sm mt-2">试试这些热门搜索：</p>
+          <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+            <button
+              v-for="(item, index) in hotSearches.slice(0, 3)"
+              :key="index"
+              class="btn btn-sm btn-outline-secondary"
+              @click="useSearchHistory(item)"
+            >
+              {{ item }}
+            </button>
+          </div>
         </div>
 
         <!-- 加载中 -->
@@ -148,11 +182,6 @@
             <span class="visually-hidden">Loading...</span>
           </div>
           <p class="text-muted">搜索中...</p>
-        </div>
-
-        <!-- 初始状态 -->
-        <div v-else-if="!loading && searchQuery === '' && searchHistory.length === 0" class="text-center py-12">
-          <p class="mt-4 text-muted">请输入关键词开始搜索</p>
         </div>
       </div>
     </div>
@@ -183,13 +212,34 @@ const searchHistory = ref([])
 const debounceTimer = ref(null)
 const searchInput = ref(null)
 const searchScope = ref('all') // 搜索范围：all, article, page, tag
+const selectedIndex = ref(-1) // 当前选中的搜索结果索引
+
+// 热门搜索关键词
+const hotSearches = [
+  'Vue',
+  'React',
+  'JavaScript',
+  'TypeScript',
+  'Node.js',
+  '前端开发',
+  '后端开发',
+  '算法',
+  '数据库',
+  '架构'
+]
 
 // 初始化
 onMounted(() => {
   loadSearchHistory()
-  // 从路由参数中获取搜索关键词
+  // 从路由参数中获取搜索关键词和范围
   if (route.query.q) {
     searchQuery.value = route.query.q
+  }
+  if (route.query.scope && ['all', 'article', 'page', 'tag'].includes(route.query.scope)) {
+    searchScope.value = route.query.scope
+  }
+  // 如果有搜索关键词，执行搜索
+  if (searchQuery.value) {
     performSearch()
   }
   // 聚焦输入框
@@ -198,6 +248,13 @@ onMounted(() => {
       searchInput.value.focus()
     }
   }, 100)
+})
+
+// 监听搜索范围变化
+watch(searchScope, (newScope) => {
+  if (searchQuery.value.trim()) {
+    performSearch()
+  }
 })
 
 // 加载搜索历史
@@ -242,7 +299,73 @@ const removeSearchHistory = (index) => {
 // 使用搜索历史
 const useSearchHistory = (query) => {
   searchQuery.value = query
+  selectedIndex.value = -1
   performSearch()
+}
+
+// 改变搜索范围
+const changeSearchScope = (scope) => {
+  searchScope.value = scope
+  selectedIndex.value = -1
+  // 更新路由参数
+  if (searchQuery.value) {
+    router.push({
+      query: {
+        q: searchQuery.value,
+        scope: scope
+      }
+    })
+  }
+}
+
+// 关键词高亮
+const highlightKeyword = (text) => {
+  if (!text || !searchQuery.value) return text
+  const keyword = searchQuery.value.trim()
+  const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`(${escapedKeyword})`, 'gi')
+  return text.replace(regex, '<mark class="bg-yellow-200 text-yellow-900 px-0.5 rounded">$1</mark>')
+}
+
+// 上键选择
+const handleKeyUp = () => {
+  if (searchResults.value.length > 0) {
+    if (selectedIndex.value > 0) {
+      selectedIndex.value--
+    } else if (selectedIndex.value === -1) {
+      selectedIndex.value = searchResults.value.length - 1
+    }
+    scrollToSelected()
+  }
+}
+
+// 下键选择
+const handleKeyDown = () => {
+  if (searchResults.value.length > 0) {
+    if (selectedIndex.value < searchResults.value.length - 1) {
+      selectedIndex.value++
+    } else {
+      selectedIndex.value = -1
+    }
+    scrollToSelected()
+  }
+}
+
+// 回车键确认选择
+const handleEnterKey = () => {
+  if (selectedIndex.value >= 0 && selectedIndex.value < searchResults.value.length) {
+    navigateToResult(searchResults.value[selectedIndex.value])
+  }
+}
+
+// 滚动到选中项
+const scrollToSelected = () => {
+  if (selectedIndex.value >= 0) {
+    const element = document.querySelector(`.result-item:nth-child(${selectedIndex.value + 1})`)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }
 }
 
 // 输入处理（防抖）
@@ -381,7 +504,6 @@ const searchArticles = async (keyword) => {
     const response = await axios.get(url)
     
     if (response.code === 200 && response.data) {
-      // 检查实际的数据结构
       if (response.data.data && Array.isArray(response.data.data)) {
         return response.data.data.map(item => ({
           ...item,
@@ -396,7 +518,6 @@ const searchArticles = async (keyword) => {
     }
     return []
   } catch (error) {
-    console.error('搜索文章失败:', error)
     return []
   }
 }
@@ -404,12 +525,10 @@ const searchArticles = async (keyword) => {
 // 搜索页面
 const searchPages = async (keyword) => {
   try {
-    // 构建搜索URL
     const url = `/api/search/pages?keyword=${encodeURIComponent(keyword)}&page=1&limit=50`
     const response = await axios.get(url)
     
     if (response.code === 200 && response.data) {
-      // 检查实际的数据结构
       if (response.data.data && Array.isArray(response.data.data)) {
         return response.data.data.map(item => ({
           ...item,
@@ -424,7 +543,6 @@ const searchPages = async (keyword) => {
     }
     return []
   } catch (error) {
-    console.error('搜索页面失败:', error)
     return []
   }
 }
@@ -432,12 +550,10 @@ const searchPages = async (keyword) => {
 // 搜索标签
 const searchTags = async (keyword) => {
   try {
-    // 构建搜索URL
     const url = `/api/search/tags?keyword=${encodeURIComponent(keyword)}&page=1&limit=50`
     const response = await axios.get(url)
     
     if (response.code === 200 && response.data) {
-      // 检查实际的数据结构
       if (response.data.data && Array.isArray(response.data.data)) {
         return response.data.data.map(item => ({
           ...item,
@@ -452,7 +568,6 @@ const searchTags = async (keyword) => {
     }
     return []
   } catch (error) {
-    console.error('搜索标签失败:', error)
     return []
   }
 }
@@ -580,5 +695,43 @@ onUnmounted(() => {
 
 .close-badge-btn i {
   margin: 0;
+}
+
+.result-selected .card {
+  border-color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.05);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.result-item {
+  cursor: pointer;
+}
+
+.result-item:hover .card {
+  border-color: #0d6efd;
+}
+
+@media (prefers-color-scheme: dark) {
+  .result-selected .card {
+    border-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.3);
+  }
+  
+  .result-item:hover .card {
+    border-color: #3b82f6;
+  }
+  
+  mark {
+    background-color: rgba(250, 204, 21, 0.3);
+    color: #fbbf24;
+  }
 }
 </style>

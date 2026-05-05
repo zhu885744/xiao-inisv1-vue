@@ -259,6 +259,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/utils/request' 
 import { usePageTitle } from '@/utils/usePageTitle'
+import cache from '@/utils/cache'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();
@@ -272,6 +273,10 @@ const router = useRouter()
 
 // 图片缓存
 const imageCache = new Set()
+
+// 下拉刷新相关
+const isRefreshing = ref(false)
+const showRefreshHint = ref(false)
 
 const articleList = ref([])
 const loading = ref(false)
@@ -612,6 +617,27 @@ const getArticleList = async (page = 1, isRefresh = true) => {
   }
   
   try {
+    // 缓存键（包含分页信息）
+    const cacheKey = `index_articles_page_${page}_limit_${limit.value}`
+    const cacheExpire = 10 // 缓存10分钟
+    
+    // 尝试从缓存获取数据
+    const cachedData = cache.get(cacheKey)
+    
+    if (cachedData && !isRefresh) {
+      // 使用缓存数据
+      articleList.value = cachedData.data || []
+      total.value = cachedData.total || 0
+      currentPage.value = page
+      
+      // 数据更新后，观察新图片
+      nextTick(() => {
+        observeLazyImages()
+      })
+      loading.value = false
+      return
+    }
+    
     // 只获取已审核的文章
     const params = { 
       page, 
@@ -629,6 +655,9 @@ const getArticleList = async (page = 1, isRefresh = true) => {
       total.value = totalCount
       currentPage.value = page
       
+      // 缓存数据
+      cache.set(cacheKey, { data: newData, total: totalCount }, cacheExpire)
+      
       // 数据更新后，观察新图片
       nextTick(() => {
         observeLazyImages()
@@ -641,20 +670,55 @@ const getArticleList = async (page = 1, isRefresh = true) => {
     articleList.value = []
   } finally {
     loading.value = false
+    isRefreshing.value = false
   }
+}
+
+// 下拉刷新
+const handleRefresh = async () => {
+  if (isRefreshing.value) return
+  
+  isRefreshing.value = true
+  showRefreshHint.value = true
+  
+  // 清除首页缓存
+  for (let i = 1; i <= 5; i++) {
+    cache.remove(`index_articles_page_${i}_limit_${limit.value}`)
+  }
+  
+  await getArticleList(1, true)
+  
+  setTimeout(() => {
+    showRefreshHint.value = false
+  }, 1500)
 }
 
 const toArticleDetail = (id) => {
   router.push(`/archives/${id}`) 
 }
 
-// 获取轮播图数据
+// 获取轮播图数据（带缓存）
 const getBanners = async () => {
   bannersLoading.value = true
+  
   try {
+    // 缓存键
+    const cacheKey = 'index_banners'
+    const cacheExpire = 30 // 缓存30分钟
+    
+    // 尝试从缓存获取
+    const cachedBanners = cache.get(cacheKey)
+    if (cachedBanners) {
+      banners.value = cachedBanners
+      bannersLoading.value = false
+      return
+    }
+    
     const res = await request.get('/api/banner/all', { limit: 5, order: 'create_time desc' })
     if (res.code === 200) {
       banners.value = res.data.data || []
+      // 缓存轮播图数据
+      cache.set(cacheKey, banners.value, cacheExpire)
     }
   } catch (error) {
     console.error('获取轮播图数据失败:', error)
@@ -662,6 +726,45 @@ const getBanners = async () => {
   } finally {
     bannersLoading.value = false
   }
+}
+
+// 下拉刷新相关变量
+let touchStartY = 0
+let touchCurrentY = 0
+const maxPullDistance = 100
+
+// 触摸开始事件
+const handleTouchStart = (e) => {
+  if (window.scrollY === 0) {
+    touchStartY = e.touches[0].clientY
+  }
+}
+
+// 触摸移动事件
+const handleTouchMove = (e) => {
+  if (touchStartY === 0 || isRefreshing.value) return
+  
+  touchCurrentY = e.touches[0].clientY
+  const distance = touchCurrentY - touchStartY
+  
+  if (distance > 0 && window.scrollY === 0) {
+    const pullDistance = Math.min(distance, maxPullDistance)
+    showRefreshHint.value = pullDistance > 30
+  }
+}
+
+// 触摸结束事件
+const handleTouchEnd = () => {
+  if (touchStartY === 0 || isRefreshing.value) return
+  
+  const distance = touchCurrentY - touchStartY
+  
+  if (distance > 50 && window.scrollY === 0) {
+    handleRefresh()
+  }
+  
+  touchStartY = 0
+  touchCurrentY = 0
 }
 
 onMounted(async () => {
@@ -682,6 +785,11 @@ onMounted(async () => {
     // 初始化 Intersection Observer
     initIntersectionObserver()
   }
+  
+  // 添加触摸事件监听（下拉刷新）
+  document.addEventListener('touchstart', handleTouchStart, { passive: true })
+  document.addEventListener('touchmove', handleTouchMove, { passive: true })
+  document.addEventListener('touchend', handleTouchEnd, { passive: true })
 })
 
 onUnmounted(() => {
@@ -690,6 +798,11 @@ onUnmounted(() => {
     observer.disconnect()
     observer = null
   }
+  
+  // 移除触摸事件监听
+  document.removeEventListener('touchstart', handleTouchStart)
+  document.removeEventListener('touchmove', handleTouchMove)
+  document.removeEventListener('touchend', handleTouchEnd)
 })
 </script>
 

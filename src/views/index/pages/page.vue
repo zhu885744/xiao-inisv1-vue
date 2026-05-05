@@ -1569,22 +1569,40 @@ const startArchiveAutoRefresh = () => {
   }, 5 * 60 * 1000)
 }
 
-// 获取友链页面基础数据
+// 获取友链页面基础数据（带缓存）
 const getLinksPageData = async () => {
   loading.value = true
   try {
-    const res = await request.get('/api/pages/one?key=links', {
-      params: {
-        key: 'links',
-        cache: false,
-        withTrashed: false
+    // 缓存键
+    const cacheKey = 'page_links_data'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      pageInfo.value = { ...pageInfo.value, ...cachedData }
+      viewCount.value = cachedData.views || 0
+      setDynamicTitle(cachedData.title || '友链')
+      loading.value = false
+      // 获取作者信息
+      const authorId = pageInfo.value.uid
+      if (authorId) {
+        getAuthorInfo(authorId)
       }
+      return
+    }
+    
+    const res = await request.get('/api/pages/one', {
+      key: 'links',
+      cache: false,
+      withTrashed: false
     })
     if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
-      // 更新浏览量
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '友链')
+      // 缓存数据
+      cache.set(cacheKey, res.data, cacheExpire)
     } else {
       error.value = true
       errorMsg.value = '未找到友链页面配置，请联系管理员检查后台'
@@ -1592,7 +1610,6 @@ const getLinksPageData = async () => {
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，无法加载友链页面配置'
-    console.error('[友链页面基础数据异常]：', err)
   } finally {
     loading.value = false
     // 获取作者信息
@@ -1603,22 +1620,40 @@ const getLinksPageData = async () => {
   }
 }
 
-// 获取归档页面基础数据
+// 获取归档页面基础数据（带缓存）
 const getArchivePageData = async () => {
   loading.value = true
   try {
-    const res = await request.get('/api/pages/one?key=archive', {
-      params: {
-        key: 'archive',
-        cache: false,
-        withTrashed: false
+    // 缓存键
+    const cacheKey = 'page_archive_data'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      pageInfo.value = { ...pageInfo.value, ...cachedData }
+      viewCount.value = cachedData.views || 0
+      setDynamicTitle(cachedData.title || '归档')
+      loading.value = false
+      // 获取作者信息
+      const authorId = pageInfo.value.uid
+      if (authorId) {
+        getAuthorInfo(authorId)
       }
+      return
+    }
+    
+    const res = await request.get('/api/pages/one', {
+      key: 'archive',
+      cache: false,
+      withTrashed: false
     })
     if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
-      // 更新浏览量
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '归档')
+      // 缓存数据
+      cache.set(cacheKey, res.data, cacheExpire)
     }
   } catch (err) {
     console.error('[归档页面基础数据异常]：', err)
@@ -1645,18 +1680,11 @@ const fetchArticles = async () => {
     if (res && res.code === 200 && res.data) {
       const { data = [], count = 0 } = res.data
       
-      // 打印数据长度，以便调试
-      console.log('文章数据长度:', data.length)
-      console.log('文章总数:', count)
-      
       articles.value = data
       articleTotal.value = count
       
       // 按年月分组
       groupArticlesByYearMonth(articles.value)
-      
-      // 打印分组后的数据
-      console.log('分组后的数据:', groupedArticles.value)
     } else {
       articlesError.value = true
       articlesErrorMsg.value = res?.msg || '获取文章数据失败'
@@ -1787,22 +1815,46 @@ const handleLinkAvatarError = (event) => {
 
 
 
-// 获取留言页面基础数据
+// 获取留言页面基础数据（带缓存）
 const getMessagePageData = async () => {
   loading.value = true
   try {
-    const res = await request.get('/api/pages/one?key=message', {
-      params: {
-        key: 'message',
-        cache: false,
-        withTrashed: false
+    // 缓存键
+    const cacheKey = 'page_message_data'
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取
+    const cachedData = cache.get(cacheKey)
+    if (cachedData) {
+      pageInfo.value = { ...pageInfo.value, ...cachedData }
+      viewCount.value = cachedData.views || 0
+      setDynamicTitle(cachedData.title || '留言板')
+      
+      // 获取评论配置
+      const config = await getCommentConfig()
+      commentConfig.value = config
+      isCommentEnabled.value = config.enabled !== 0
+      
+      loading.value = false
+      // 获取作者信息
+      const authorId = pageInfo.value.uid
+      if (authorId) {
+        getAuthorInfo(authorId)
       }
+      return
+    }
+    
+    const res = await request.get('/api/pages/one', {
+      key: 'message',
+      cache: false,
+      withTrashed: false
     })
     if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
-      // 更新浏览量
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '留言板')
+      // 缓存数据
+      cache.set(cacheKey, res.data, cacheExpire)
       
       // 获取评论配置
       const config = await getCommentConfig()
@@ -1816,7 +1868,6 @@ const getMessagePageData = async () => {
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，无法加载留言页面配置'
-    console.error('[留言页面基础数据异常]：', err)
   } finally {
     loading.value = false
     // 获取作者信息

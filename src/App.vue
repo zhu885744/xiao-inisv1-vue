@@ -63,7 +63,6 @@ import request from '@/utils/request'
 
 const navRef = ref(null)
 const store = useCommStore()
-const socketConnected = ref(false)
 const customCodeInjected = ref(false)
 
 const handleShowLogin = () => {
@@ -86,47 +85,62 @@ const injectCustomCode = async () => {
   if (customCodeInjected.value) return
   
   try {
-    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
-    if (response.code === 200 && response.data) {
-      const config = response.data.json || {}
-      const customCodeData = config.custom_code || {}
-      
-      if (customCodeData.css) {
-        const style = document.createElement('style')
-        style.textContent = customCodeData.css
-        document.head.appendChild(style)
-      }
-      
-      if (customCodeData.header) {
-        const tempDiv = document.createElement('div')
-        tempDiv.innerHTML = customCodeData.header
-        while (tempDiv.firstChild) {
-          document.head.appendChild(tempDiv.firstChild)
-        }
-      }
-      
-      if (customCodeData.js) {
-        const script = document.createElement('script')
-        script.textContent = customCodeData.js
-        document.body.appendChild(script)
-      }
-      
-      if (customCodeData.footer) {
-        const tempDiv = document.createElement('div')
-        tempDiv.innerHTML = customCodeData.footer
-        while (tempDiv.firstChild) {
-          document.body.appendChild(tempDiv.firstChild)
-        }
-      }
-      
-      if (customCodeData.analytics) {
-        const tempDiv = document.createElement('div')
-        tempDiv.innerHTML = customCodeData.analytics
-        while (tempDiv.firstChild) {
-          document.body.appendChild(tempDiv.firstChild)
-        }
+    const cacheKey = 'custom_code_config'
+    const cachedConfig = localStorage.getItem(cacheKey)
+    let config = {}
+    
+    if (cachedConfig) {
+      const parsed = JSON.parse(cachedConfig)
+      if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+        config = parsed.data
       }
     }
+    
+    if (!Object.keys(config).length) {
+      const response = await request.get('/api/config/one', { key: 'xiao_functions' })
+      if (response.code === 200 && response.data) {
+        config = response.data.json || {}
+        localStorage.setItem(cacheKey, JSON.stringify({
+          data: config,
+          timestamp: Date.now()
+        }))
+      }
+    }
+    
+    const customCodeData = config.custom_code || {}
+    
+    if (customCodeData.css) {
+      const style = document.createElement('style')
+      style.textContent = customCodeData.css
+      style.setAttribute('data-custom-css', 'true')
+      document.head.appendChild(style)
+    }
+    
+    if (customCodeData.header) {
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = customCodeData.header
+      while (tempDiv.firstChild) {
+        document.head.appendChild(tempDiv.firstChild)
+      }
+    }
+    
+    if (customCodeData.js || customCodeData.footer || customCodeData.analytics) {
+      const scripts = []
+      if (customCodeData.js) scripts.push({ type: 'js', content: customCodeData.js })
+      if (customCodeData.footer) scripts.push({ type: 'footer', content: customCodeData.footer })
+      if (customCodeData.analytics) scripts.push({ type: 'analytics', content: customCodeData.analytics })
+      
+      setTimeout(() => {
+        scripts.forEach(({ content }) => {
+          const tempDiv = document.createElement('div')
+          tempDiv.innerHTML = content
+          while (tempDiv.firstChild) {
+            document.body.appendChild(tempDiv.firstChild)
+          }
+        })
+      }, 100)
+    }
+    
     customCodeInjected.value = true
   } catch (error) {
     console.error('注入自定义代码失败:', error)
@@ -134,25 +148,36 @@ const injectCustomCode = async () => {
 }
 
 const setupSocket = () => {
-  socket.on('open', () => {
-    socketConnected.value = true
+  const maxReconnectAttempts = 5
+  let reconnectAttempt = 0
+  
+  const handleOpen = () => {
+    reconnectAttempt = 0
     console.log('WebSocket连接已建立')
-  })
+  }
   
-  socket.on('close', () => {
-    socketConnected.value = false
-    console.log('WebSocket连接已关闭')
-  })
+  const handleClose = () => {
+    if (reconnectAttempt < maxReconnectAttempts) {
+      reconnectAttempt++
+      const delay = Math.pow(2, reconnectAttempt) * 1000
+      console.log(`WebSocket连接已关闭，${delay}ms后尝试重连...`)
+      setTimeout(() => socket.connect(), delay)
+    }
+  }
   
-  socket.on('error', (error) => {
+  const handleError = (error) => {
     console.error('WebSocket错误:', error)
-  })
+  }
   
-  socket.on('reconnect', (attempts) => {
-    console.log(`WebSocket第${attempts}次重连成功`)
-  })
+  socket.on('open', handleOpen)
+  socket.on('close', handleClose)
+  socket.on('error', handleError)
   
-  socket.connect()
+  try {
+    socket.connect()
+  } catch (error) {
+    console.error('WebSocket连接初始化失败:', error)
+  }
 }
 
 onMounted(async () => {
@@ -168,7 +193,7 @@ onUnmounted(() => {
 <style>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .fade-enter-from,
@@ -177,24 +202,34 @@ onUnmounted(() => {
 }
 
 .slide-fade-enter-active {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .slide-fade-leave-active {
-  transition: all 0.3s ease-in;
+  transition: all 0.25s ease-in;
 }
 
 .slide-fade-enter-from {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(20px);
 }
 
 .slide-fade-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateX(-20px);
 }
 
 .router-view-wrapper {
   width: 100%;
+  min-height: calc(100vh - 200px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active,
+  .fade-leave-active,
+  .slide-fade-enter-active,
+  .slide-fade-leave-active {
+    transition: none;
+  }
 }
 </style>

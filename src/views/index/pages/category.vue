@@ -553,25 +553,19 @@ const loadAllImages = () => {
 // 获取分类文章总数
 const getCategoryArticleCount = async (categoryId) => {
   try {
-    // 使用like参数获取分类文章总数，使用与文章列表相同的参数格式和传递方式
+    // 使用like参数获取分类文章总数
     const like = `Group|%7C${categoryId}%7C`;
     const apiUrl = `/api/article/count?like=${like}`;
-    // console.log('分类文章总数请求URL:', apiUrl);
-    // console.log('当前分类ID:', categoryId);
-    // console.log('like参数:', like);
     
     const response = await request.get(apiUrl);
     
     if (response.code === 200) {
       articleCount.value = response.data || 0
-      // console.log('分类文章总数:', articleCount.value)
     } else {
       articleCount.value = 0
-      // console.error('获取分类文章总数失败:', response.msg)
     }
   } catch (err) {
     articleCount.value = 0
-    // console.error('获取分类文章总数失败:', err)
   }
 }
 
@@ -620,21 +614,18 @@ const getCategoryDetail = async (categoryParam) => {
     
     if (matchedCategory) {
       categoryInfo.value = matchedCategory
-      // 获取分类文章总数
+      // 并行获取分类文章总数
       await getCategoryArticleCount(matchedCategory.id)
       // 更新页面标题
       setDynamicTitle(matchedCategory.name)
     } else {
       error.value = true
       errorMsg.value = '未找到该分类，可能已被删除或参数错误'
-      // 更新页面标题
       setDynamicTitle('分类不存在')
     }
   } catch (err) {
     error.value = true
     errorMsg.value = '网络异常，请检查网络后刷新页面'
-    // console.error('获取分类详情失败:', err)
-    // 更新页面标题
     setDynamicTitle('网络异常')
   } finally {
     loading.value = false
@@ -644,30 +635,39 @@ const getCategoryDetail = async (categoryParam) => {
 // 获取分类下的文章列表 - 修复版
 const getCategoryArticles = async (page = 1) => {
   try {
+    // 缓存键
+    const cacheKey = `category_articles_${categoryInfo.value.id}_page_${page}_limit_${limit.value}`
+    const cacheExpire = 60 // 缓存60分钟
+    
+    // 尝试从缓存获取文章列表
+    const cachedArticles = cache.get(cacheKey)
+    if (cachedArticles) {
+      articles.value = cachedArticles.data || []
+      total.value = cachedArticles.total || 0
+      return
+    }
+    
     // 使用带管道符的格式，确保能匹配到所有文章
     const like = `Group|%7C${categoryInfo.value.id}%7C`;
     // 添加审核筛选条件，只显示已审核的文章
     const apiUrl = `/api/article/all?like=${like}&where[audit]=1&page=${page}&limit=${limit.value}&order=create_time+desc&cache=false`;
     
-    // console.log('修复版请求 URL:', apiUrl);
-    // console.log('当前分类 ID:', categoryInfo.value.id);
-    // console.log('like 参数:', like);
-    
     const res = await request.get(apiUrl);
 
     if (res.code === 200) {
-      // 调试：查看API返回的数据结构
-      // console.log('API返回数据:', res);
-      
       // 处理不同的数据结构
       if (res.data && res.data.data) {
         // 文章数组在data.data中
         articles.value = res.data.data;
         total.value = res.data.count || 0;
+        // 缓存文章列表
+        cache.set(cacheKey, { data: res.data.data, total: res.data.count || 0 }, cacheExpire)
       } else if (res.data && Array.isArray(res.data)) {
         // 直接是文章数组
         articles.value = res.data;
         total.value = res.count || 0;
+        // 缓存文章列表
+        cache.set(cacheKey, { data: res.data, total: res.count || 0 }, cacheExpire)
       } else {
         articles.value = [];
         total.value = 0;
@@ -677,12 +677,10 @@ const getCategoryArticles = async (page = 1) => {
     } else {
       articles.value = [];
       total.value = 0;
-      // console.error('API返回错误:', res.msg);
     }
   } catch (err) {
     articles.value = [];
     total.value = 0;
-    // console.error('获取分类文章失败:', err);
   }
 };
 
@@ -698,10 +696,11 @@ const changePage = (page) => {
 // 初始化页面
 const initPage = async (categoryParam) => {
   if (categoryParam && checkCategoryParam(categoryParam)) {
-    await getCategoryDetail(categoryParam)
-    if (!error.value) {
-      await getCategoryArticles(currentPage.value)
-    }
+    // 并行获取分类详情和分类文章
+    await Promise.all([
+      getCategoryDetail(categoryParam),
+      getCategoryArticles(currentPage.value)
+    ])
   } else {
     error.value = true
     loading.value = false
@@ -737,7 +736,7 @@ onMounted(async () => {
   // 初始化Intersection Observer
   initIntersectionObserver()
   
-  // 获取文章列表
+  // 初始化页面
   await initPage(getCurrentCategoryId())
 })
 </script>
