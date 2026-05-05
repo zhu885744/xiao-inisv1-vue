@@ -148,31 +148,22 @@ const injectCustomCode = async () => {
 }
 
 const setupSocket = () => {
-  const maxReconnectAttempts = 5
-  let reconnectAttempt = 0
-  
   const handleOpen = () => {
-    reconnectAttempt = 0
     console.log('WebSocket连接已建立')
   }
-  
+
   const handleClose = () => {
-    if (reconnectAttempt < maxReconnectAttempts) {
-      reconnectAttempt++
-      const delay = Math.pow(2, reconnectAttempt) * 1000
-      console.log(`WebSocket连接已关闭，${delay}ms后尝试重连...`)
-      setTimeout(() => socket.connect(), delay)
-    }
+    console.log('WebSocket连接已关闭')
   }
-  
+
   const handleError = (error) => {
     console.error('WebSocket错误:', error)
   }
-  
+
   socket.on('open', handleOpen)
   socket.on('close', handleClose)
   socket.on('error', handleError)
-  
+
   try {
     socket.connect()
   } catch (error) {

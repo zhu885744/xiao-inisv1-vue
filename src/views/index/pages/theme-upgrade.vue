@@ -62,7 +62,7 @@
                 <div class="col-sm-8 fw-bold text-body">{{ currentVersion }}</div>
               </div>
               <div class="row">
-                <div class="col-sm-4 text-body-secondary">检测时间</div>
+                <div class="col-sm-4 text-body-secondary">检查时间</div>
                 <div class="col-sm-8 text-body-secondary">{{ lastCheckTime || '未检测' }}</div>
               </div>
             </div>
@@ -103,10 +103,8 @@
               </div>
               <div class="mb-3">
                 <span class="text-body-secondary d-block mb-2">更新内容</span>
-                <div class="card border rounded p-3">
-                  <p v-for="(line, index) in latestVersion.content.split('\n')" :key="index" class="mb-1 text-sm text-body">
-                    {{ line }}
-                  </p>
+                <div class="card border rounded p-3 article-content">
+                  <i-markdown :model-value="latestVersion.content"></i-markdown>
                 </div>
               </div>
               <div v-if="hasUpdate">
@@ -150,26 +148,50 @@
           </div>
         </div>
 
-        <!-- 版本历史 -->
-        <div v-if="versionHistory.length > 0">
-          <h6 class="mb-3 d-flex align-items-center gap-2 text-body-secondary">
-            <i class="bi bi-clock-history"></i>
-            版本历史
-          </h6>
-          <div class="list-group">
-            <div 
-              v-for="(version, index) in versionHistory" 
-              :key="version.id"
-              class="list-group-item border rounded-lg mb-2"
-            >
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="fw-bold text-body">{{ version.version }}</span>
-                <span class="text-sm text-body-secondary">{{ formatDate(version.create_time) }}</span>
+        <!-- 版本历史按钮 -->
+        <div v-if="versionHistory.length > 0" class="text-center mt-4">
+          <button 
+            class="btn btn-outline-secondary"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#versionHistoryModal"
+          >
+            <i class="bi bi-clock-history me-2"></i>查看版本历史
+          </button>
+        </div>
+
+        <!-- 版本历史模态框 -->
+        <div class="modal fade" id="versionHistoryModal" tabindex="-1" aria-labelledby="versionHistoryModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="versionHistoryModalLabel">
+                  <i class="bi bi-clock-history text-body-secondary me-2"></i>
+                  版本历史
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="text-sm text-body-secondary">
-                <p v-for="(line, lineIndex) in version.content.split('\n')" :key="lineIndex" class="mb-1">
-                  {{ line }}
-                </p>
+              <div class="modal-body">
+                <div class="list-group">
+                  <div 
+                    v-for="(version, index) in versionHistory" 
+                    :key="version.id"
+                    class="list-group-item border rounded-lg mb-3"
+                  >
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="fw-bold text-body">v{{ version.version }}</span>
+                      <span class="text-sm text-body-secondary">{{ formatDate(version.create_time) }}</span>
+                    </div>
+                    <div class="article-content">
+                      <i-markdown :model-value="version.content"></i-markdown>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                  关闭
+                </button>
               </div>
             </div>
           </div>
@@ -181,10 +203,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import request from '@/utils/request'
 import toast from '@/utils/toast'
 import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
+import iMarkdown from '@/comps/custom/i-markdown.vue'
 
 // 页面标题管理
 const { setDynamicTitle } = usePageTitle()
@@ -238,8 +260,8 @@ const formatDate = (timestamp) => {
 
 // 版本号比较函数
 const compareVersions = (version1, version2) => {
-  const v1 = version1.split('.').map(Number)
-  const v2 = version2.split('.').map(Number)
+  const v1 = version1.replace(/^v/i, '').split('.').map(Number)
+  const v2 = version2.replace(/^v/i, '').split('.').map(Number)
   
   for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
     const num1 = v1[i] || 0

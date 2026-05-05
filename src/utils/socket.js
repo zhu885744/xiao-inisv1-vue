@@ -194,7 +194,11 @@ class SocketManager {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
     }
-    
+
+    if (this.reconnectAttempts > 0 && this.reconnectAttempts % 5 === 0) {
+      this.debugLog(`已重连 ${this.reconnectAttempts} 次仍未成功，将持续重连...`)
+    }
+
     this.reconnectAttempts++
     this.debugLog(`准备重连 🔄（第 ${this.reconnectAttempts}/${config.maxReconnectAttempts || '∞'} 次），间隔${config.reconnectInterval}ms`)
     this.emit('reconnect', this.reconnectAttempts)

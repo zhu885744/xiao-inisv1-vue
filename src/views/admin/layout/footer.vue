@@ -43,7 +43,7 @@
             class="text-decoration-none text-reset hover-text-primary transition-opacity"
             title="inisv1 开源地址"
           >
-            inis v{{ systemVersion }}
+            inis
           </a>
           <span class="mx-1">|</span>
           <span>Theme by </span>
@@ -110,19 +110,6 @@ const policeCode = computed(() => siteInfo.value?.police?.code || '请在后台�
 const policeLink = computed(() => siteInfo.value?.police?.link || 'https://beian.mps.gov.cn/#/query/webSearch')
 
 const themeVersion = computed(() => THEME_VERSION)
-
-// 数据获取方法
-const fetchSystemVersion = async () => {
-  try {
-    const res = await axios.get('/dev/info/version')
-    
-    if (res?.code === 200 && res.data?.inis) {
-      systemVersion.value = res.data.inis
-    }
-  } catch (error) {
-    console.error('系统版本加载失败:', error)
-  }
-}
 
 // 组件挂载
 onMounted(async () => {

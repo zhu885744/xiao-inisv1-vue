@@ -1729,7 +1729,7 @@ const fetchLinks = async () => {
   try {
     // 缓存键（包含状态监测标记）
     const cacheKey = 'links_list_with_status'
-    const cacheExpire = 5 // 缓存5分钟（状态监测需要较短的缓存时间）
+    const cacheExpire = 60 // 缓存60分钟
     
     // 尝试从缓存获取友链数据
     let cachedLinks = cache.get(cacheKey)
@@ -1806,14 +1806,6 @@ const getLinksComments = async (page = 1, limit = 10) => {
     console.error('获取评论失败：', error)
   }
 }
-
-// 处理友链头像错误
-const handleLinkAvatarError = (event) => {
-  // 可以设置默认头像
-  event.target.src = 'https://img1.zhuxu.asia/2026/L2SIxoK1ss.png'
-}
-
-
 
 // 获取留言页面基础数据（带缓存）
 const getMessagePageData = async () => {

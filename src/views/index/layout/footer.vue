@@ -43,7 +43,7 @@
             class="text-decoration-none text-reset hover-text-primary transition-opacity"
             title="inisv1 开源地址"
           >
-            inis v{{ systemVersion }}
+            inis
           </a>
           <span class="mx-1">|</span>
           <span>Theme by </span>
@@ -64,14 +64,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import axios from '@/utils/request'
 import { useCommStore } from '@/store/comm'
 
 // 环境变量
 const THEME_VERSION = import.meta.env.VITE_VERSION || '1.0.0'
 
 // 响应式数据
-const systemVersion = ref(THEME_VERSION)
 const currentYear = new Date().getFullYear()
 const commStore = useCommStore()
 
@@ -83,14 +81,11 @@ const startYear = computed(() => {
   if (!timestamp) return currentYear
   
   try {
-    // 秒级时间戳转毫秒
     const milliseconds = parseInt(timestamp) * 1000
     const date = new Date(milliseconds)
     const year = date.getFullYear()
-    console.log('解析时间戳:', timestamp, '->', milliseconds, '->', year)
     return isNaN(year) ? currentYear : year
   } catch (error) {
-    console.error('解析时间戳失败:', error)
     return currentYear
   }
 })
@@ -111,31 +106,12 @@ const policeLink = computed(() => siteInfo.value?.police?.link || 'https://beian
 
 const themeVersion = computed(() => THEME_VERSION)
 
-// 数据获取方法
-const fetchSystemVersion = async () => {
-  try {
-    const res = await axios.get('/dev/info/version')
-    
-    if (res?.code === 200 && res.data?.inis) {
-      systemVersion.value = res.data.inis
-    }
-  } catch (error) {
-    console.error('系统版本加载失败:', error)
-  }
-}
-
 // 组件挂载
 onMounted(async () => {
-  console.log('组件挂载，siteInfo:', siteInfo.value)
-  // 确保站点信息已加载
   if (!siteInfo.value || Object.keys(siteInfo.value).length === 0) {
-    console.log('站点信息为空，调用fetchSiteInfo')
     await commStore.fetchSiteInfo()
-    // 更新siteInfo ref的值
     siteInfo.value = commStore.siteInfo
-    console.log('fetchSiteInfo调用完成，siteInfo:', siteInfo.value)
   }
-  await fetchSystemVersion()
 })
 </script>
 
