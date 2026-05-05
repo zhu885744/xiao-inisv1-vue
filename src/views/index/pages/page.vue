@@ -235,8 +235,22 @@
                       class="link-card-small text-decoration-none d-block h-100"
                     >
                       <div class="link-card-inner h-100">
-                        <!-- 友链名称 -->
-                        <h4 class="link-name mb-2">{{ link.nickname }}</h4>
+                        <!-- 友链名称（带状态） -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <h4 class="link-name mb-0">{{ link.nickname }}</h4>
+                          <!-- 状态指示器 -->
+                          <span 
+                            :class="[
+                              'status-badge',
+                              link.online ? 'status-online' : 'status-offline'
+                            ]"
+                            :title="link.online ? `响应时间: ${link.responseTime}ms` : '网站离线'"
+                          >
+                            <i class="bi" :class="link.online ? 'bi-check-circle' : 'bi-x-circle'"></i>
+                            <span class="ms-1">{{ link.online ? '在线' : '离线' }}</span>
+                            <span v-if="link.online" class="response-time">{{ link.responseTime }}ms</span>
+                          </span>
+                        </div>
                         <!-- 友链简介 -->
                         <p class="link-desc mb-2">{{ link.description || '暂无介绍' }}</p>
                         <!-- 友链链接 -->
@@ -1678,30 +1692,30 @@ const groupArticlesByYearMonth = (articlesData) => {
   groupedArticles.value = grouped
 }
 
-// 获取全部友链数据
+// 获取全部友链数据（带状态监测）
 const fetchLinks = async () => {
   linksLoading.value = true
   linksError.value = false
   linksErrorMsg.value = ''
   
   try {
-    // 缓存键
-    const cacheKey = 'links_list'
-    const cacheExpire = 60 // 缓存60分钟
+    // 缓存键（包含状态监测标记）
+    const cacheKey = 'links_list_with_status'
+    const cacheExpire = 5 // 缓存5分钟（状态监测需要较短的缓存时间）
     
     // 尝试从缓存获取友链数据
     let cachedLinks = cache.get(cacheKey)
     
-    // 如果缓存不存在，从API获取
+    // 如果缓存不存在或已过期，从API获取
     if (!cachedLinks) {
-      // 直接写死API地址参数，不配置任何动态参数
-      const res = await request.get('/api/links/all?page=1&limit=500&order=id+asc')
+      // 调用带状态监测的API
+      const res = await request.get('/api/links/all?status=true&limit=9999')
       if (res && res.code === 200 && res.data) {
         const { data = [], count = 0 } = res.data
         links.value = data     // 直接赋值全部数据
         linkTotal.value = count   // 总条数
-        // 缓存友链数据
-        cache.set(cacheKey, { data, count }, cacheExpire)
+        // 缓存友链数据（包含状态信息）
+        cache.set(cacheKey, { data, count, fetchedAt: Date.now() }, cacheExpire)
       } else {
         linksError.value = true
         linksErrorMsg.value = res?.msg || '获取友链数据失败'
@@ -3179,6 +3193,30 @@ onUnmounted(() => {
   font-size: 1rem;
   font-weight: 600;
   color: var(--bs-body-color);
+}
+
+/* 友链状态徽章 */
+.status-badge {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.status-online {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.status-offline {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.response-time {
+  margin-left: 0.25rem;
+  opacity: 0.8;
 }
 
 .link-card-small .link-desc {
