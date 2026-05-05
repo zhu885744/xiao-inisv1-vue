@@ -107,99 +107,6 @@
       </div>
     </div>
 
-    <!-- 人生倒计时卡片 -->
-    <div class="card mt-2">
-      <div class="card-header border-bottom">
-        <h6 class="mb-0 fw-semibold">
-          <i class="bi bi-clock-history me-2 text-secondary"></i>
-          <span>人生倒计时</span>
-        </h6>
-      </div>
-      <div class="card-body">
-        <div class="countdown-container">
-          <!-- 今日已过去 -->
-          <div class="countdown-item mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="countdown-label">
-                <i class="bi bi-sun me-1"></i>今日
-              </span>
-              <span class="countdown-value fw-semibold">{{ countdownData.todayHours }} 小时</span>
-            </div>
-            <div class="progress sidebar-progress" style="height: 8px;">
-              <div 
-                class="progress-bar bg-gradient bg-primary" 
-                :style="{ width: countdownData.todayPercent + '%' }"
-              ></div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="countdown-percent fs-7 text-muted">{{ countdownData.todayPercent.toFixed(1) }}%</span>
-              <span class="countdown-percent fs-7 text-muted">24小时</span>
-            </div>
-          </div>
-
-          <!-- 本周已过去 -->
-          <div class="countdown-item mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="countdown-label">
-                <i class="bi bi-calendar-week me-1"></i>本周
-              </span>
-              <span class="countdown-value fw-semibold">{{ countdownData.weekDays }} 天</span>
-            </div>
-            <div class="progress sidebar-progress" style="height: 8px;">
-              <div 
-                class="progress-bar bg-gradient bg-success" 
-                :style="{ width: countdownData.weekPercent + '%' }"
-              ></div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="countdown-percent fs-7 text-muted">{{ countdownData.weekPercent.toFixed(1) }}%</span>
-              <span class="countdown-percent fs-7 text-muted">7天</span>
-            </div>
-          </div>
-
-          <!-- 本月已过去 -->
-          <div class="countdown-item mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="countdown-label">
-                <i class="bi bi-calendar-month me-1"></i>本月
-              </span>
-              <span class="countdown-value fw-semibold">{{ countdownData.monthDays }} 天</span>
-            </div>
-            <div class="progress sidebar-progress" style="height: 8px;">
-              <div 
-                class="progress-bar bg-gradient bg-warning" 
-                :style="{ width: countdownData.monthPercent + '%' }"
-              ></div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="countdown-percent fs-7 text-muted">{{ countdownData.monthPercent.toFixed(1) }}%</span>
-              <span class="countdown-percent fs-7 text-muted">{{ countdownData.monthTotalDays }}天</span>
-            </div>
-          </div>
-
-          <!-- 本年已过去 -->
-          <div class="countdown-item">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="countdown-label">
-                <i class="bi bi-calendar3 me-1"></i>本年
-              </span>
-              <span class="countdown-value fw-semibold">{{ countdownData.yearMonths }} 月</span>
-            </div>
-            <div class="progress sidebar-progress" style="height: 8px;">
-              <div 
-                class="progress-bar bg-gradient bg-danger" 
-                :style="{ width: countdownData.yearPercent + '%' }"
-              ></div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="countdown-percent fs-7 text-muted">{{ countdownData.yearPercent.toFixed(1) }}%</span>
-              <span class="countdown-percent fs-7 text-muted">12月</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 等级排行卡片 -->
     <div class="card mt-2">
       <div class="card-header border-bottom d-flex justify-content-between align-items-center">
@@ -452,6 +359,99 @@
                 <i class="bi bi-link-45deg"></i>
                 {{ comment.commentType === 'article' ? '查看文章' : comment.commentType === 'page' ? '查看页面' : '查看原文' }}
               </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 人生倒计时卡片 -->
+    <div class="card mt-2">
+      <div class="card-header border-bottom">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-clock-history me-2 text-secondary"></i>
+          <span>人生倒计时</span>
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="countdown-container">
+          <!-- 今日已过去 -->
+          <div class="countdown-item mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-sun me-1"></i>今日
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.todayHours }} 小时</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-primary" 
+                :style="{ width: countdownData.todayPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.todayPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">24小时</span>
+            </div>
+          </div>
+
+          <!-- 本周已过去 -->
+          <div class="countdown-item mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-calendar-week me-1"></i>本周
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.weekDays }} 天</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-success" 
+                :style="{ width: countdownData.weekPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.weekPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">7天</span>
+            </div>
+          </div>
+
+          <!-- 本月已过去 -->
+          <div class="countdown-item mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-calendar-month me-1"></i>本月
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.monthDays }} 天</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-warning" 
+                :style="{ width: countdownData.monthPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.monthPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.monthTotalDays }}天</span>
+            </div>
+          </div>
+
+          <!-- 本年已过去 -->
+          <div class="countdown-item">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="countdown-label">
+                <i class="bi bi-calendar3 me-1"></i>本年
+              </span>
+              <span class="countdown-value fw-semibold">{{ countdownData.yearMonths }} 月</span>
+            </div>
+            <div class="progress sidebar-progress" style="height: 8px;">
+              <div 
+                class="progress-bar bg-gradient bg-danger" 
+                :style="{ width: countdownData.yearPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="countdown-percent fs-7 text-muted">{{ countdownData.yearPercent.toFixed(1) }}%</span>
+              <span class="countdown-percent fs-7 text-muted">12月</span>
             </div>
           </div>
         </div>

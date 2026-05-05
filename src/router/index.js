@@ -359,8 +359,19 @@ router.beforeEach(async (to, from, next) => {
   // 登录权限校验
   if (to.meta.requiresAuth) {
     const commStore = useCommStore()
-    const userInfo = commStore.getLogin.user
-    const isLogin = !utils.is.empty(userInfo)
+    
+    // 先检查登录状态（确保获取最新的登录状态）
+    try {
+      await commStore.checkLoginState()
+    } catch (error) {
+      console.error('检查登录状态失败:', error)
+    }
+    
+    // 使用 getter 获取登录状态（会自动触发 Token 校验）
+    const loginState = commStore.getLogin
+    
+    // 检查登录是否完成且用户信息存在
+    const isLogin = loginState.finish && !utils.is.empty(loginState.user)
 
     if (!isLogin) {
       next('/')
@@ -369,6 +380,7 @@ router.beforeEach(async (to, from, next) => {
 
     // 管理员权限校验
     if (to.meta.isAdmin) {
+      const userInfo = loginState.user
       const cacheKey = `admin_status_${userInfo.id || 'unknown'}`
       let isAdmin = cache.get(cacheKey)
       

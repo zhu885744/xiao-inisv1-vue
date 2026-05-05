@@ -92,70 +92,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { onMounted } from 'vue'
 import BasicInfoSettings from '@/comps/user/settings/basic-info.vue'
 import AccountSecuritySettings from '@/comps/user/settings/account-security.vue'
 import ContactInfoSettings from '@/comps/user/settings/contact-info.vue'
-import toast from '@/utils/toast'
-import cache from '@/utils/cache'
 import { usePageTitle } from '@/utils/usePageTitle'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();
 setDynamicTitle('用户设置');
-import { useCommStore } from '@/store/comm'
-
-const store = useCommStore()
-
-// 加载状态
-const loading = ref(false)
-
-// 计算登录状态
-const isLogin = computed(() => {
-  const loginState = store.getLogin
-  return loginState.finish && Object.keys(loginState.user).length > 0
-})
-
-// 获取用户信息（添加缓存避免频繁调用）
-const fetchUserInfo = async (forceRefresh = false) => {
-  // 检查缓存
-  const cacheKey = 'user_login_state'
-  const cacheExpire = 5 // 缓存5分钟
-
-  if (!forceRefresh) {
-    const cachedState = cache.get(cacheKey)
-    if (cachedState) {
-      return cachedState
-    }
-  }
-
-  loading.value = true
-  try {
-    const state = await store.checkLoginState()
-
-    // 缓存登录状态
-    if (state.finish && Object.keys(state.user).length > 0) {
-      cache.set(cacheKey, state, cacheExpire)
-    }
-
-    return state
-  } catch (error) {
-    console.error('获取用户信息失败:', error)
-    return null
-  } finally {
-    loading.value = false
-  }
-}
 
 // 组件挂载时的逻辑
 onMounted(async () => {
-  // 检查登录状态
-  const loginState = await fetchUserInfo()
-
-  if (!loginState || !loginState.finish || Object.keys(loginState.user).length === 0) {
-    toast.error('请先登录')
-    // 跳转到首页
-    window.location.href = '/'
-  }
+  // 路由守卫已经做了登录校验，这里不需要重复检查
 })
 </script>

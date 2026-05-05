@@ -8,8 +8,9 @@ import { push } from '@/utils/route'
 // 定义Token名称（和后端配置一致）
 const TOKEN_NAME = globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
 
-// 防止并发调用的标志位
+// 防止并发调用的标志位和等待队列
 let checkingToken = false
+let checkTokenPromise = null
 let fetchingSiteInfo = false
 
 /**
@@ -18,9 +19,18 @@ let fetchingSiteInfo = false
  * @returns {Promise<void>}
  */
 const checkToken = async (state = {}) => {
+    // 如果正在校验，等待前一个校验完成
+    if (checkingToken && checkTokenPromise) {
+        await checkTokenPromise
+        return
+    }
+    
     // 防止并发调用
     if (checkingToken) return
     checkingToken = true
+    
+    // 保存当前Promise供后续调用等待
+    checkTokenPromise = (async () => {
     
     const cacheName = 'user-info'
     state.login.finish = false // 先置为未完成，避免缓存欺骗
@@ -69,7 +79,12 @@ const checkToken = async (state = {}) => {
     } finally {
         // 重置标志位
         checkingToken = false
+        checkTokenPromise = null
     }
+    })()
+    
+    // 等待校验完成
+    await checkTokenPromise
 }
 
 /**
@@ -229,10 +244,11 @@ export const useCommStore = defineStore('comm', {
         
         /**
          * 手动触发登录态校验（比如登录后/页面刷新后）
-         * @returns {Promise<void>}
+         * @returns {Promise<Object>} 登录状态对象
          */
         async checkLoginState() {
             await checkToken(this)
+            return this.login
         },
         
         /**
