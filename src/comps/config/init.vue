@@ -116,7 +116,7 @@
                 <i class="bi bi-arrow-down-up me-1"></i>
                 <small>提示：弹窗内容可上下滑动查看</small>
               </div>
-              <small class="text-muted d-block text-center">配置完成后请点击保存，将自动下载配置文件，请手动上传到public/config/目录，上传成功后请刷新页面，系统将不再显示主题配置弹窗。</small>
+              <small class="text-muted d-block text-center">配置完成后请点击保存，将自动下载配置文件，请手动上传到config目录，上传成功后请刷新页面，系统将不再显示主题配置弹窗。</small>
             </div>
           </div>
         </div>
