@@ -192,7 +192,7 @@
         </div>
 
         <!-- 友链页面主体 -->
-        <main v-else class="card shadow-sm mt-2">
+        <main class="card shadow-sm mt-2">
           <div class="p-3">
           <h2 class="timeline-title mb-4">友情链接</h2>
           <!-- 核心内容区 -->
@@ -414,8 +414,8 @@
                           class="btn btn-primary px-4 publish-btn flex-grow-1"
                           :disabled="!messageInput.trim() || isPublishingMessage"
                         >
-                          <i class="bi" :class="isPublishingMessage ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
-                          {{ isPublishingMessage ? ' 发布中...' : ' 发布留言' }}
+                        <i class="bi" :class="isPublishingMessage ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
+                        {{ isPublishingMessage ? ' 发布中...' : ' 发布留言' }}
                         </button>
                     </div>
                   </div>
@@ -791,26 +791,6 @@
                 placeholder="请输入您的网站描述"
               ></textarea>
             </div>
-            <div class="mb-3">
-              <label for="linkGroup" class="form-label">友链分组</label>
-              <div v-if="linkGroupsLoading" class="form-control-plaintext">
-                <div class="spinner-border spinner-border-sm text-secondary" role="status">
-                  <span class="visually-hidden">加载中...</span>
-                </div>
-                加载分组中...
-              </div>
-              <select 
-                v-else 
-                class="form-select" 
-                id="linkGroup" 
-                v-model="linkForm.group"
-              >
-                <option value="">请选择友链分组</option>
-                <option v-for="group in linkGroups" :key="group.id" :value="group.id">
-                  {{ group.name }}
-                </option>
-              </select>
-            </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -877,15 +857,10 @@ const linkForm = ref({
   target: '_blank',
   group: ''
 })
-const linkApplyModal = ref(null)
 const isSubmitting = ref(false)
 const isCoolingDown = ref(false)
 const coolingDownTime = ref(0)
 let coolingDownTimer = null
-
-// 友链分组相关
-const linkGroups = ref([])
-const linkGroupsLoading = ref(false)
 
 // 路由实例
 const router = useRouter()
@@ -969,7 +944,6 @@ const showReplyIndex = ref(null)
 const replyTarget = ref(null)
 const selectedMessage = ref(null)
 const messagesGrid = ref(null)
-const replyModalMessage = ref(null)
 // 表情功能相关状态
 const showMessageEmojiPicker = ref(false)
 const showReplyEmojiPicker = ref(false)
@@ -1006,7 +980,6 @@ const formatTime = (timestamp) => {
  * Key合法性校验：全量兜底，防止key为undefined/null
  */
 const checkPageKey = (key) => {
-  // 入参是initPage处理过的currentKey，已做trim，直接判断即可
   if (!key) {
     errorMsg.value = '页面标识不能为空，请检查访问地址'
     return false
@@ -1042,24 +1015,21 @@ const getCommentConfig = async () => {
 }
 
 /**
- * 获取独立页面数据：入参加兜底，双重防护
+ * 获取独立页面数据
  */
 const getPageData = async (pageKey) => {
   loading.value = true
   error.value = false
   errorMsg.value = ''
   try {
-    // 缓存键
     const cacheKey = `page_detail_${pageKey}`
-    const cacheExpire = 60 // 缓存60分钟
+    const cacheExpire = 60 
     
-    // 尝试从缓存获取页面数据
     let cachedPage = cache.get(cacheKey)
     
-    // 如果缓存不存在，从API获取
     if (!cachedPage) {
       const queryParams = {
-        key: String(pageKey || '').trim(), // 兜底空字符串
+        key: String(pageKey || '').trim(),
         cache: false,
         withTrashed: false
       }
@@ -1072,10 +1042,8 @@ const getPageData = async (pageKey) => {
         setDynamicTitle('页面不存在')
       } else {
         cachedPage = res.data
-        // 缓存页面数据
         cache.set(cacheKey, cachedPage, cacheExpire)
         pageInfo.value = cachedPage
-        // 更新浏览量
         viewCount.value = res.data.views || 0
         error.value = false
         setDynamicTitle(pageInfo.value.title)
@@ -1086,9 +1054,7 @@ const getPageData = async (pageKey) => {
       setDynamicTitle('获取页面失败')
     }
   } else {
-      // 使用缓存数据
       pageInfo.value = cachedPage
-      // 更新浏览量
       viewCount.value = cachedPage.views || 0
       error.value = false
       setDynamicTitle(pageInfo.value.title)
@@ -1096,7 +1062,6 @@ const getPageData = async (pageKey) => {
 } catch (err) {
   error.value = true
   errorMsg.value = '网络异常，请检查网络后刷新页面'
-  // console.error('[独立页面接口异常]：', err)
   setDynamicTitle('网络异常')
 } finally {
   loading.value = false
@@ -1104,46 +1069,34 @@ const getPageData = async (pageKey) => {
 }
 
 /**
- * 页面初始化：封装校验+请求逻辑，加兜底
+ * 页面初始化
  */
 const initPage = async () => {
-  // 优先使用props.pageKey，然后使用route.params.key，最后兜底空字符串
   const currentKey = (props.pageKey || route.params.key || '').trim()
 
-  // 如果是归档页面，直接加载统计信息
   if (currentKey === 'archive') {
     setDynamicTitle('加载中...')
     await getArchivePageData()
-    // 并行获取归档统计数据和文章列表
     await Promise.all([
       fetchArchiveStats(),
       fetchArticles()
     ])
     startArchiveAutoRefresh()
-  }
-  // 如果是友链页面，并行加载友链数据和评论
-  else if (currentKey === 'links') {
+  } else if (currentKey === 'links') {
     setDynamicTitle('加载中...')
-    // 并行获取友链页面数据和友链列表
     await Promise.all([
       getLinksPageData(),
       fetchLinks()
     ])
-    // 获取评论
     await getLinksComments(currentPage.value, pageSize.value)
-  }
-  // 如果是留言页面，并行加载留言页面数据和评论
-  else if (currentKey === 'message') {
+  } else if (currentKey === 'message') {
     setDynamicTitle('加载中...')
-    // 首先获取留言页面数据
     await getMessagePageData()
-    // 然后并行获取评论和统计数据
     await Promise.all([
       getComments(pageInfo.value.id, currentPage.value, pageSize.value),
       calculateMessageStats()
     ])
   } else if (checkPageKey(currentKey)) {
-    // 普通独立页面
     getPageData(currentKey)
   } else {
     error.value = true
@@ -1153,105 +1106,53 @@ const initPage = async () => {
   }
 }
 
-// 监听路由参数变化：加新参数兜底，避免undefined
+// 监听路由
 watch(
   () => route.params.key,
   () => {
-    initPage() // 直接执行，内部会取最新的key并校验
+    initPage()
   },
   { immediate: false }
 )
 
-// 监听props.pageKey变化：确保切换到归档或友链页面时数据自动刷新
 watch(
   () => props.pageKey,
   () => {
-    initPage() // 直接执行，内部会取最新的pageKey并校验
+    initPage()
   },
   { immediate: false }
 )
 
 // 初始化拖拽功能
 const initSortable = () => {
-  console.log('Initializing Sortable...');
-  console.log('isMessagePage:', isMessagePage.value);
-  console.log('messagesGrid:', messagesGrid.value);
-  
   if (isMessagePage.value && messagesGrid.value) {
-    console.log('Sortable initialized successfully!');
-    // 移除之前的Sortable实例
     if (window.sortableInstance) {
       window.sortableInstance.destroy();
     }
     
     try {
-      // 直接初始化，不需要nextTick
       window.sortableInstance = new Sortable(messagesGrid.value, {
         animation: 150,
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
-        // 移除handle配置，让整个元素都可以拖拽
-        // handle: '.sticky-note',
-        onStart: function(evt) {
-          console.log('Drag started:', evt);
-        },
+        handle: '.sticky-note',
         onEnd: function(evt) {
-          // 可以在这里处理拖拽结束后的逻辑，比如保存排序
-          console.log('Dragged element:', evt.item);
-          console.log('Old index:', evt.oldIndex);
-          console.log('New index:', evt.newIndex);
+          console.log('拖拽排序完成', evt.oldIndex, evt.newIndex);
         }
       });
-      console.log('Sortable instance:', window.sortableInstance);
     } catch (error) {
-      console.error('Error initializing Sortable:', error);
+      console.error('Sortable初始化失败:', error);
     }
-  } else {
-    console.log('Sortable not initialized. Conditions not met.');
   }
 }
-
-// 初始化页面
-onMounted(() => {
-  initPage()
-})
-
-// 监听留言列表变化，重新初始化拖拽功能
-watch(
-  () => commentList.value.length,
-  (newLength) => {
-    console.log('Comment list length changed:', newLength);
-    if (newLength > 0) {
-      // 延迟一下，确保DOM已经更新
-      setTimeout(() => {
-        initSortable();
-      }, 500);
-    }
-  }
-)
-
-// 监听isMessagePage变化
-watch(
-  () => isMessagePage.value,
-  (newValue) => {
-    console.log('isMessagePage changed:', newValue);
-    if (newValue && commentList.value.length > 0) {
-      setTimeout(() => {
-        initSortable();
-      }, 500);
-    }
-  }
-)
 
 // 获取页面评论
 const getComments = async (pageId, page = 1, limit = 10) => {
   try {
-    // 缓存键
     const cacheKey = `page_comments_${pageId}_${page}_${limit}`
-    const cacheExpire = 5 // 缓存5分钟
+    const cacheExpire = 5
     
-    // 尝试从缓存获取评论数据
     let cachedComments = cache.get(cacheKey)
     
     if (!cachedComments) {
@@ -1269,7 +1170,6 @@ const getComments = async (pageId, page = 1, limit = 10) => {
         totalComments.value = res.data?.count || 0
         currentPage.value = page
         pageSize.value = limit
-        // 缓存评论数据
         cache.set(cacheKey, {
           count: res.data?.count || 0,
           data: res.data?.data || [],
@@ -1285,7 +1185,6 @@ const getComments = async (pageId, page = 1, limit = 10) => {
       pageSize.value = cachedComments.limit || limit
     }
   } catch (error) {
-    // console.error('获取评论失败：', error)
   }
 }
 
@@ -1300,14 +1199,12 @@ const getAuthorInfo = async (authorId) => {
       authorInfo.value = res.data
     }
   } catch (error) {
-    // console.error('获取作者信息失败：', error)
   }
 }
 
 // 发布评论
 const handlePublishComment = async (data) => {
   try {
-    // 检查当前是否为友链页面
     const currentKey = (props.pageKey || route.params.key || '').trim()
     const isLinksPage = currentKey === 'links'
     
@@ -1320,41 +1217,27 @@ const handlePublishComment = async (data) => {
     const res = await request.post('/api/comment/create', commentData)
     
     if (res.code === 200) {
-      // 清除评论缓存
       const pageId = pageInfo.value.id
-      const cacheKeys = []
-      
-      if (isLinksPage) {
-        cacheKeys.push(
-          `links_comments_${pageId}_1_10`,
-          `links_comments_${pageId}_${currentPage.value}_${pageSize.value}`
-        )
-      } else {
-        cacheKeys.push(
-          `page_comments_${pageId}_1_10`,
-          `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
-        )
-      }
+      const cacheKeys = [
+        `page_comments_${pageId}_1_10`,
+        `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+      ]
       
       cache.delMultiple(cacheKeys)
-      // 重新获取评论列表
       if (isLinksPage) {
         await getLinksComments(currentPage.value, pageSize.value)
       } else {
         await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
       }
-      // 显示成功提示
       if (window.Toast) {
         window.Toast.success('评论发布成功！')
       }
     } else {
-      // 显示失败提示
       if (window.Toast) {
         window.Toast.error(res.msg || '评论发布失败')
       }
     }
   } catch (error) {
-    // console.error('发布评论失败：', error)
     if (window.Toast) {
       window.Toast.error('网络异常，评论发布失败')
     }
@@ -1364,10 +1247,6 @@ const handlePublishComment = async (data) => {
 // 回复评论
 const handleReplyComment = async (data) => {
   try {
-    // 检查当前是否为友链页面
-    const currentKey = (props.pageKey || route.params.key || '').trim()
-    const isLinksPage = currentKey === 'links'
-    
     const commentData = {
       content: data.content,
       bind_type: 'page',
@@ -1378,41 +1257,23 @@ const handleReplyComment = async (data) => {
     const res = await request.post('/api/comment/create', commentData)
     
     if (res.code === 200) {
-      // 清除评论缓存
       const pageId = pageInfo.value.id
-      const cacheKeys = []
-      
-      if (isLinksPage) {
-        cacheKeys.push(
-          `links_comments_${pageId}_1_10`,
-          `links_comments_${pageId}_${currentPage.value}_${pageSize.value}`
-        )
-      } else {
-        cacheKeys.push(
-          `page_comments_${pageId}_1_10`,
-          `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
-        )
-      }
+      const cacheKeys = [
+        `page_comments_${pageId}_1_10`,
+        `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+      ]
       
       cache.delMultiple(cacheKeys)
-      // 重新获取评论列表
-      if (isLinksPage) {
-        await getLinksComments(currentPage.value, pageSize.value)
-      } else {
-        await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
-      }
-      // 显示成功提示
+      await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
       if (window.Toast) {
         window.Toast.success('回复发布成功！')
       }
     } else {
-      // 显示失败提示
       if (window.Toast) {
         window.Toast.error(res.msg || '回复发布失败')
       }
     }
   } catch (error) {
-    // console.error('回复评论失败：', error)
     if (window.Toast) {
       window.Toast.error('网络异常，回复发布失败')
     }
@@ -1422,7 +1283,6 @@ const handleReplyComment = async (data) => {
 // 处理评论分页
 const handleCommentPageChange = async (page) => {
   try {
-    // 检查当前是否为友链页面
     const currentKey = (props.pageKey || route.params.key || '').trim()
     const isLinksPage = currentKey === 'links'
     
@@ -1432,7 +1292,6 @@ const handleCommentPageChange = async (page) => {
       await getComments(pageInfo.value.id, page, pageSize.value)
     }
   } catch (error) {
-    // console.error('评论分页切换失败：', error)
   }
 }
 
@@ -1444,7 +1303,6 @@ const getArticleCount = async () => {
       archiveStats.value.articleCount = res.data || 0
     }
   } catch (error) {
-    // console.error('获取文章总数失败：', error)
   }
 }
 
@@ -1456,7 +1314,6 @@ const getCategoryCount = async () => {
       archiveStats.value.categoryCount = res.data || 0
     }
   } catch (error) {
-    // console.error('获取文章分类总数失败：', error)
   }
 }
 
@@ -1470,7 +1327,6 @@ const getPageCount = async () => {
       archiveStats.value.pageCount = res.data || 0
     }
   } catch (error) {
-    // console.error('获取独立页面总数失败：', error)
   }
 }
 
@@ -1482,7 +1338,6 @@ const getTagCount = async () => {
       archiveStats.value.tagCount = res.data || 0
     }
   } catch (error) {
-    // console.error('获取标签总数失败：', error)
   }
 }
 
@@ -1496,7 +1351,6 @@ const getLinkCount = async () => {
       archiveStats.value.linkCount = res.data || 0
     }
   } catch (error) {
-    // console.error('获取友情链接总数失败：', error)
   }
 }
 
@@ -1508,21 +1362,17 @@ const getCommentCount = async () => {
       archiveStats.value.commentCount = res.data || 0
     }
   } catch (error) {
-    // console.error('获取评论总数失败：', error)
   }
 }
 
 // 获取所有归档统计数据
 const fetchArchiveStats = async () => {
   try {
-    // 缓存键
     const cacheKey = 'archive_stats'
-    const cacheExpire = 30 // 缓存30分钟
+    const cacheExpire = 30
     
-    // 尝试从缓存获取归档统计数据
     let cachedStats = cache.get(cacheKey)
     
-    // 如果缓存不存在，从API获取
     if (!cachedStats) {
       await Promise.all([
         getArticleCount(),
@@ -1532,14 +1382,11 @@ const fetchArchiveStats = async () => {
         getLinkCount(),
         getCommentCount()
       ])
-      // 缓存归档统计数据
       cache.set(cacheKey, archiveStats.value, cacheExpire)
     } else {
-      // 使用缓存数据
       archiveStats.value = cachedStats
     }
   } catch (error) {
-    // console.error('获取归档统计数据失败：', error)
   } finally {
     loading.value = false
     refreshingArchive.value = false
@@ -1549,7 +1396,6 @@ const fetchArchiveStats = async () => {
 // 手动刷新归档统计数据
 const refreshArchiveStats = async () => {
   refreshingArchive.value = true
-  // 清除缓存，确保获取最新数据
   cache.del('archive_stats')
   await fetchArchiveStats()
   if (window.Toast) {
@@ -1559,32 +1405,27 @@ const refreshArchiveStats = async () => {
 
 // 启动归档页面自动刷新
 const startArchiveAutoRefresh = () => {
-  // 清除之前的定时器
   if (archiveRefreshTimer) {
     clearInterval(archiveRefreshTimer)
   }
-  // 每5分钟刷新一次
   archiveRefreshTimer = setInterval(() => {
     fetchArchiveStats()
   }, 5 * 60 * 1000)
 }
 
-// 获取友链页面基础数据（带缓存）
+// 获取友链页面基础数据
 const getLinksPageData = async () => {
   loading.value = true
   try {
-    // 缓存键
     const cacheKey = 'page_links_data'
-    const cacheExpire = 60 // 缓存60分钟
+    const cacheExpire = 60
     
-    // 尝试从缓存获取
     const cachedData = cache.get(cacheKey)
     if (cachedData) {
       pageInfo.value = { ...pageInfo.value, ...cachedData }
       viewCount.value = cachedData.views || 0
       setDynamicTitle(cachedData.title || '友链')
       loading.value = false
-      // 获取作者信息
       const authorId = pageInfo.value.uid
       if (authorId) {
         getAuthorInfo(authorId)
@@ -1597,11 +1438,10 @@ const getLinksPageData = async () => {
       cache: false,
       withTrashed: false
     })
-    if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
+    if (res && res.code === 200 && res.data && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '友链')
-      // 缓存数据
       cache.set(cacheKey, res.data, cacheExpire)
     } else {
       error.value = true
@@ -1612,7 +1452,6 @@ const getLinksPageData = async () => {
     errorMsg.value = '网络异常，无法加载友链页面配置'
   } finally {
     loading.value = false
-    // 获取作者信息
     const authorId = pageInfo.value.uid
     if (authorId) {
       getAuthorInfo(authorId)
@@ -1620,22 +1459,19 @@ const getLinksPageData = async () => {
   }
 }
 
-// 获取归档页面基础数据（带缓存）
+// 获取归档页面基础数据
 const getArchivePageData = async () => {
   loading.value = true
   try {
-    // 缓存键
     const cacheKey = 'page_archive_data'
-    const cacheExpire = 60 // 缓存60分钟
+    const cacheExpire = 60
     
-    // 尝试从缓存获取
     const cachedData = cache.get(cacheKey)
     if (cachedData) {
       pageInfo.value = { ...pageInfo.value, ...cachedData }
       viewCount.value = cachedData.views || 0
       setDynamicTitle(cachedData.title || '归档')
       loading.value = false
-      // 获取作者信息
       const authorId = pageInfo.value.uid
       if (authorId) {
         getAuthorInfo(authorId)
@@ -1648,18 +1484,16 @@ const getArchivePageData = async () => {
       cache: false,
       withTrashed: false
     })
-    if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
+    if (res && res.code === 200 && res.data && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '归档')
-      // 缓存数据
       cache.set(cacheKey, res.data, cacheExpire)
     }
   } catch (err) {
     console.error('[归档页面基础数据异常]：', err)
   } finally {
     loading.value = false
-    // 获取作者信息
     const authorId = pageInfo.value.uid
     if (authorId) {
       getAuthorInfo(authorId)
@@ -1674,7 +1508,6 @@ const fetchArticles = async () => {
   articlesErrorMsg.value = ''
   
   try {
-    // 直接使用查询字符串，确保参数正确传递
     const res = await request.get('/api/article/all?page=1&limit=9999&order=create_time+desc')
     
     if (res && res.code === 200 && res.data) {
@@ -1683,7 +1516,6 @@ const fetchArticles = async () => {
       articles.value = data
       articleTotal.value = count
       
-      // 按年月分组
       groupArticlesByYearMonth(articles.value)
     } else {
       articlesError.value = true
@@ -1692,7 +1524,6 @@ const fetchArticles = async () => {
   } catch (err) {
     articlesError.value = true
     articlesErrorMsg.value = '网络异常，无法加载文章数据'
-    console.error('[文章数据请求异常]：', err)
   } finally {
     articlesLoading.value = false
   }
@@ -1720,43 +1551,36 @@ const groupArticlesByYearMonth = (articlesData) => {
   groupedArticles.value = grouped
 }
 
-// 获取全部友链数据（带状态监测）
+// 获取全部友链数据
 const fetchLinks = async () => {
   linksLoading.value = true
   linksError.value = false
   linksErrorMsg.value = ''
   
   try {
-    // 缓存键（包含状态监测标记）
     const cacheKey = 'links_list_with_status'
-    const cacheExpire = 60 // 缓存60分钟
+    const cacheExpire = 60
     
-    // 尝试从缓存获取友链数据
     let cachedLinks = cache.get(cacheKey)
     
-    // 如果缓存不存在或已过期，从API获取
     if (!cachedLinks) {
-      // 调用带状态监测的API
       const res = await request.get('/api/links/all?status=true&limit=9999')
       if (res && res.code === 200 && res.data) {
         const { data = [], count = 0 } = res.data
-        links.value = data     // 直接赋值全部数据
-        linkTotal.value = count   // 总条数
-        // 缓存友链数据（包含状态信息）
+        links.value = data
+        linkTotal.value = count
         cache.set(cacheKey, { data, count, fetchedAt: Date.now() }, cacheExpire)
       } else {
         linksError.value = true
         linksErrorMsg.value = res?.msg || '获取友链数据失败'
       }
     } else {
-      // 使用缓存数据
       links.value = cachedLinks.data || []
       linkTotal.value = cachedLinks.count || 0
     }
   } catch (err) {
     linksError.value = true
     linksErrorMsg.value = '网络异常，无法加载友链数据'
-    console.error('[友链数据请求异常]：', err)
   } finally {
     linksLoading.value = false
   }
@@ -1765,11 +1589,9 @@ const fetchLinks = async () => {
 // 获取友链页面评论
 const getLinksComments = async (page = 1, limit = 10) => {
   try {
-    // 缓存键
     const cacheKey = `links_comments_${pageInfo.value.id}_${page}_${limit}`
-    const cacheExpire = 5 // 缓存5分钟
+    const cacheExpire = 5
     
-    // 尝试从缓存获取评论数据
     let cachedComments = cache.get(cacheKey)
     
     if (!cachedComments) {
@@ -1787,7 +1609,6 @@ const getLinksComments = async (page = 1, limit = 10) => {
         totalComments.value = res.data?.count || 0
         currentPage.value = page
         pageSize.value = limit
-        // 缓存评论数据
         cache.set(cacheKey, {
           count: res.data?.count || 0,
           data: res.data?.data || [],
@@ -1807,28 +1628,24 @@ const getLinksComments = async (page = 1, limit = 10) => {
   }
 }
 
-// 获取留言页面基础数据（带缓存）
+// 获取留言页面基础数据
 const getMessagePageData = async () => {
   loading.value = true
   try {
-    // 缓存键
     const cacheKey = 'page_message_data'
-    const cacheExpire = 60 // 缓存60分钟
+    const cacheExpire = 60
     
-    // 尝试从缓存获取
     const cachedData = cache.get(cacheKey)
     if (cachedData) {
       pageInfo.value = { ...pageInfo.value, ...cachedData }
       viewCount.value = cachedData.views || 0
       setDynamicTitle(cachedData.title || '留言板')
       
-      // 获取评论配置
       const config = await getCommentConfig()
       commentConfig.value = config
       isCommentEnabled.value = config.enabled !== 0
       
       loading.value = false
-      // 获取作者信息
       const authorId = pageInfo.value.uid
       if (authorId) {
         getAuthorInfo(authorId)
@@ -1841,17 +1658,14 @@ const getMessagePageData = async () => {
       cache: false,
       withTrashed: false
     })
-    if (res && res.code === 200 && res.data && typeof res.data === 'object' && Object.keys(res.data).length > 0) {
+    if (res && res.code === 200 && res.data && Object.keys(res.data).length > 0) {
       pageInfo.value = { ...pageInfo.value, ...res.data }
       viewCount.value = res.data.views || 0
       setDynamicTitle(res.data.title || '留言板')
-      // 缓存数据
       cache.set(cacheKey, res.data, cacheExpire)
       
-      // 获取评论配置
       const config = await getCommentConfig()
       commentConfig.value = config
-      // 检查评论功能是否开启
       isCommentEnabled.value = config.enabled !== 0
     } else {
       error.value = true
@@ -1862,7 +1676,6 @@ const getMessagePageData = async () => {
     errorMsg.value = '网络异常，无法加载留言页面配置'
   } finally {
     loading.value = false
-    // 获取作者信息
     const authorId = pageInfo.value.uid
     if (authorId) {
       getAuthorInfo(authorId)
@@ -1875,7 +1688,6 @@ const calculateMessageStats = async () => {
   try {
     if (!pageInfo.value.id) return
     
-    // 获取所有留言数据
     const res = await request.get('/api/comment/flat', {
       bind_id: pageInfo.value.id,
       bind_type: 'page',
@@ -1887,10 +1699,8 @@ const calculateMessageStats = async () => {
     if (res.code === 200 && res.data?.data) {
       const allComments = res.data.data
       
-      // 计算唯一留言人数
       const uniqueUsers = new Set()
       allComments.forEach(comment => {
-        // 尝试从不同位置获取用户ID
         const userId = comment.user_id || comment.result?.author?.id || comment.author?.id
         if (userId) {
           uniqueUsers.add(userId)
@@ -1898,7 +1708,6 @@ const calculateMessageStats = async () => {
       })
       uniqueCommenters.value = uniqueUsers.size
       
-      // 计算最近留言数（7天内）
       const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
       const recentComments = allComments.filter(comment => {
         return comment.create_time * 1000 >= sevenDaysAgo
@@ -1916,62 +1725,24 @@ const detectDarkMode = () => {
     window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-// 友链申请相关方法
-// 打开友链申请弹窗
+// 友链申请
 const openLinkApplyModal = async () => {
-  // 检查是否在冷却期
   if (isCoolingDown.value) {
     toast.warning('请稍后再申请友链')
     return
   }
   
-  // 重置表单
   linkForm.value = {
     nickname: '',
     url: '',
     description: '',
     avatar: '',
-    target: '_blank', // 固定为新窗口打开
-    group: ''
+    target: '_blank'
   }
   
-  // 获取友链分组
-  await fetchLinkGroups()
-  
-  // 打开弹窗
   if (window.bootstrap) {
     const modal = new window.bootstrap.Modal(document.getElementById('linkApplyModal'))
     modal.show()
-  }
-}
-
-// 获取友链分组
-const fetchLinkGroups = async () => {
-  linkGroupsLoading.value = true
-  try {
-    const res = await request.get('/api/links-group/all', {
-      limit: 100, // 获取足够多的分组
-      order: 'create_time desc'
-    })
-    
-    if (res.code === 200) {
-      // 检查数据结构
-      if (res.data && Array.isArray(res.data)) {
-        // 如果直接返回数组
-        linkGroups.value = res.data
-      } else if (res.data && res.data.data && Array.isArray(res.data.data)) {
-        // 如果返回的数据包含 data 字段
-        linkGroups.value = res.data.data
-      } else {
-        // 空数组作为默认值
-        linkGroups.value = []
-      }
-    }
-  } catch (error) {
-    console.error('获取友链分组失败:', error)
-    linkGroups.value = []
-  } finally {
-    linkGroupsLoading.value = false
   }
 }
 
@@ -1984,13 +1755,11 @@ const handleUploadAvatar = () => {
 
 // 提交友链申请
 const handleLinkApply = async () => {
-  // 验证必填字段
   if (!linkForm.value.nickname.trim() || !linkForm.value.url.trim()) {
     toast.warning('请填写必填字段')
     return
   }
   
-  // 验证URL格式
   try {
     new URL(linkForm.value.url)
   } catch {
@@ -2001,24 +1770,21 @@ const handleLinkApply = async () => {
   isSubmitting.value = true
   
   try {
-    // 自动设置为新窗口打开
     const submitData = {
       ...linkForm.value,
-      target: '_blank' // 固定为新窗口打开
+      target: '_blank'
     }
     
     const res = await request.post('/api/links/create', submitData)
     
     if (res.code === 200) {
-      toast.success('友链申请已提交，请等待审核，审核通过后即可在友链中显示')
+      toast.success('友链申请已提交，请等待审核')
       
-      // 关闭弹窗
       if (window.bootstrap) {
         const modal = window.bootstrap.Modal.getInstance(document.getElementById('linkApplyModal'))
         modal.hide()
       }
       
-      // 开始冷却期
       startCoolingDown()
     } else {
       toast.error(res.msg || '提交失败，请重试')
@@ -2030,24 +1796,19 @@ const handleLinkApply = async () => {
   }
 }
 
-// 开始冷却期
+// 冷却期
 const startCoolingDown = () => {
-  const COOLDOWN_SECONDS = 300 // 5分钟冷却期
+  const COOLDOWN_SECONDS = 300
   isCoolingDown.value = true
   coolingDownTime.value = COOLDOWN_SECONDS
   
-  // 清除之前的定时器
-  if (coolingDownTimer) {
-    clearInterval(coolingDownTimer)
-  }
+  if (coolingDownTimer) clearInterval(coolingDownTimer)
   
-  // 设置新的定时器
   coolingDownTimer = setInterval(() => {
     coolingDownTime.value--
     if (coolingDownTime.value <= 0) {
       clearInterval(coolingDownTimer)
       isCoolingDown.value = false
-      coolingDownTime.value = 0
     }
   }, 1000)
 }
@@ -2057,42 +1818,15 @@ const handleLogin = () => {
   router.push('/login')
 }
 
-// 页面挂载初始化
-onMounted(() => {
-  initPage()
-  detectDarkMode()
-  
-  // 监听深色模式变化
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', detectDarkMode)
-})
-
-// 页面卸载清理
-onUnmounted(() => {
-  // 清除归档页面自动刷新定时器
-  if (archiveRefreshTimer) {
-    clearInterval(archiveRefreshTimer)
-  }
-  
-  // 清除友链申请冷却定时器
-  if (coolingDownTimer) {
-    clearInterval(coolingDownTimer)
-  }
-  
-  // 移除深色模式监听
-  window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', detectDarkMode)
-})
-
 // 计算总页数
 const totalPages = computed(() => {
   return Math.ceil(totalComments.value / pageSize.value)
 })
 
-// 处理留言内容，添加@提及效果和换行支持
+// 处理留言内容
 const processMessageContent = (content) => {
   if (!content) return ''
-  // 先将换行符转换为<br>标签
   let processedContent = content.replace(/\n/g, '<br>')
-  // 匹配@用户名格式，替换为带颜色的HTML
   return processedContent.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
 }
 
@@ -2101,18 +1835,14 @@ const handlePublishMessage = async () => {
   const content = messageInput.value.trim()
   if (!content) return
   
-  // 检查评论功能是否开启
   if (!isCommentEnabled.value) {
-    if (window.Toast) {
-      window.Toast.error('留言功能暂时关闭')
-    }
+    if (window.Toast) Toast.error('留言功能暂时关闭')
     return
   }
   
   isPublishingMessage.value = true
   
   try {
-    // 发布留言
     const commentData = {
       content: content,
       bind_type: 'page',
@@ -2122,7 +1852,6 @@ const handlePublishMessage = async () => {
     const res = await request.post('/api/comment/create', commentData)
     
     if (res.code === 200) {
-      // 清除评论缓存
       const pageId = pageInfo.value.id
       const cacheKeys = [
         `page_comments_${pageId}_1_10`,
@@ -2130,57 +1859,17 @@ const handlePublishMessage = async () => {
       ]
       
       cache.delMultiple(cacheKeys)
-      // 重新获取评论列表
-      await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
-      // 重新计算统计数据
+      await getComments(pageId, currentPage.value, pageSize.value)
       await calculateMessageStats()
-      // 显示成功提示
-      if (window.Toast) {
-        window.Toast.success('留言发布成功！')
-      }
+      if (window.Toast) Toast.success('留言发布成功！')
       messageInput.value = ''
     } else {
-      // 显示失败提示
-      if (window.Toast) {
-        window.Toast.error(res.msg || '留言发布失败')
-      }
+      if (window.Toast) Toast.error(res.msg || '留言发布失败')
     }
   } catch (error) {
-    console.error('发布留言失败：', error)
-    if (window.Toast) {
-      window.Toast.error('网络异常，留言发布失败')
-    }
+    if (window.Toast) Toast.error('网络异常')
   } finally {
     isPublishingMessage.value = false
-  }
-}
-
-// 切换回复输入框
-const toggleReplyForm = (index, replyIndex = null) => {
-  // 创建一个唯一的标识符，用于区分不同留言的回复输入框
-  const uniqueKey = replyIndex !== null ? `${index}-${replyIndex}` : index
-  
-  if (showReplyIndex.value === uniqueKey) {
-    showReplyIndex.value = null
-    replyInput.value = ''
-    replyTarget.value = null
-  } else {
-    showReplyIndex.value = uniqueKey
-    let targetComment
-    
-    if (replyIndex !== null) {
-      // 回复二级留言
-      const parentComment = commentList.value[index]
-      targetComment = parentComment.replies[replyIndex]
-    } else {
-      // 回复一级留言
-      targetComment = commentList.value[index]
-    }
-    
-    replyTarget.value = targetComment
-    // 在回复输入框中显示@用户
-    const nickname = targetComment.result?.author?.nickname || targetComment.author?.nickname || targetComment.nickname || '匿名用户'
-    replyInput.value = `@${nickname} `
   }
 }
 
@@ -2189,18 +1878,9 @@ const handleSubmitReply = async (commentId) => {
   const content = replyInput.value.trim()
   if (!content || !commentId) return
   
-  // 检查评论功能是否开启
-  if (!isCommentEnabled.value) {
-    if (window.Toast) {
-      window.Toast.error('留言功能暂时关闭')
-    }
-    return
-  }
-  
   isPublishingMessage.value = true
   
   try {
-    // 提交回复
     const commentData = {
       content: content,
       bind_type: 'page',
@@ -2211,76 +1891,47 @@ const handleSubmitReply = async (commentId) => {
     const res = await request.post('/api/comment/create', commentData)
     
     if (res.code === 200) {
-      // 清除评论缓存
-      const pageId = pageInfo.value.id
       const cacheKeys = [
-        `page_comments_${pageId}_1_10`,
-        `page_comments_${pageId}_${currentPage.value}_${pageSize.value}`
+        `page_comments_${pageInfo.value.id}_1_10`,
+        `page_comments_${pageInfo.value.id}_${currentPage.value}_${pageSize.value}`
       ]
       
       cache.delMultiple(cacheKeys)
-      // 重新获取评论列表
       await getComments(pageInfo.value.id, currentPage.value, pageSize.value)
-      // 重新计算统计数据
       await calculateMessageStats()
-      // 显示成功提示
-      if (window.Toast) {
-        window.Toast.success('回复发布成功！')
-      }
-      // 关闭回复弹窗
+      if (window.Toast) Toast.success('回复成功！')
       closeReplyModal()
-      // 清空回复相关状态
-      showReplyIndex.value = null
       replyInput.value = ''
-      replyTarget.value = null
     } else {
-      // 显示失败提示
-      if (window.Toast) {
-        window.Toast.error(res.msg || '回复发布失败')
-      }
+      if (window.Toast) Toast.error(res.msg || '回复失败')
     }
   } catch (error) {
-    console.error('提交回复失败：', error)
-    if (window.Toast) {
-      window.Toast.error('网络异常，回复发布失败')
-    }
+    if (window.Toast) Toast.error('网络异常')
   } finally {
     isPublishingMessage.value = false
   }
 }
 
-// 取消回复
-const cancelReply = () => {
-  showReplyIndex.value = null
-  replyInput.value = ''
-  replyTarget.value = null
-  showReplyEmojiPicker.value = false
-}
-
 // 表情功能
-// 切换留言表情选择面板
 const toggleMessageEmojiPicker = () => {
   showMessageEmojiPicker.value = !showMessageEmojiPicker.value
   showReplyEmojiPicker.value = false
 }
 
-// 切换回复表情选择面板
 const toggleReplyEmojiPicker = () => {
   showReplyEmojiPicker.value = !showReplyEmojiPicker.value
   showMessageEmojiPicker.value = false
 }
 
-// 插入表情到留言输入框
 const insertMessageEmoji = (emoji) => {
   messageInput.value += emoji
 }
 
-// 插入表情到回复输入框
 const insertReplyEmoji = (emoji) => {
   replyInput.value += emoji
 }
 
-// 处理登录注册
+// 登录注册
 const handleToLogin = () => {
   store.switchAuth('login', true)
 }
@@ -2289,7 +1940,7 @@ const handleToRegister = () => {
   store.switchAuth('register', true)
 }
 
-// 点击外部关闭表情选择面板
+// 点击外部关闭表情
 const handleClickOutside = (event) => {
   const emojiPickers = event.target.closest('.emoji-picker-container')
   const emojiButtons = event.target.closest('.emoji-button')
@@ -2299,66 +1950,67 @@ const handleClickOutside = (event) => {
   }
 }
 
-// 打开回复弹窗
+// 回复弹窗
 const openReplyModal = (message) => {
   selectedMessage.value = message
-  // 清空回复输入框
   replyInput.value = ''
-  // 隐藏表情选择面板
-  showReplyEmojiPicker.value = false
-  // 获取回复对象的昵称
   const nickname = message.result?.author?.nickname || message.author?.nickname || message.nickname || '用户'
-  // 添加@提及
   replyInput.value = `@${nickname} `
 }
 
-// 关闭回复弹窗
 const closeReplyModal = () => {
   if (window.bootstrap) {
     const modal = window.bootstrap.Modal.getInstance(document.getElementById('replyModal'))
-    if (modal) {
-      modal.hide()
-    }
+    if (modal) modal.hide()
   }
-  // 清空回复输入框
   replyInput.value = ''
-  // 隐藏表情选择面板
-  showReplyEmojiPicker.value = false
 }
 
-// 监听页面信息变化，获取评论和作者信息
+// 监听页面ID
 watch(
   () => pageInfo.value.id,
   (newId) => {
     if (newId) {
       getComments(newId, currentPage.value, pageSize.value)
-      // 获取作者信息
       const authorId = pageInfo.value.uid
-      if (authorId) {
-        getAuthorInfo(authorId)
-      }
+      if (authorId) getAuthorInfo(authorId)
     }
   },
   { immediate: false }
 )
 
-// 页面挂载时添加点击外部事件监听器
+// 监听留言列表，初始化拖拽
+watch(
+  () => commentList.value,
+  () => {
+    nextTick(() => {
+      initSortable()
+    })
+  },
+  { deep: true }
+)
+
+// 挂载
 onMounted(() => {
+  initPage()
+  detectDarkMode()
   document.addEventListener('click', handleClickOutside)
-  // 确保Bootstrap模态框正常工作
-  if (window.bootstrap) {
-    // 这里可以添加模态框相关的初始化代码
-  }
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', detectDarkMode)
 })
 
-// 页面卸载时移除点击外部事件监听器
+// 销毁
 onUnmounted(() => {
+  if (archiveRefreshTimer) clearInterval(archiveRefreshTimer)
+  if (coolingDownTimer) clearInterval(coolingDownTimer)
+  if (window.sortableInstance) window.sortableInstance.destroy()
+  
   document.removeEventListener('click', handleClickOutside)
+  window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', detectDarkMode)
 })
 </script>
 
 <style scoped>
-/* 加载状态：居中、占满视口高度 */
+/* 加载状态 */
 .page-loading {
   display: flex;
   justify-content: center;
@@ -2366,7 +2018,7 @@ onUnmounted(() => {
   min-height: 60vh;
 }
 
-/* 面包屑导航自定义样式 */
+/* 面包屑 */
 .breadcrumb-custom {
   font-size: 0.85rem;
 }
@@ -2391,12 +2043,7 @@ onUnmounted(() => {
   }
 }
 
-/* 错误状态 */
-.page-error {
-  min-height: 60vh;
-}
-
-/* 文章标题：响应式字号、优化行高、居中 */
+/* 文章标题 */
 .article-title {
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   line-height: 1.3;
@@ -2407,7 +2054,7 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
-/* 文章元信息：弱化样式、统一图标 */
+/* 文章元信息 */
 .article-meta {
   font-size: 0.9rem;
   color: #6b7280;
@@ -2428,7 +2075,7 @@ onUnmounted(() => {
   color: var(--bs-tertiary-color);
 }
 
-/* 文章内容区：核心阅读样式优化 */
+/* 文章内容 */
 .article-content {
   line-height: 1.8;
   font-size: 1.05rem;

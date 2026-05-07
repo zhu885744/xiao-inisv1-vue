@@ -12,6 +12,7 @@ const TOKEN_NAME = globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
 let checkingToken = false
 let checkTokenPromise = null
 let fetchingSiteInfo = false
+let fetchSiteInfoPromise = null
 
 /**
  * 校验token（完善版）
@@ -120,80 +121,84 @@ const logout = async (state = {}, path = null) => {
  * @returns {Promise<Object|null>}
  */
 const fetchSiteInfo = async (state = {}, force = false) => {
-    const cacheName = 'xiao_functions'
-    
-    // 防止并发调用
-    if (fetchingSiteInfo) return state.siteInfo
-    fetchingSiteInfo = true
-    
-    try {
-        // 直接从API获取站点信息，不使用缓存
-        // 这样可以确保每次都获取最新的配置，包括enable_custom_style设置
-        const response = await axios.get(`/api/config/one?key=xiao_functions`)
-
-        // 检查响应结构
-        if (response.code === 200 && response.data) {
-            let siteInfo
-            
-            // 尝试不同的响应结构
-            if (response.data.data && response.data.data.json) {
-                siteInfo = response.data.data.json
-            } else if (response.data.json) {
-                siteInfo = response.data.json
-            } else {
-                siteInfo = response.data
-            }
-            
-            // 处理反引号问题和XSS防护
-            if (siteInfo && typeof siteInfo === 'object') {
-                // 递归处理对象中的字符串
-            const sanitizeObject = (obj, parentKey = '', grandParentKey = '') => {
-                if (!obj || typeof obj !== 'object') return obj
-                
-                Object.keys(obj).forEach(key => {
-                    // 不对 float_buttons.buttons 中的 content 字段进行转义，允许使用 HTML
-                    // 不对 reward 配置中的收款码图片链接进行转义
-                    if (typeof obj[key] === 'string' && 
-                        !(grandParentKey === 'float_buttons' && parentKey === 'buttons' && key === 'content') &&
-                        !(parentKey === 'reward' && (key === 'wechat' || key === 'alipay'))) {
-                        // 移除反引号并进行基本的XSS防护
-                        obj[key] = obj[key].replace(/`/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-                        sanitizeObject(obj[key], key, parentKey)
-                    }
-                })
-                return obj
-            }
-                
-                siteInfo = sanitizeObject(siteInfo)
-                
-                // 确保enable_custom_style字段存在，默认为false
-                if (siteInfo.enable_custom_style === undefined) {
-                    siteInfo.enable_custom_style = false
-                }
-                
-                state.siteInfo = siteInfo
-                
-                // 更新页面标题
-                if (siteInfo.title) {
-                    document.title = siteInfo.title
-                }
-                
-                return siteInfo
-            } else {
-                console.error('站点信息格式错误:', siteInfo)
-            }
-        } else {
-            console.error('API响应不符合预期:', response)
-        }
-    } catch (error) {
-        console.error('获取站点信息失败:', error)
-    } finally {
-        // 重置标志位
-        fetchingSiteInfo = false
+    // 如果正在 fetchingSiteInfo 且有现成的 Promise，直接返回等待
+    if (fetchingSiteInfo && fetchSiteInfoPromise) {
+        return fetchSiteInfoPromise
     }
     
-    return state.siteInfo
+    // 防止并发调用
+    fetchingSiteInfo = true
+    fetchSiteInfoPromise = (async () => {
+        try {
+            // 直接从API获取站点信息，不使用缓存
+            // 这样可以确保每次都获取最新的配置，包括enable_custom_style设置
+            const response = await axios.get(`/api/config/one?key=xiao_functions`)
+
+            // 检查响应结构
+            if (response.code === 200 && response.data) {
+                let siteInfo
+                
+                // 尝试不同的响应结构
+                if (response.data.data && response.data.data.json) {
+                    siteInfo = response.data.data.json
+                } else if (response.data.json) {
+                    siteInfo = response.data.json
+                } else {
+                    siteInfo = response.data
+                }
+                
+                // 处理反引号问题和XSS防护
+                if (siteInfo && typeof siteInfo === 'object') {
+                    // 递归处理对象中的字符串
+                const sanitizeObject = (obj, parentKey = '', grandParentKey = '') => {
+                    if (!obj || typeof obj !== 'object') return obj
+                    
+                    Object.keys(obj).forEach(key => {
+                        // 不对 float_buttons.buttons 中的 content 字段进行转义，允许使用 HTML
+                        // 不对 reward 配置中的收款码图片链接进行转义
+                        if (typeof obj[key] === 'string' && 
+                            !(grandParentKey === 'float_buttons' && parentKey === 'buttons' && key === 'content') &&
+                            !(parentKey === 'reward' && (key === 'wechat' || key === 'alipay'))) {
+                            // 移除反引号并进行基本的XSS防护
+                            obj[key] = obj[key].replace(/`/g, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            sanitizeObject(obj[key], key, parentKey)
+                        }
+                    })
+                    return obj
+                }
+                    
+                    siteInfo = sanitizeObject(siteInfo)
+                    
+                    // 确保enable_custom_style字段存在，默认为false
+                    if (siteInfo.enable_custom_style === undefined) {
+                        siteInfo.enable_custom_style = false
+                    }
+                    
+                    state.siteInfo = siteInfo
+                    
+                    // 更新页面标题
+                    if (siteInfo.title) {
+                        document.title = siteInfo.title
+                    }
+                    
+                    return siteInfo
+                } else {
+                    console.error('站点信息格式错误:', siteInfo)
+                }
+            } else {
+                console.error('API响应不符合预期:', response)
+            }
+        } catch (error) {
+            console.error('获取站点信息失败:', error)
+        } finally {
+            // 重置标志位
+            fetchingSiteInfo = false
+            fetchSiteInfoPromise = null
+        }
+    })()
+    
+    return fetchSiteInfoPromise
 }
 
 export const useCommStore = defineStore('comm', {
