@@ -81,9 +81,9 @@
                                 <div v-if="authAgreementConfig.enabled" class="text-center mb-3">
                                     <p class="text-muted" style="font-size: 0.85rem;">
                                         登录即代表您同意
-                                        <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
+                                        <a href="javascript:void(0)" @click="method.showAgreement('user')" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
                                         和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
+                                        <a href="javascript:void(0)" @click="method.showAgreement('privacy')" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
                                     </p>
                                 </div>
 
@@ -251,9 +251,9 @@
                                 <div v-if="authAgreementConfig.enabled" class="text-center mb-3">
                                     <p class="text-muted" style="font-size: 0.85rem;">
                                         注册即代表您同意
-                                        <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
+                                        <a href="javascript:void(0)" @click="method.showAgreement('user')" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
                                         和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
+                                        <a href="javascript:void(0)" @click="method.showAgreement('privacy')" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
                                     </p>
                                 </div>
 
@@ -393,9 +393,9 @@
                                 <div v-if="authAgreementConfig.enabled" class="text-center mb-3">
                                     <p class="text-muted" style="font-size: 0.85rem;">
                                         重置密码即代表您同意
-                                        <a :href="authAgreementConfig.user_agreement_url" target="_blank" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
+                                        <a href="javascript:void(0)" @click="method.showAgreement('user')" class="text-primary text-decoration-underline mx-1">《用户协议》</a>
                                         和
-                                        <a :href="authAgreementConfig.usage_specification_url" target="_blank" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
+                                        <a href="javascript:void(0)" @click="method.showAgreement('privacy')" class="text-primary text-decoration-underline mx-1">《隐私协议》</a>
                                     </p>
                                 </div>
 
@@ -431,6 +431,49 @@
             @click="method.hide()"
         ></div>
     </transition>
+
+    <!-- 协议弹窗 -->
+    <transition name="modal-fade" mode="out-in">
+        <div 
+            v-if="state.agreement.show"
+            class="modal fade show"
+            style="display: block;"
+            tabindex="-1" 
+            aria-labelledby="agreementModalLabel" 
+            aria-hidden="false"
+            aria-modal="true"
+            id="agreementModal"
+        >
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 600px; margin: 1.75rem auto;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agreementModalLabel">
+                            {{ state.agreement.type === 'user' ? '《用户协议》' : '《隐私协议》' }}
+                        </h5>
+                        <button type="button" class="btn-close" @click="method.hideAgreement()" aria-label="Close"></button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="agreement-content whitespace-pre-wrap">{{ agreementContent }}</div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="method.hideAgreement()">
+                            我已知晓
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <transition name="backdrop-fade">
+        <div 
+            v-if="state.agreement.show"
+            class="modal-backdrop fade show"
+            @click="method.hideAgreement()"
+        ></div>
+    </transition>
 </template>
 
 <script setup>
@@ -457,6 +500,10 @@ const state = reactive({
         finish: false,
         dialog: false,
         second: 0,
+    },
+    agreement: {
+        show: false,
+        type: 'user', // 'user' 用户协议, 'privacy' 隐私协议
     },
     struct: {
         account: '',
@@ -516,9 +563,99 @@ const authAgreementConfig = computed(() => {
     
     return {
         enabled: authDialogAgreement.enabled !== false,
-        user_agreement_url: authDialogAgreement.user_agreement_url || '/user-agreement',
-        usage_specification_url: authDialogAgreement.usage_specification_url || '/usage-specification'
+        user_agreement_content: authDialogAgreement.user_agreement_content || getDefaultUserAgreement(),
+        privacy_agreement_content: authDialogAgreement.privacy_agreement_content || getDefaultPrivacyAgreement()
     }
+})
+
+// 默认用户协议内容
+const getDefaultUserAgreement = () => {
+    return `用户协议
+
+欢迎使用我们的服务！请仔细阅读以下用户协议：
+
+1. 服务条款
+
+您必须年满13周岁才能使用本服务。
+
+2. 账户安全
+
+您有责任维护账户密码的安全性，并对您账户下的所有活动负责。
+
+3. 用户行为规范
+
+您同意不会：
+- 发布违法、有害或侵犯他人权益的内容
+- 滥用或破坏服务
+- 未经授权访问他人账户
+
+4. 知识产权
+
+您发布的内容的知识产权归您所有，但我们有权在服务中使用、复制和传播。
+
+5. 服务变更
+
+我们保留随时修改或终止服务的权利。
+
+6. 免责声明
+
+我们不对服务的准确性、完整性或可靠性提供保证。
+
+7. 协议变更
+
+我们可能会更新本协议，您继续使用服务即表示接受更新后的协议。`
+}
+
+// 默认隐私协议内容
+const getDefaultPrivacyAgreement = () => {
+    return `隐私协议
+
+我们重视您的隐私。以下是我们的隐私政策：
+
+1. 收集的信息
+
+我们可能收集以下信息：
+- 您的账户信息（用户名、邮箱、手机号）
+- 使用数据（访问记录、浏览行为）
+- 设备信息（IP地址、浏览器类型）
+
+2. 信息使用
+
+我们使用收集的信息来：
+- 提供和改进服务
+- 个性化您的体验
+- 发送重要通知
+- 保障服务安全
+
+3. 信息共享
+
+我们不会向第三方出售您的个人信息。仅在以下情况下共享：
+- 法律要求
+- 保护我们的权益
+- 经您同意
+
+4. 数据安全
+
+我们采取合理措施保护您的数据，但无法保证绝对安全。
+
+5. 您的权利
+
+您有权访问、更正或删除您的个人信息。
+
+6. Cookie使用
+
+我们使用Cookie来改善您的体验，您可以在浏览器中禁用。
+
+7. 政策变更
+
+我们可能更新隐私政策，变更将在此页面发布。`
+}
+
+// 当前协议内容
+const agreementContent = computed(() => {
+    return state.agreement.type === 'user' 
+        ? authAgreementConfig.value.user_agreement_content 
+        : authAgreementConfig.value.privacy_agreement_content
 })
 
 // 获取模态框标题
@@ -1343,6 +1480,31 @@ const method = {
         }
     },
 
+    // 显示协议弹窗
+    showAgreement(type) {
+        state.agreement.type = type
+        state.agreement.show = true
+        document.body.style.overflow = 'hidden'
+        document.body.style.position = 'fixed'
+        document.body.style.width = '100%'
+        document.body.style.height = '100%'
+        document.body.style.top = '0'
+        document.body.style.left = '0'
+        document.body.style.zIndex = '1059'
+    },
+
+    // 隐藏协议弹窗
+    hideAgreement() {
+        state.agreement.show = false
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.height = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.zIndex = ''
+    },
+
     // 动画方法
     animation() {
         const el = proxy.$refs.password
@@ -1480,5 +1642,12 @@ defineExpose({
     color: var(--bs-secondary) !important;
     text-decoration: underline !important;
     opacity: 0.8;
+}
+
+/* 协议内容样式 */
+.agreement-content {
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.8;
 }
 </style>

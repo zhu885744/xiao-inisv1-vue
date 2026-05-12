@@ -304,29 +304,29 @@
                         </div>
                       </div>
                     </div>
-                    
-                    <div class="col-md-6" v-if="globalConfig.auth_dialog_agreement.enabled">
-                      <label for="auth_dialog_agreement_user_url" class="form-label">用户协议链接</label>
-                      <input 
-                        type="text" 
+
+                    <div class="col-12" v-if="globalConfig.auth_dialog_agreement.enabled">
+                      <label for="auth_dialog_agreement_user_content" class="form-label">用户协议内容</label>
+                      <textarea 
                         class="form-control rounded-3 border-gray-300 shadow-sm"
-                        id="auth_dialog_agreement_user_url"
-                        v-model="globalConfig.auth_dialog_agreement.user_agreement_url"
-                        placeholder="输入用户协议链接，如 /user-agreement"
-                      >
-                      <div class="form-text text-muted mt-1">点击《用户协议》时跳转的链接</div>
+                        id="auth_dialog_agreement_user_content"
+                        v-model="globalConfig.auth_dialog_agreement.user_agreement_content"
+                        rows="8"
+                        placeholder="输入用户协议内容，支持 Markdown 格式（如 # 标题、## 子标题、- 列表项）"
+                      ></textarea>
+                      <div class="form-text text-muted mt-1">点击《用户协议》时弹窗显示此内容</div>
                     </div>
-                    
-                    <div class="col-md-6" v-if="globalConfig.auth_dialog_agreement.enabled">
-                      <label for="auth_dialog_agreement_specification_url" class="form-label">隐私协议链接</label>
-                      <input 
-                        type="text" 
+
+                    <div class="col-12" v-if="globalConfig.auth_dialog_agreement.enabled">
+                      <label for="auth_dialog_agreement_privacy_content" class="form-label">隐私协议内容</label>
+                      <textarea 
                         class="form-control rounded-3 border-gray-300 shadow-sm"
-                        id="auth_dialog_agreement_specification_url"
-                        v-model="globalConfig.auth_dialog_agreement.usage_specification_url"
-                        placeholder="输入隐私协议链接，如 /usage-specification"
-                      >
-                      <div class="form-text text-muted mt-1">点击《隐私协议》时跳转的链接</div>
+                        id="auth_dialog_agreement_privacy_content"
+                        v-model="globalConfig.auth_dialog_agreement.privacy_agreement_content"
+                        rows="8"
+                        placeholder="输入隐私协议内容，支持 Markdown 格式（如 # 标题、## 子标题、- 列表项）"
+                      ></textarea>
+                      <div class="form-text text-muted mt-1">点击《隐私协议》时弹窗显示此内容</div>
                     </div>
                   </div>
                 </div>
@@ -1254,8 +1254,8 @@ const globalConfig = ref({
   },
   auth_dialog_agreement: {
     enabled: true, // 是否启用协议提示
-    user_agreement_url: '/user-agreement', // 用户协议链接
-    usage_specification_url: '/usage-specification' // 隐私协议链接
+    user_agreement_content: '# 用户协议\n\n欢迎使用我们的服务！请仔细阅读以下用户协议：\n\n## 1. 服务条款\n\n您必须年满13周岁才能使用本服务。\n\n## 2. 账户安全\n\n您有责任维护账户密码的安全性，并对您账户下的所有活动负责。\n\n## 3. 用户行为规范\n\n您同意不会：\n- 发布违法、有害或侵犯他人权益的内容\n- 滥用或破坏服务\n- 未经授权访问他人账户\n\n## 4. 知识产权\n\n您发布的内容的知识产权归您所有，但我们有权在服务中使用、复制和传播。\n\n## 5. 服务变更\n\n我们保留随时修改或终止服务的权利。\n\n## 6. 免责声明\n\n我们不对服务的准确性、完整性或可靠性提供保证。\n\n## 7. 协议变更\n\n我们可能会更新本协议，您继续使用服务即表示接受更新后的协议。',
+    privacy_agreement_content: '# 隐私协议\n\n我们重视您的隐私。以下是我们的隐私政策：\n\n## 1. 收集的信息\n\n我们可能收集以下信息：\n- 您的账户信息（用户名、邮箱、手机号）\n- 使用数据（访问记录、浏览行为）\n- 设备信息（IP地址、浏览器类型）\n\n## 2. 信息使用\n\n我们使用收集的信息来：\n- 提供和改进服务\n- 个性化您的体验\n- 发送重要通知\n- 保障服务安全\n\n## 3. 信息共享\n\n我们不会向第三方出售您的个人信息。仅在以下情况下共享：\n- 法律要求\n- 保护我们的权益\n- 经您同意\n\n## 4. 数据安全\n\n我们采取合理措施保护您的数据，但无法保证绝对安全。\n\n## 5. 您的权利\n\n您有权访问、更正或删除您的个人信息。\n\n## 6. Cookie使用\n\n我们使用Cookie来改善您的体验，您可以在浏览器中禁用。\n\n## 7. 政策变更\n\n我们可能更新隐私政策，变更将在此页面发布。'
   },
   float_buttons: {
     enabled: true,
@@ -1387,8 +1387,8 @@ async function getGlobalConfig() {
       },
       auth_dialog_agreement: {
         enabled: config.auth_dialog_agreement?.enabled !== false,
-        user_agreement_url: config.auth_dialog_agreement?.user_agreement_url || '/user-agreement',
-        usage_specification_url: config.auth_dialog_agreement?.usage_specification_url || '/usage-specification'
+        user_agreement_content: config.auth_dialog_agreement?.user_agreement_content || '# 用户协议\n\n欢迎使用我们的服务！请仔细阅读以下用户协议：\n\n## 1. 服务条款\n\n您必须年满13周岁才能使用本服务。\n\n## 2. 账户安全\n\n您有责任维护账户密码的安全性，并对您账户下的所有活动负责。\n\n## 3. 用户行为规范\n\n您同意不会：\n- 发布违法、有害或侵犯他人权益的内容\n- 滥用或破坏服务\n- 未经授权访问他人账户\n\n## 4. 知识产权\n\n您发布的内容的知识产权归您所有，但我们有权在服务中使用、复制和传播。\n\n## 5. 服务变更\n\n我们保留随时修改或终止服务的权利。\n\n## 6. 免责声明\n\n我们不对服务的准确性、完整性或可靠性提供保证。\n\n## 7. 协议变更\n\n我们可能会更新本协议，您继续使用服务即表示接受更新后的协议。',
+        privacy_agreement_content: config.auth_dialog_agreement?.privacy_agreement_content || '# 隐私协议\n\n我们重视您的隐私。以下是我们的隐私政策：\n\n## 1. 收集的信息\n\n我们可能收集以下信息：\n- 您的账户信息（用户名、邮箱、手机号）\n- 使用数据（访问记录、浏览行为）\n- 设备信息（IP地址、浏览器类型）\n\n## 2. 信息使用\n\n我们使用收集的信息来：\n- 提供和改进服务\n- 个性化您的体验\n- 发送重要通知\n- 保障服务安全\n\n## 3. 信息共享\n\n我们不会向第三方出售您的个人信息。仅在以下情况下共享：\n- 法律要求\n- 保护我们的权益\n- 经您同意\n\n## 4. 数据安全\n\n我们采取合理措施保护您的数据，但无法保证绝对安全。\n\n## 5. 您的权利\n\n您有权访问、更正或删除您的个人信息。\n\n## 6. Cookie使用\n\n我们使用Cookie来改善您的体验，您可以在浏览器中禁用。\n\n## 7. 政策变更\n\n我们可能更新隐私政策，变更将在此页面发布。'
       },
       float_buttons: {
         enabled: config.float_buttons?.enabled !== false,
@@ -1729,8 +1729,8 @@ function resetGlobalConfig() {
     },
     auth_dialog_agreement: {
       enabled: true, // 默认启用协议提示
-      user_agreement_url: '/user-agreement', // 默认用户协议链接
-      usage_specification_url: '/usage-specification' // 默认隐私协议链接
+      user_agreement_content: '# 用户协议\n\n欢迎使用我们的服务！请仔细阅读以下用户协议：\n\n## 1. 服务条款\n\n您必须年满13周岁才能使用本服务。\n\n## 2. 账户安全\n\n您有责任维护账户密码的安全性，并对您账户下的所有活动负责。\n\n## 3. 用户行为规范\n\n您同意不会：\n- 发布违法、有害或侵犯他人权益的内容\n- 滥用或破坏服务\n- 未经授权访问他人账户\n\n## 4. 知识产权\n\n您发布的内容的知识产权归您所有，但我们有权在服务中使用、复制和传播。\n\n## 5. 服务变更\n\n我们保留随时修改或终止服务的权利。\n\n## 6. 免责声明\n\n我们不对服务的准确性、完整性或可靠性提供保证。\n\n## 7. 协议变更\n\n我们可能会更新本协议，您继续使用服务即表示接受更新后的协议。',
+      privacy_agreement_content: '# 隐私协议\n\n我们重视您的隐私。以下是我们的隐私政策：\n\n## 1. 收集的信息\n\n我们可能收集以下信息：\n- 您的账户信息（用户名、邮箱、手机号）\n- 使用数据（访问记录、浏览行为）\n- 设备信息（IP地址、浏览器类型）\n\n## 2. 信息使用\n\n我们使用收集的信息来：\n- 提供和改进服务\n- 个性化您的体验\n- 发送重要通知\n- 保障服务安全\n\n## 3. 信息共享\n\n我们不会向第三方出售您的个人信息。仅在以下情况下共享：\n- 法律要求\n- 保护我们的权益\n- 经您同意\n\n## 4. 数据安全\n\n我们采取合理措施保护您的数据，但无法保证绝对安全。\n\n## 5. 您的权利\n\n您有权访问、更正或删除您的个人信息。\n\n## 6. Cookie使用\n\n我们使用Cookie来改善您的体验，您可以在浏览器中禁用。\n\n## 7. 政策变更\n\n我们可能更新隐私政策，变更将在此页面发布。'
     },
     float_buttons: {
       enabled: true,
