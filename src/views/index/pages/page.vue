@@ -1559,7 +1559,7 @@ const fetchLinks = async () => {
   
   try {
     const cacheKey = 'links_list_with_status'
-    const cacheExpire = 60
+    const cacheExpire = 1440
     
     let cachedLinks = cache.get(cacheKey)
     

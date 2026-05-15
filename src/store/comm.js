@@ -130,8 +130,22 @@ const fetchSiteInfo = async (state = {}, force = false) => {
     fetchingSiteInfo = true
     fetchSiteInfoPromise = (async () => {
         try {
-            // 直接从API获取站点信息，不使用缓存
-            // 这样可以确保每次都获取最新的配置，包括enable_custom_style设置
+            // 缓存键
+            const cacheName = 'xiao_functions'
+            const cacheExpire = 30 // 缓存30分钟
+            
+            // 优先从缓存获取（除非强制刷新）
+            if (!force) {
+                const cachedSiteInfo = cache.get(cacheName)
+                if (cachedSiteInfo && typeof cachedSiteInfo === 'object') {
+                    state.siteInfo = cachedSiteInfo
+                    fetchingSiteInfo = false
+                    fetchSiteInfoPromise = null
+                    return cachedSiteInfo
+                }
+            }
+            
+            // 直接从API获取站点信息
             const response = await axios.get(`/api/config/one?key=xiao_functions`)
 
             // 检查响应结构
@@ -174,6 +188,9 @@ const fetchSiteInfo = async (state = {}, force = false) => {
                     if (siteInfo.enable_custom_style === undefined) {
                         siteInfo.enable_custom_style = false
                     }
+                    
+                    // 缓存站点信息
+                    cache.set(cacheName, siteInfo, cacheExpire)
                     
                     state.siteInfo = siteInfo
                     

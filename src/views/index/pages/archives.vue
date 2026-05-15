@@ -197,7 +197,7 @@
                 v-if="rewardEnabled"
               >
                 <i class="bi bi-heart-fill me-2"></i>
-                <span>打赏</span>
+                <span>赏</span>
               </button>
             </div>
           </div>

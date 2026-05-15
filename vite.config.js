@@ -23,65 +23,6 @@ export default defineConfig(({ mode }) => {
       })
     ],
 
-    build: {
-      target: 'es2020',
-      outDir: 'dist',
-      assetsDir: 'static',
-      cacheDir: false,
-      minify: isProduction ? 'terser' : 'esbuild',
-      sourcemap: false,
-      // 提高警告上限
-      chunkSizeWarningLimit: 1500,
-
-      rollupOptions: {
-        output: {
-          // 简化打包配置，避免编辑器插件打包问题
-          manualChunks(id) {
-            // 1. 高亮库
-            if (id.includes('highlight.js')) {
-              return 'highlight'
-            }
-            // 2. Vue 全家桶
-            if (id.includes('node_modules/vue') || id.includes('vue-router') || id.includes('pinia')) {
-              return 'vue'
-            }
-            // 3. Bootstrap
-            if (id.includes('bootstrap') || id.includes('@popperjs/core')) {
-              return 'bootstrap'
-            }
-            // 4. 弹出层
-            if (id.includes('@fancyapps/ui')) {
-              return 'fancybox'
-            }
-            // 5. 解析器
-            if (id.includes('marked')) {
-              return 'marked'
-            }
-            // 6. 工具
-            if (id.includes('axios') || id.includes('crypto-js') || id.includes('qs')) {
-              return 'utils'
-            }
-          },
-
-          assetFileNames: 'static/[name].[hash:8].[ext]',
-          chunkFileNames: 'static/js/[name].[hash:8].js',
-          entryFileNames: 'static/js/[name].[hash:8].js'
-        }
-      },
-
-      terserOptions: {
-        compress: {
-          drop_console: isProduction,
-          drop_debugger: isProduction,
-          dead_code: true,
-          pure_funcs: ['console.log', 'console.warn', 'console.error']
-        },
-        format: {
-          comments: false
-        }
-      },
-    },
-
     resolve: {
       extensions: ['.vue', '.js', '.jsx', '.ts', '.tsx'],
       alias: {
@@ -109,9 +50,71 @@ export default defineConfig(({ mode }) => {
     },
 
     optimizeDeps: {
-      include: ['vue'],
-      // 【关键】禁止提前全量打包编辑器语言
+      include: [
+        'vue',
+        'vue-router',
+        'pinia',
+        'axios',
+        'qs',
+        'bootstrap',
+        '@popperjs/core'
+      ],
       exclude: ['@codemirror/lang-*', 'codemirror/mode-*']
-    }
+    },
+
+    build: {
+      target: 'es2020',
+      outDir: 'dist',
+      assetsDir: 'static',
+      cacheDir: false,
+      minify: isProduction ? 'terser' : 'esbuild',
+      sourcemap: false,
+      chunkSizeWarningLimit: 1500,
+      cssCodeSplit: 'divider',
+
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/vue') || id.includes('vue-router') || id.includes('pinia')) {
+              return 'vue-vendor'
+            }
+            if (id.includes('bootstrap') || id.includes('@popperjs/core')) {
+              return 'bootstrap-vendor'
+            }
+            if (id.includes('highlight.js')) {
+              return 'highlight'
+            }
+            if (id.includes('@fancyapps/ui')) {
+              return 'fancybox'
+            }
+            if (id.includes('marked')) {
+              return 'marked'
+            }
+            if (id.includes('axios') || id.includes('crypto-js') || id.includes('qs')) {
+              return 'utils-vendor'
+            }
+            if (id.includes('@vueuse/core')) {
+              return 'vueuse'
+            }
+          },
+
+          assetFileNames: 'static/[name].[hash:8].[ext]',
+          chunkFileNames: 'static/js/[name].[hash:8].js',
+          entryFileNames: 'static/js/[name].[hash:8].js'
+        }
+      },
+
+      terserOptions: {
+        compress: {
+          drop_console: isProduction,
+          drop_debugger: isProduction,
+          dead_code: true,
+          pure_funcs: ['console.log', 'console.warn', 'console.error']
+        },
+        format: {
+          comments: false
+        }
+      },
+    },
   }
 })

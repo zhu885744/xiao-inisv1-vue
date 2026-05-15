@@ -490,9 +490,27 @@ const initIntersectionObserver = () => {
   })
 }
 
+// 清除图片的观察标记
+const clearImageObservedFlags = () => {
+  const lazyImages = document.querySelectorAll('.lazy-img')
+  lazyImages.forEach(img => {
+    // 清除观察标记
+    delete img.dataset.observed
+    // 重置src为懒加载图
+    if (img.src !== loadingGif && img.dataset.src) {
+      img.src = loadingGif
+    }
+  })
+}
+
 // 观察所有懒加载图片
-const observeLazyImages = () => {
+const observeLazyImages = (clearFlags = false) => {
   nextTick(() => {
+    // 如果需要清除标记（缓存数据时）
+    if (clearFlags) {
+      clearImageObservedFlags()
+    }
+    
     const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed])')
     if (lazyImages.length > 0) {
       // 优先观察可视区域内的图片
@@ -644,6 +662,8 @@ const getCategoryArticles = async (page = 1) => {
     if (cachedArticles) {
       articles.value = cachedArticles.data || []
       total.value = cachedArticles.total || 0
+      // 缓存数据需要清除之前的观察标记并重新观察
+      observeLazyImages(true)
       return
     }
     

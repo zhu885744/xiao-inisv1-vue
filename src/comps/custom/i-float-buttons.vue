@@ -68,7 +68,7 @@
   >
     <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
       <div class="modal-content border-0 shadow-lg animate-fade">
-        <div class="modal-header text-white">
+        <div class="modal-header">
           <h5 class="modal-title d-flex align-items-center">
             <i class="bi bi-megaphone-fill me-2"></i>系统公告
           </h5>
@@ -121,7 +121,7 @@
   >
     <div class="modal-dialog modal-dialog-centered modal-md modal-dialog-scrollable">
       <div class="modal-content border-0 shadow-lg animate-fade">
-        <div class="modal-header text-white">
+        <div class="modal-header">
           <h5 class="modal-title">{{ currentNotice?.title || '公告详情' }}</h5>
           <button 
             type="button" 

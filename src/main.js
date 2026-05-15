@@ -85,9 +85,12 @@ const createAndConfigureApp = async (isRetry = false) => {
   
   setupGlobalTools(app)
   
-  await setupSiteInfo(isRetry)
+  // 并行执行：站点信息获取 + 路由就绪
+  await Promise.all([
+    setupSiteInfo(isRetry),
+    router.isReady()
+  ])
   
-  await router.isReady()
   app.mount('#app')
   
   Fancybox.bind("[data-fancybox]", {})

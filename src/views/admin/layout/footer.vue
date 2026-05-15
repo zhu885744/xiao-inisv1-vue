@@ -111,6 +111,18 @@ const policeLink = computed(() => siteInfo.value?.police?.link || 'https://beian
 
 const themeVersion = computed(() => THEME_VERSION)
 
+// 获取系统版本
+const fetchSystemVersion = async () => {
+  try {
+    const response = await axios.get('/api/system/info')
+    if (response.code === 200 && response.data?.version) {
+      systemVersion.value = response.data.version
+    }
+  } catch (error) {
+    console.debug('获取系统版本失败:', error)
+  }
+}
+
 // 组件挂载
 onMounted(async () => {
   console.log('组件挂载，siteInfo:', siteInfo.value)

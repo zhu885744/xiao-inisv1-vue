@@ -30,6 +30,7 @@ class SocketManager {
     this.pingTimer = null
     this.pingTimeoutTimer = null
     this.isManualClose = false
+    this.isConnecting = false
     this.listeners = {
       open: [],
       close: [],
@@ -143,6 +144,7 @@ class SocketManager {
     if (!this.socket) return
 
     this.socket.onopen = (event) => {
+      this.isConnecting = false
       this.debugLog('连接成功 ✅')
       this.reconnectAttempts = 0
       this.startPing()
@@ -150,6 +152,7 @@ class SocketManager {
     }
 
     this.socket.onclose = (event) => {
+      this.isConnecting = false
       this.debugLog(`连接关闭 ❌，状态码：${event.code}，原因：${event.reason}`)
       this.stopPing()
       this.emit('close', event)
@@ -165,6 +168,7 @@ class SocketManager {
     }
 
     this.socket.onerror = (event) => {
+      this.isConnecting = false
       this.debugLog('连接错误 ⚠️', event)
       this.emit('error', event)
     }
@@ -214,14 +218,29 @@ class SocketManager {
       return null
     }
 
+    // 如果正在连接中，直接返回
+    if (this.isConnecting) {
+      this.debugLog('正在连接中，忽略重复调用')
+      return this.socket
+    }
+
+    // 如果已经连接，直接返回
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.debugLog('连接已建立，忽略重复调用')
+      return this.socket
+    }
+
     const finalUri = this.formatUri(uri || config.uri, params)
     if (utils.is.empty(finalUri)) return null
 
-    if (this.socket) {
+    // 如果有旧连接且不在连接状态，关闭它
+    if (this.socket && this.socket.readyState !== WebSocket.CONNECTING) {
       this.socket.close(1000, 'recreate connection')
       this.socket = null
       this.debugLog('关闭旧实例，准备创建新连接')
     }
+
+    this.isConnecting = true
 
     try {
       this.socket = new WebSocket(finalUri, protocols)
@@ -229,6 +248,7 @@ class SocketManager {
       this.bindCoreEvents()
       return this.socket
     } catch (error) {
+      this.isConnecting = false
       this.debugLog('连接创建失败：', error.message || error)
       this.reconnect()
       return null
@@ -237,6 +257,7 @@ class SocketManager {
 
   close(manual = true, code = 1000, reason = 'manual close') {
     this.isManualClose = manual
+    this.isConnecting = false
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
@@ -272,6 +293,7 @@ class SocketManager {
     this.close(true, 1000, 'destroy instance')
     this.reconnectAttempts = 0
     this.isManualClose = false
+    this.isConnecting = false
     
     Object.keys(this.listeners).forEach(key => {
       this.listeners[key] = []

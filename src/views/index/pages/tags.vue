@@ -466,6 +466,14 @@ const loadImage = (img) => {
   const isLoaded = img.dataset.loaded === 'true'
 
   if (dataSrc && !isLoaded) {
+    // 如果图片已经加载完成（可能是缓存复用的DOM），直接标记为已加载
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.remove('lazy-loading')
+      img.classList.add('lazy-loaded')
+      img.dataset.loaded = 'true'
+      return
+    }
+    
     img.src = dataSrc
     img.classList.add('lazy-loading')
     img.dataset.loaded = 'true'
@@ -479,9 +487,24 @@ const loadImage = (img) => {
   }
 }
 
+// 清除图片的观察标记（用于缓存后重新观察）
+const clearImageObservedFlags = () => {
+  const lazyImages = document.querySelectorAll('.lazy-img')
+  lazyImages.forEach(img => {
+    delete img.dataset.observed
+    delete img.dataset.loaded
+    img.classList.remove('lazy-loaded', 'lazy-loading', 'lazy-error')
+  })
+}
+
 // 观察所有懒加载图片
-const observeLazyImages = () => {
+const observeLazyImages = (clearFlags = false) => {
   nextTick(() => {
+    // 如果需要清除标记，先清除之前的观察状态
+    if (clearFlags) {
+      clearImageObservedFlags()
+    }
+    
     const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed="true"])')
     if (lazyImages.length === 0) return
 
@@ -637,10 +660,10 @@ const getTagArticles = async (tagId, page = 1) => {
     if (cachedArticles) {
       articles.value = cachedArticles.data || []
       total.value = cachedArticles.total || 0
-      // 数据更新后，等待 DOM 更新完成再观察图片
+      // 缓存数据时，需要清除之前的观察标记，确保懒加载能正常触发
       nextTick(() => {
         setTimeout(() => {
-          observeLazyImages()
+          observeLazyImages(true)
         }, 50)
       })
       return

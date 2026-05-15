@@ -260,6 +260,7 @@ import { useRouter } from 'vue-router'
 import request from '@/utils/request' 
 import { usePageTitle } from '@/utils/usePageTitle'
 import cache from '@/utils/cache'
+import { useCommStore } from '@/store/comm'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();
@@ -270,6 +271,7 @@ import defaultCover from '@/assets/img/fm.avif'
 import loadingGif from '@/assets/img/ljz.gif'
 
 const router = useRouter()
+const commStore = useCommStore()
 
 // 图片缓存
 const imageCache = new Set()
@@ -294,14 +296,19 @@ const bannersLoading = ref(false)
 // 从后端API获取显示模式设置
 const loadDisplayMode = async () => {
   try {
+    // 优先从 store 缓存读取（siteInfo 已经在应用初始化时缓存过了）
+    if (commStore.siteInfo && commStore.siteInfo.display_mode !== undefined) {
+      hasImageMode.value = commStore.siteInfo.display_mode !== false
+      return
+    }
+    // 如果 store 没有，再请求 API（兜底）
     const response = await request.get('/api/config/one', { key: 'xiao_functions' })
     if (response.code === 200 && response.data) {
       const config = response.data.json || {}
-      hasImageMode.value = config.display_mode !== false // 默认值为true
+      hasImageMode.value = config.display_mode !== false
     }
   } catch (error) {
     console.error('读取显示模式设置失败:', error)
-    // 出错时使用默认值
     hasImageMode.value = true
   }
 }
@@ -610,35 +617,45 @@ const loadVisibleImages = () => {
 }
 
 const getArticleList = async (page = 1, isRefresh = true) => {
-  // 如果是刷新操作，立即显示骨架屏
-  if (isRefresh && page === 1) {
+  // 缓存键（包含分页信息）
+  const cacheKey = `index_articles_page_${page}_limit_${limit.value}`
+  const cacheExpire = 10 // 缓存10分钟
+  
+  // 尝试从缓存获取数据
+  const cachedData = cache.get(cacheKey)
+  
+  // 有缓存时：立即使用缓存显示，后台静默刷新（仅第一页且是刷新操作）
+  if (cachedData) {
+    articleList.value = cachedData.data || []
+    total.value = cachedData.total || 0
+    currentPage.value = page
+    
+    nextTick(() => {
+      observeLazyImages()
+    })
+    
+    // 后台静默刷新（仅针对第一页的刷新操作）
+    if (isRefresh && page === 1) {
+      fetchArticleListAPI(page, cacheKey, cacheExpire)
+    }
+    return
+  }
+  
+  // 无缓存：显示骨架屏并请求API
+  if (page === 1) {
     loading.value = true
     articleList.value = []
   }
   
+  await fetchArticleListAPI(page, cacheKey, cacheExpire)
+  
+  if (page === 1) {
+    loading.value = false
+  }
+}
+
+const fetchArticleListAPI = async (page, cacheKey, cacheExpire) => {
   try {
-    // 缓存键（包含分页信息）
-    const cacheKey = `index_articles_page_${page}_limit_${limit.value}`
-    const cacheExpire = 10 // 缓存10分钟
-    
-    // 尝试从缓存获取数据
-    const cachedData = cache.get(cacheKey)
-    
-    if (cachedData && !isRefresh) {
-      // 使用缓存数据
-      articleList.value = cachedData.data || []
-      total.value = cachedData.total || 0
-      currentPage.value = page
-      
-      // 数据更新后，观察新图片
-      nextTick(() => {
-        observeLazyImages()
-      })
-      loading.value = false
-      return
-    }
-    
-    // 只获取已审核的文章
     const params = { 
       page, 
       limit: limit.value, 
@@ -655,19 +672,17 @@ const getArticleList = async (page = 1, isRefresh = true) => {
       total.value = totalCount
       currentPage.value = page
       
-      // 缓存数据
       cache.set(cacheKey, { data: newData, total: totalCount }, cacheExpire)
       
-      // 数据更新后，观察新图片
       nextTick(() => {
         observeLazyImages()
       })
     } else {
-      articleList.value = []
+      if (page === 1) articleList.value = []
     }
   } catch (error) {
     console.error('获取文章列表失败:', error)
-    articleList.value = []
+    if (page === 1) articleList.value = []
   } finally {
     loading.value = false
     isRefreshing.value = false
