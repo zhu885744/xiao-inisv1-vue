@@ -1127,7 +1127,12 @@ watch(
 const initSortable = () => {
   if (isMessagePage.value && messagesGrid.value) {
     if (window.sortableInstance) {
-      window.sortableInstance.destroy();
+      try {
+        window.sortableInstance.destroy()
+      } catch (e) {
+        console.debug('Sortable销毁失败:', e)
+      }
+      window.sortableInstance = null
     }
     
     try {
@@ -2002,7 +2007,14 @@ onMounted(() => {
 onUnmounted(() => {
   if (archiveRefreshTimer) clearInterval(archiveRefreshTimer)
   if (coolingDownTimer) clearInterval(coolingDownTimer)
-  if (window.sortableInstance) window.sortableInstance.destroy()
+  if (window.sortableInstance) {
+    try {
+      window.sortableInstance.destroy()
+    } catch (e) {
+      console.debug('Sortable销毁失败:', e)
+    }
+    window.sortableInstance = null
+  }
   
   document.removeEventListener('click', handleClickOutside)
   window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', detectDarkMode)
