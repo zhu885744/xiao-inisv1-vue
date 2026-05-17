@@ -192,7 +192,6 @@
 import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import request from '@/utils/request'
-import cache from '@/utils/cache'
 
 // 导入本地图片
 import defaultCover from '@/assets/img/fm.avif'
@@ -490,27 +489,9 @@ const initIntersectionObserver = () => {
   })
 }
 
-// 清除图片的观察标记
-const clearImageObservedFlags = () => {
-  const lazyImages = document.querySelectorAll('.lazy-img')
-  lazyImages.forEach(img => {
-    // 清除观察标记
-    delete img.dataset.observed
-    // 重置src为懒加载图
-    if (img.src !== loadingGif && img.dataset.src) {
-      img.src = loadingGif
-    }
-  })
-}
-
 // 观察所有懒加载图片
-const observeLazyImages = (clearFlags = false) => {
+const observeLazyImages = () => {
   nextTick(() => {
-    // 如果需要清除标记（缓存数据时）
-    if (clearFlags) {
-      clearImageObservedFlags()
-    }
-    
     const lazyImages = document.querySelectorAll('.lazy-img:not([data-observed])')
     if (lazyImages.length > 0) {
       // 优先观察可视区域内的图片
@@ -594,29 +575,19 @@ const getCategoryDetail = async (categoryParam) => {
   errorMsg.value = ''
   articleCount.value = 0
   try {
-    // 缓存键
-    const cacheKey = 'categories_list'
-    const cacheExpire = 60 // 缓存60分钟
-    
-    // 尝试从缓存获取分类列表
-    let categories = cache.get(cacheKey)
-    
-    // 如果缓存不存在，从API获取
-    if (!categories) {
-      let res = await request.get('/api/article-group/all', {
-        cache: false
-      })
+    // 从API获取分类列表
+    let res = await request.get('/api/article-group/all', {
+      cache: false
+    })
 
-      if (res.code === 200 && res.data && res.data.data && res.data.data.length > 0) {
-        categories = res.data.data
-        // 缓存分类列表
-        cache.set(cacheKey, categories, cacheExpire)
-      } else {
-        error.value = true
-        errorMsg.value = '获取分类列表失败'
-        loading.value = false
-        return
-      }
+    let categories = []
+    if (res.code === 200 && res.data && res.data.data && res.data.data.length > 0) {
+      categories = res.data.data
+    } else {
+      error.value = true
+      errorMsg.value = '获取分类列表失败'
+      loading.value = false
+      return
     }
 
     // 根据key或id匹配分类
@@ -650,23 +621,9 @@ const getCategoryDetail = async (categoryParam) => {
   }
 }
 
-// 获取分类下的文章列表 - 修复版
+// 获取分类下的文章列表
 const getCategoryArticles = async (page = 1) => {
   try {
-    // 缓存键
-    const cacheKey = `category_articles_${categoryInfo.value.id}_page_${page}_limit_${limit.value}`
-    const cacheExpire = 60 // 缓存60分钟
-    
-    // 尝试从缓存获取文章列表
-    const cachedArticles = cache.get(cacheKey)
-    if (cachedArticles) {
-      articles.value = cachedArticles.data || []
-      total.value = cachedArticles.total || 0
-      // 缓存数据需要清除之前的观察标记并重新观察
-      observeLazyImages(true)
-      return
-    }
-    
     // 使用带管道符的格式，确保能匹配到所有文章
     const like = `Group|%7C${categoryInfo.value.id}%7C`;
     // 添加审核筛选条件，只显示已审核的文章
@@ -680,14 +637,10 @@ const getCategoryArticles = async (page = 1) => {
         // 文章数组在data.data中
         articles.value = res.data.data;
         total.value = res.data.count || 0;
-        // 缓存文章列表
-        cache.set(cacheKey, { data: res.data.data, total: res.data.count || 0 }, cacheExpire)
       } else if (res.data && Array.isArray(res.data)) {
         // 直接是文章数组
         articles.value = res.data;
         total.value = res.count || 0;
-        // 缓存文章列表
-        cache.set(cacheKey, { data: res.data, total: res.count || 0 }, cacheExpire)
       } else {
         articles.value = [];
         total.value = 0;
@@ -716,11 +669,11 @@ const changePage = (page) => {
 // 初始化页面
 const initPage = async (categoryParam) => {
   if (categoryParam && checkCategoryParam(categoryParam)) {
-    // 并行获取分类详情和分类文章
-    await Promise.all([
-      getCategoryDetail(categoryParam),
-      getCategoryArticles(currentPage.value)
-    ])
+    // 先获取分类详情，获取成功后再获取文章列表
+    await getCategoryDetail(categoryParam)
+    if (categoryInfo.value && categoryInfo.value.id) {
+      await getCategoryArticles(currentPage.value)
+    }
   } else {
     error.value = true
     loading.value = false

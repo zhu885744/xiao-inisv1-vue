@@ -94,6 +94,12 @@ const routes = [
     meta: { title: '用户主页', requiresAuth: false },
     props: true
   },
+  {
+    path: '/users',
+    name: '用户列表',
+    component: () => import('@/views/index/pages/users.vue'),
+    meta: { title: '用户列表', requiresAuth: false }
+  },
 
   // ========== 文章相关路由 ==========
   {
