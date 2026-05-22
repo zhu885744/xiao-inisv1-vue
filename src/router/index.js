@@ -350,33 +350,28 @@ const checkCurrentUserAdmin = async () => {
  * 处理维护模式检查和权限校验
  */
 router.beforeEach(async (to, from, next) => {
-  // 维护模式检查（维护页面除外）
   if (to.path !== '/maintenance') {
-    const maintenanceEnabled = await checkMaintenanceMode()
-    if (maintenanceEnabled) {
-      const isAdmin = await checkCurrentUserAdmin()
-      if (!isAdmin) {
-        next('/maintenance')
-        return
-      }
+    const [maintenanceEnabled, isAdmin] = await Promise.all([
+      checkMaintenanceMode(),
+      checkCurrentUserAdmin()
+    ])
+    
+    if (maintenanceEnabled && !isAdmin) {
+      next('/maintenance')
+      return
     }
   }
 
-  // 登录权限校验
   if (to.meta.requiresAuth) {
     const commStore = useCommStore()
     
-    // 先检查登录状态（确保获取最新的登录状态）
     try {
       await commStore.checkLoginState()
     } catch (error) {
       console.error('检查登录状态失败:', error)
     }
     
-    // 使用 getter 获取登录状态（会自动触发 Token 校验）
     const loginState = commStore.getLogin
-    
-    // 检查登录是否完成且用户信息存在
     const isLogin = loginState.finish && !utils.is.empty(loginState.user)
 
     if (!isLogin) {
@@ -384,16 +379,14 @@ router.beforeEach(async (to, from, next) => {
       return
     }
 
-    // 管理员权限校验
     if (to.meta.isAdmin) {
       const userInfo = loginState.user
       const cacheKey = `admin_status_${userInfo.id || 'unknown'}`
       let isAdmin = cache.get(cacheKey)
       
-      // 缓存未命中时重新计算
       if (isAdmin === null) {
         isAdmin = checkAdminPermission(userInfo)
-        cache.set(cacheKey, isAdmin, 60) // 缓存1小时
+        cache.set(cacheKey, isAdmin, 60)
       }
       
       if (!isAdmin) {

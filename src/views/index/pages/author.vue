@@ -132,11 +132,11 @@
         </div>
         
         <!-- 用户信息卡片 -->
-        <div class="user-card card border-0 shadow-lg bg-white mt-n8 relative z-10">
+        <div class="user-card card border-0 shadow-lg mt-n8 relative z-10">
           <div class="card-body p-4">
-            <div class="d-flex align-items-start gap-4">
+            <div class="d-flex align-items-start gap-4 flex-wrap">
               <!-- 头像 -->
-              <div class="position-relative flex-shrink-0">
+              <div class="position-relative flex-shrink-0 avatar-wrapper">
                 <div class="avatar-container position-relative">
                   <img 
                     :src="userInfo.avatar || defaultAvatar" 
@@ -154,15 +154,15 @@
               </div>
               
               <!-- 用户基本信息 -->
-              <div class="flex-grow-1">
-                <div class="d-flex align-items-center justify-between mb-2">
+              <div class="flex-grow-1 min-w-[200px]">
+                <div class="d-flex align-items-center justify-between mb-2 flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-3">
                     <h3 class="mb-0 fw-bold text-xl">{{ userInfo.nickname }}</h3>
                   </div>
                 </div>
                 
                 <!-- 用户组标识 -->
-                <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
                   <span v-for="(group, index) in userGroups" :key="index" class="badge text-bg-info px-3 py-1 text-sm">
                     {{ group.name }}
                   </span>
@@ -172,25 +172,25 @@
                     </span>
                 </div>
 
-                <!-- 个人简介 -->
-                <p class="text-muted mb-0">
-                  {{ userInfo.description || '这个人很懒，什么都没有留下！' }}
-                </p>
-
-                 <!-- 个人网站 -->
+                <!-- 个人网站 -->
                 <div v-if="userInfo.json?.website?.url" class="mb-3">
                   <span class="text-muted">
                     <a 
                       :href="userInfo.json.website.url" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      class="d-flex align-items-center gap-2 text-decoration-none text-primary user-website"
+                      class="d-flex align-items-center gap-2 text-decoration-none user-website"
                     >
                       <i class="bi bi-globe"></i>
-                      {{ userInfo.json.website.name || userInfo.json.website.url }}
+                      <span class="truncate-url">{{ userInfo.json.website.name || userInfo.json.website.url }}</span>
                     </a>
                   </span>
                 </div>
+
+                <!-- 个人简介 -->
+                <p class="text-muted mb-0 user-desc">
+                  {{ userInfo.description || '这个人很懒，什么都没有留下！' }}
+                </p>
               </div>
             </div>
             
@@ -232,106 +232,74 @@
 
       <!-- 内容区域 -->
       <div class="content-wrapper mt-2">
-        <!-- Bootstrap 5 Tabs -->
+        <!-- 文章列表卡片 -->
         <div class="card shadow-sm mb-4">
           <div class="card-header bg-transparent border-0 pt-3 px-3">
-            <ul class="nav nav-tabs" id="authorTab" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button 
-                  class="nav-link active" 
-                  id="articles-tab" 
-                  data-bs-toggle="tab" 
-                  data-bs-target="#articles-tab-pane" 
-                  type="button" 
-                  role="tab" 
-                  aria-controls="articles-tab-pane" 
-                  aria-selected="true"
-                >
-                  <i class="bi bi-file-text me-1"></i> 发布 <span class="badge text-bg-secondary ms-1">{{ articleCount }}</span>
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button 
-                  class="nav-link" 
-                  id="drafts-tab" 
-                  data-bs-toggle="tab" 
-                  data-bs-target="#drafts-tab-pane" 
-                  type="button" 
-                  role="tab" 
-                  aria-controls="drafts-tab-pane" 
-                  aria-selected="false"
-                >
-                  <i class="bi bi-file-earmark-dashed me-1"></i> 草稿 <span class="badge text-bg-secondary ms-1">{{ draftCount }}</span>
-                </button>
-              </li>
-            </ul>
+            <h5 class="fw-bold mb-0">
+              <i class="bi bi-file-text me-2"></i> 发布 
+              <span class="badge text-bg-secondary ms-1">{{ articleCount }}</span>
+            </h5>
           </div>
           <div class="card-body p-3">
-            <div class="tab-content" id="authorTabContent">
-              <!-- 文章列表 -->
-              <div 
-                class="tab-pane fade show active" 
-                id="articles-tab-pane" 
-                role="tabpanel" 
-                aria-labelledby="articles-tab" 
-                tabindex="0"
-              >
-                <div v-if="articles.length === 0" class="text-center py-5">
-                  <i class="bi bi-file-earmark-text text-muted fs-1 mb-2 d-block"></i>
-                  <p class="mb-0 text-muted">暂无文章</p>
-                </div>
-                <div 
-                  v-for="article in articles" 
-                  :key="article.id" 
-                  class="card article-item-card shadow-sm mt-2"
-                  @click="goToArticle(article.id)"
-                  style="cursor: pointer;"
-                >
-                  <div class="card-body p-3">
-                    <div class="d-flex gap-3">
-                      <!-- 文章封面 -->
-                      <div class="article-cover flex-shrink-0" style="width: 120px; height: 80px;">
-                        <img 
-                          :src="article.covers || defaultCover" 
-                          :alt="article.title"
-                          class="w-100 h-100 object-cover rounded"
-                        >
-                      </div>
-                      <!-- 文章内容 -->
-                      <div class="flex-grow-1">
-                        <h3 class="article-title fw-bold mb-1">{{ article.title }}</h3>
-                        <p class="article-desc text-muted text-sm mb-2 line-clamp-2">{{ article.abstract || '暂无摘要' }}</p>
-                        <div class="d-flex align-items-center justify-content-between text-sm text-muted">
-                          <span>{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
-                          <span>{{ formatDate(article.publish_time) }}</span>
-                        </div>
-                      </div>
+            <!-- 文章列表 -->
+            <div v-if="articles.length === 0" class="text-center py-5">
+              <i class="bi bi-file-earmark-text text-muted fs-1 mb-2 d-block"></i>
+              <p class="mb-0 text-muted">暂无文章</p>
+            </div>
+            <div 
+              v-for="article in articles" 
+              :key="article.id" 
+              class="card article-item-card shadow-sm mt-3 overflow-hidden"
+              @click="goToArticle(article.id)"
+            >
+              <div class="card-body p-0">
+                <div class="row g-0 flex-column flex-md-row">
+                  <!-- 文章封面 -->
+                  <div class="article-cover-container col-md-4 flex-shrink-0">
+                    <img 
+                      :src="article.covers || defaultCover" 
+                      :alt="article.title"
+                      class="article-cover-img w-100"
+                    >
+                  </div>
+                  <!-- 文章内容 -->
+                  <div class="col-md-8 p-3 flex-grow-1 d-flex flex-column">
+                    <h3 class="article-title fw-bold mb-2 flex-shrink-0">{{ article.title }}</h3>
+                    <p class="article-desc text-muted text-sm mb-3 flex-grow-1">{{ article.abstract || '暂无摘要' }}</p>
+                    <div class="d-flex align-items-center justify-content-between text-sm text-muted flex-shrink-0">
+                      <span class="article-category">{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
+                      <span class="article-date">{{ formatDate(article.publish_time) }}</span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <!-- 草稿列表 -->
-              <div 
-                class="tab-pane fade" 
-                id="drafts-tab-pane" 
-                role="tabpanel" 
-                aria-labelledby="drafts-tab" 
-                tabindex="0"
-              >
-                <div v-if="drafts.length === 0" class="text-center py-5">
-                  <i class="bi bi-file-dashed text-muted fs-1 mb-2 d-block"></i>
-                  <p class="mb-0 text-muted">暂无草稿</p>
-                </div>
-                <div 
-                  v-for="draft in drafts" 
-                  :key="draft.id" 
-                  class="card shadow-sm mt-2 p-3"
-                >
-                  <h3 class="fw-bold mb-1">{{ draft.title || '无标题' }}</h3>
-                  <p class="text-muted text-sm mb-0">{{ formatDate(draft.update_time) }} 更新</p>
-                </div>
-              </div>
+            </div>
+            <!-- 文章分页 -->
+            <div v-if="articleTotalPages > 1" class="d-flex justify-content-center mt-4">
+              <nav>
+                <ul class="pagination mb-0">
+                  <li class="page-item" :class="{ disabled: currentArticlePage <= 1 }">
+                    <a class="page-link" href="#" @click.prevent="changeArticlePage(currentArticlePage - 1)">
+                      <i class="bi bi-chevron-left"></i>
+                    </a>
+                  </li>
+                  <li 
+                    v-for="page in visibleArticlePages" 
+                    :key="page" 
+                    class="page-item"
+                    :class="{ active: page === currentArticlePage, disabled: page === '...' }"
+                  >
+                    <a class="page-link" href="#" @click.prevent="page !== '...' && changeArticlePage(page)">
+                      {{ page }}
+                    </a>
+                  </li>
+                  <li class="page-item" :class="{ disabled: currentArticlePage >= articleTotalPages }">
+                    <a class="page-link" href="#" @click.prevent="changeArticlePage(currentArticlePage + 1)">
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -372,9 +340,9 @@ const loading = ref(false)
 const error = ref('')
 const userInfo = ref(null)
 const articles = ref([])
-const drafts = ref([])
 const articleCount = ref(0)
-const draftCount = ref(0)
+const currentArticlePage = ref(1)
+const articleTotalPages = ref(1)
 
 // 用户统计数据
 const userStats = ref({
@@ -463,35 +431,89 @@ const fetchUserInfo = async () => {
 // 获取用户文章列表
 const fetchUserArticles = async () => {
   try {
-    const cacheKey = `author_articles_${userId.value}`
-    const cacheExpire = 10
+    if (!userId.value) return
     
-    const cachedArticles = cache.get(cacheKey)
-    if (cachedArticles) {
-      articles.value = cachedArticles.data || []
-      articleCount.value = cachedArticles.total || 0
-      return
+    const currentUserId = userId.value
+    
+    const whereParam = JSON.stringify({ uid: currentUserId, audit: 1 })
+    const countWhereParam = JSON.stringify({ uid: currentUserId, audit: 1 })
+    
+    const [articlesRes, countRes] = await Promise.all([
+      request.get('/api/article/all', {
+        where: whereParam,
+        page: currentArticlePage.value,
+        limit: 10,
+        order: 'create_time desc'
+      }),
+      request.get('/api/article/count', {
+        where: countWhereParam
+      })
+    ])
+    
+    if (articlesRes.code === 200) {
+      if (articlesRes.data && articlesRes.data.data) {
+        articles.value = articlesRes.data.data
+        articleCount.value = articlesRes.data.count || 0
+      } else if (articlesRes.data && Array.isArray(articlesRes.data)) {
+        articles.value = articlesRes.data
+        articleCount.value = articlesRes.count || 0
+      } else {
+        articles.value = []
+        articleCount.value = 0
+      }
+    } else {
+      articles.value = []
+      articleCount.value = 0
     }
     
-    const like = `User|%7C${userId.value}%7C`
-    const apiUrl = `/api/article/all?like=${like}&where[audit]=1&page=1&limit=10&order=create_time+desc&cache=false`
-    
-    const res = await request.get(apiUrl)
-    
-    if (res.code === 200) {
-      if (res.data && res.data.data) {
-        articles.value = res.data.data
-        articleCount.value = res.data.count || 0
-      } else if (res.data && Array.isArray(res.data)) {
-        articles.value = res.data
-        articleCount.value = res.count || 0
-      }
-      cache.set(cacheKey, { data: articles.value, total: articleCount.value }, cacheExpire)
+    if (countRes.code === 200) {
+      const count = countRes.data?.count ?? countRes.count ?? countRes.data ?? 0
+      articleCount.value = count
+      articleTotalPages.value = Math.ceil(count / 10) || 1
     }
   } catch (err) {
     articles.value = []
     articleCount.value = 0
   }
+}
+
+// 计算可见的页码
+const visibleArticlePages = computed(() => {
+  const total = articleTotalPages.value
+  const current = currentArticlePage.value
+  const pages = []
+  
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      pages.push('...')
+      pages.push(total)
+    } else if (current >= total - 3) {
+      pages.push(1)
+      pages.push('...')
+      for (let i = total - 4; i <= total; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      pages.push('...')
+      for (let i = current - 1; i <= current + 1; i++) pages.push(i)
+      pages.push('...')
+      pages.push(total)
+    }
+  }
+  
+  return pages
+})
+
+// 切换文章页码
+const changeArticlePage = (page) => {
+  if (page < 1 || page > articleTotalPages.value) return
+  currentArticlePage.value = page
+  fetchUserArticles()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // 获取用户文章数量
@@ -654,6 +676,7 @@ watch(
   () => route.params.id,
   (newUserId) => {
     if (newUserId) {
+      currentArticlePage.value = 1
       fetchUserInfo()
       fetchUserArticles()
       initUserStats()
@@ -860,6 +883,24 @@ watch(
   flex-shrink: 0;
 }
 
+.truncate-url {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* 用户简介 */
+.user-desc {
+  line-height: 1.6;
+  max-height: 3.2em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .stat-item {
   text-align: center;
 }
@@ -876,11 +917,22 @@ watch(
 .article-item-card {
   transition: all 0.3s ease;
   border-radius: 0.75rem;
+  cursor: pointer;
 }
 
 .article-item-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.article-cover-container {
+  position: relative;
+  height: 200px;
+}
+
+.article-cover-img {
+  height: 100%;
+  object-fit: cover;
 }
 
 .article-title {
@@ -892,16 +944,21 @@ watch(
 }
 
 .article-desc {
-  line-height: 1.5;
-}
-
-.line-clamp-2 {
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 2.8em;
+}
+
+.article-category {
+  flex-shrink: 0;
+}
+
+.article-date {
+  flex-shrink: 0;
 }
 
 /* 响应式设计 */
@@ -914,11 +971,8 @@ watch(
     padding: 1.25rem !important;
   }
   
-  .d-flex.align-items-start.gap-4 {
-    flex-direction: column;
-    align-items: center !important;
-    text-align: center;
-    gap: 1.5rem !important;
+  .avatar-wrapper {
+    margin: 0 auto;
   }
   
   img[src*="avatar"] {
@@ -926,18 +980,9 @@ watch(
     height: 100px !important;
   }
   
-  .flex-grow-1 {
-    width: 100%;
-  }
-  
-  .d-flex.align-items-center.justify-between {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
   .stats-bar .row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
   
@@ -949,28 +994,77 @@ watch(
     font-size: 0.75rem !important;
   }
   
-  .article-cover {
-    width: 100px !important;
-    height: 70px !important;
+  .article-cover-container {
+    height: 160px;
   }
   
   .article-title {
     font-size: 0.95rem;
   }
+  
+  .article-desc {
+    font-size: 0.875rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    min-height: 2.6em;
+  }
+  
+  .truncate-url {
+    max-width: 150px;
+  }
+  
+  .user-desc {
+    font-size: 0.875rem;
+    max-height: 2.8em;
+  }
+  
+  .article-category {
+    font-size: 0.75rem;
+  }
+  
+  .article-date {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .banner-bg {
+    height: 120px;
+  }
+  
+  .card-body.p-4 {
+    padding: 1rem !important;
+  }
+  
+  .article-cover-container {
+    height: 140px;
+  }
+  
+  .article-title {
+    font-size: 0.9rem;
+  }
+  
+  .article-desc {
+    font-size: 0.825rem;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  
+  .stats-bar .row {
+    gap: 0.75rem;
+  }
+  
+  .stat-value {
+    font-size: 0.9rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem !important;
+  }
 }
 
 /* 暗黑模式适配 */
 [data-bs-theme=dark] {
-  .card {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-  }
-  
-  .stats-bar {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg), var(--bs-body-bg));
-    border-top-color: var(--bs-border-color);
-  }
-  
   .stat-value {
     color: var(--bs-heading-color);
   }

@@ -283,7 +283,7 @@ const showRefreshHint = ref(false)
 const articleList = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
-const limit = ref(9)
+const limit = ref(10)
 const total = ref(0)
 const order = ref('top desc, create_time desc')
 

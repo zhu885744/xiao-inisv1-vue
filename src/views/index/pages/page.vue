@@ -462,9 +462,9 @@
                                 >
                                 <div>
                                   <h6 class="fw-semibold mb-0">
-                                    <router-link v-if="message.result?.author?.id || message.author?.id" :to="`/author/${message.result?.author?.id || message.author?.id}`" class="text-decoration-none " @click="closeReplyModal()">
+                                    <span v-if="message.result?.author?.id || message.author?.id" class="text-decoration-none" style="cursor: pointer;" @click.prevent="navigateToAuthor(message.result?.author?.id || message.author?.id)">
                                       {{ message.result?.author?.nickname || message.author?.nickname || message.nickname || '匿名用户' }}
-                                    </router-link>
+                                    </span>
                                     <span v-else>{{ message.result?.author?.nickname || message.author?.nickname || message.nickname || '匿名用户' }}</span>
                                     <span v-if="message.result?.author?.result?.isAuthor || message.result?.author?.isAuthor || message.author?.result?.isAuthor || message.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
                                   </h6>
@@ -551,9 +551,9 @@
                                 >
                                 <div class="flex-grow-1">
                                   <h6 class="fw-semibold mb-0">
-                                    <router-link v-if="reply.result?.author?.id || reply.author?.id" :to="`/author/${reply.result?.author?.id || reply.author?.id}`" class="text-decoration-none " @click="closeReplyModal()">
+                                    <span v-if="reply.result?.author?.id || reply.author?.id" class="text-decoration-none" style="cursor: pointer;" @click.prevent="navigateToAuthor(reply.result?.author?.id || reply.author?.id)">
                                       {{ reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户' }}
-                                    </router-link>
+                                    </span>
                                     <span v-else>{{ reply.result?.author?.nickname || reply.author?.nickname || reply.nickname || '匿名用户' }}</span>
                                     <span v-if="reply.result?.author?.result?.isAuthor || reply.result?.author?.isAuthor || reply.author?.result?.isAuthor || reply.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
                                   </h6>
@@ -1968,7 +1968,36 @@ const closeReplyModal = () => {
     const modal = window.bootstrap.Modal.getInstance(document.getElementById('replyModal'))
     if (modal) modal.hide()
   }
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+  document.body.classList.remove('modal-open')
+  document.body.style.removeProperty('overflow')
+  document.body.style.removeProperty('padding-right')
   replyInput.value = ''
+}
+
+const navigateToAuthor = (authorId) => {
+  const modalElement = document.getElementById('replyModal')
+  
+  const handleHidden = () => {
+    modalElement.removeEventListener('hidden.bs.modal', handleHidden)
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+    document.body.classList.remove('modal-open')
+    document.body.style.removeProperty('overflow')
+    document.body.style.removeProperty('padding-right')
+    router.push(`/author/${authorId}`)
+  }
+  
+  modalElement.addEventListener('hidden.bs.modal', handleHidden)
+  closeReplyModal()
+  
+  setTimeout(() => {
+    modalElement.removeEventListener('hidden.bs.modal', handleHidden)
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove())
+    document.body.classList.remove('modal-open')
+    document.body.style.removeProperty('overflow')
+    document.body.style.removeProperty('padding-right')
+    router.push(`/author/${authorId}`)
+  }, 500)
 }
 
 // 监听页面ID

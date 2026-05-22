@@ -48,11 +48,13 @@
     <div v-else class="tags-main">
       <!-- 标签列表页结构 -->
       <div v-if="!currentTag" class="tags-list-page">
+        <div class="card mt-2">
+          <div class="card-body">
+            <span class="tags-count-title">标签页 <span class="text-sm text-muted">({{ totalTags }})</span></span>  
+          </div>
+        </div>
         <!-- 标签卡片网格 -->
         <div class="tags-grid card shadow-sm mt-2 bg-body rounded-3">
-          <div class="card-header">
-            <span class="tags-count-title">标签页 <span class="text-sm text-muted">({{ totalTags }})</span></span>
-          </div>
           <div class="tags-grid-container">
             <div 
               v-for="tag in tags" 
@@ -901,27 +903,6 @@ onMounted(async () => {
 
 .tags-count-header {
   padding: 1.5rem;
-}
-
-.tags-count-title {
-  font-size: clamp(1.8rem, 5vw, 2.5rem);
-  line-height: 1.3;
-  font-weight: 700;
-  color: var(--bs-heading-color);
-  margin-bottom: 0.75rem !important;
-  transition: all 0.3s ease;
-}
-
-.tags-count-title .text-muted {
-  font-size: 0.8em;
-  font-weight: 400;
-  opacity: 0.8;
-  transition: all 0.3s ease;
-}
-
-.tags-count-title:hover .text-muted {
-  opacity: 1;
-  color: var(--bs-primary);
 }
 
 /* 标签卡片网格 */

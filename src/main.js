@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, markRaw } from 'vue'
 import App from './App.vue'
 import { createPinia } from 'pinia'
 import router from './router'
@@ -9,14 +9,6 @@ import './assets/css/bootstrap.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import './assets/css/buyu.style.css'
 import 'virtual:svg-icons-register'
-
-import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import { Fancybox } from "@fancyapps/ui/dist/fancybox/";
-import "@fancyapps/ui/dist/fancybox/fancybox.css";
-
-import Toast from './utils/toast'
-import socket from './utils/socket'
-import API from './api'
 
 const DEV = import.meta.env.DEV
 
@@ -30,28 +22,46 @@ const logError = (...args) => {
   console.error('[Init Error]', ...args)
 }
 
-const setupGlobalTools = (app) => {
-  if (typeof window !== 'undefined') {
-    window.bootstrap = bootstrap
+const setupGlobalTools = async (app) => {
+  try {
+    const [{ default: bootstrap }, { Fancybox }, { default: Toast }, { default: socket }, API] = await Promise.all([
+      import('bootstrap/dist/js/bootstrap.bundle.min.js'),
+      import('@fancyapps/ui/dist/fancybox/'),
+      import('./utils/toast'),
+      import('./utils/socket'),
+      import('./api')
+    ])
+    
+    import('@fancyapps/ui/dist/fancybox/fancybox.css')
+    
+    if (typeof window !== 'undefined') {
+      window.bootstrap = bootstrap
+    }
+    
+    Toast.config({})
+    app.config.globalProperties.$toast = Toast
+    app.provide('$toast', Toast)
+    
+    if (typeof window !== 'undefined') {
+      window.Toast = Toast
+    }
+    
+    app.provide('socket', socket)
+    app.config.globalProperties.$socket = socket
+    app.config.globalProperties.$api = API
+    
+    Fancybox.bind("[data-fancybox]", {})
+    
+    return { Toast, socket, API }
+  } catch (error) {
+    logError('初始化全局工具失败:', error)
+    return {}
   }
-  
-  Toast.config({})
-  app.config.globalProperties.$toast = Toast
-  app.provide('$toast', Toast)
-  
-  if (typeof window !== 'undefined') {
-    window.Toast = Toast
-  }
-  
-  app.provide('socket', socket)
-  app.config.globalProperties.$socket = socket
-  app.config.globalProperties.$api = API
 }
 
-const setupSiteInfo = async (isRetry = false) => {
+const setupSiteInfo = async (commStore) => {
   try {
-    log(isRetry ? '重试获取站点信息...' : '正在获取站点信息...')
-    const commStore = useCommStore()
+    log('正在获取站点信息...')
     await commStore.fetchSiteInfo()
     
     if (commStore.siteInfo?.favicon && typeof window !== 'undefined') {
@@ -83,17 +93,16 @@ const createAndConfigureApp = async (isRetry = false) => {
   app.use(router)
   app.component('iSvg', iSvg)
   
-  setupGlobalTools(app)
+  const commStore = useCommStore()
   
-  // 并行执行：站点信息获取 + 路由就绪
-  await Promise.all([
-    setupSiteInfo(isRetry),
-    router.isReady()
-  ])
+  await router.isReady()
   
   app.mount('#app')
   
-  Fancybox.bind("[data-fancybox]", {})
+  await Promise.all([
+    setupGlobalTools(app),
+    setupSiteInfo(commStore)
+  ])
   
   log('应用初始化完成')
 }

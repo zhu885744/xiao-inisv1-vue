@@ -45,7 +45,7 @@
     <i-footer></i-footer>
     <i-float-buttons></i-float-buttons>
   </template>
-
+  
   <upgrade-page></upgrade-page>
 </template>
 
@@ -64,6 +64,7 @@ import request from '@/utils/request'
 const navRef = ref(null)
 const store = useCommStore()
 const customCodeInjected = ref(false)
+const socketConnected = ref(false)
 
 const handleShowLogin = () => {
   try {
@@ -148,16 +149,21 @@ const injectCustomCode = async () => {
 }
 
 const setupSocket = () => {
+  if (socketConnected.value) return
+  
   const handleOpen = () => {
     console.log('WebSocket连接已建立')
+    socketConnected.value = true
   }
 
   const handleClose = () => {
     console.log('WebSocket连接已关闭')
+    socketConnected.value = false
   }
 
   const handleError = (error) => {
     console.error('WebSocket错误:', error)
+    socketConnected.value = false
   }
 
   socket.on('open', handleOpen)
@@ -171,9 +177,16 @@ const setupSocket = () => {
   }
 }
 
-onMounted(async () => {
-  setupSocket()
+const initAfterMount = async () => {
   await injectCustomCode()
+  
+  if (store.siteInfo?.enable_socket !== false) {
+    setupSocket()
+  }
+}
+
+onMounted(async () => {
+  await initAfterMount()
 })
 
 onUnmounted(() => {
