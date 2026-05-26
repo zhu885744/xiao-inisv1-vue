@@ -4,9 +4,8 @@ import { createPinia } from 'pinia'
 import router from './router'
 import { useCommStore } from './store/comm'
 import iSvg from './comps/custom/i-svg.vue'
-
-import './assets/css/bootstrap.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
+import 'bootstrap/dist/css/bootstrap.css'
 import './assets/css/buyu.style.css'
 import 'virtual:svg-icons-register'
 
@@ -24,7 +23,7 @@ const logError = (...args) => {
 
 const setupGlobalTools = async (app) => {
   try {
-    const [{ default: bootstrap }, { Fancybox }, { default: Toast }, { default: socket }, API] = await Promise.all([
+    const [bootstrapModule, fancyboxModule, toastModule, socketModule, apiModule] = await Promise.all([
       import('bootstrap/dist/js/bootstrap.bundle.min.js'),
       import('@fancyapps/ui/dist/fancybox/'),
       import('./utils/toast'),
@@ -32,25 +31,38 @@ const setupGlobalTools = async (app) => {
       import('./api')
     ])
     
-    import('@fancyapps/ui/dist/fancybox/fancybox.css')
+    const { default: bootstrap } = bootstrapModule
+    const { Fancybox } = fancyboxModule
+    const { default: Toast } = toastModule
+    const { default: socket } = socketModule
+    const { default: API } = apiModule
     
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && bootstrap) {
       window.bootstrap = bootstrap
     }
     
-    Toast.config({})
-    app.config.globalProperties.$toast = Toast
-    app.provide('$toast', Toast)
-    
-    if (typeof window !== 'undefined') {
-      window.Toast = Toast
+    if (Toast) {
+      Toast.config({})
+      app.config.globalProperties.$toast = Toast
+      app.provide('$toast', Toast)
+      
+      if (typeof window !== 'undefined') {
+        window.Toast = Toast
+      }
     }
     
-    app.provide('socket', socket)
-    app.config.globalProperties.$socket = socket
-    app.config.globalProperties.$api = API
+    if (socket) {
+      app.provide('socket', socket)
+      app.config.globalProperties.$socket = socket
+    }
     
-    Fancybox.bind("[data-fancybox]", {})
+    if (API) {
+      app.config.globalProperties.$api = API
+    }
+    
+    if (Fancybox) {
+      Fancybox.bind("[data-fancybox]", {})
+    }
     
     return { Toast, socket, API }
   } catch (error) {
