@@ -190,7 +190,11 @@ const initConfig = () => {
       api_uri: import.meta.env.VITE_API_URI || defaultConfig.api_uri,
       socket_uri: import.meta.env.VITE_SOCKET_URI || defaultConfig.socket_uri,
       router_mode: import.meta.env.VITE_ROUTER_MODE || defaultConfig.router_mode,
-      base_url: import.meta.env.VITE_BASE_URL || defaultConfig.base_url
+      base_url: import.meta.env.VITE_BASE_URL || defaultConfig.base_url,
+      api_key: import.meta.env.VITE_API_KEY || defaultConfig.api_key,
+      token_name: import.meta.env.VITE_TOKEN_NAME || defaultConfig.token_name,
+      socket_debug: import.meta.env.VITE_SOCKET_DEBUG === 'true' || defaultConfig.socket_debug,
+      lazy_time: parseInt(import.meta.env.VITE_LAZY_TIME) || defaultConfig.lazy_time
     }
     cachedConfig = { ...defaultConfig, ...envConfig }
     console.log('开发环境配置:', cachedConfig)

@@ -7,6 +7,7 @@ import iSvg from './comps/custom/i-svg.vue'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 import 'bootstrap/dist/css/bootstrap.css'
 import './assets/css/buyu.style.css'
+import '@fancyapps/ui/dist/fancybox/fancybox.css'
 import 'virtual:svg-icons-register'
 
 const DEV = import.meta.env.DEV
@@ -61,10 +62,19 @@ const setupGlobalTools = async (app) => {
     }
     
     if (Fancybox) {
-      Fancybox.bind("[data-fancybox]", {})
+      window.Fancybox = Fancybox
+      
+      setTimeout(() => {
+        Fancybox.bind("[data-fancybox]", {
+          Hash: false,
+          Thumbs: {
+            autoStart: false
+          }
+        })
+      }, 100)
     }
     
-    return { Toast, socket, API }
+    return { Toast, socket, API, Fancybox }
   } catch (error) {
     logError('初始化全局工具失败:', error)
     return {}

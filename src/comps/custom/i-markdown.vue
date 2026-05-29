@@ -118,11 +118,28 @@ renderMarkdown(props.modelValue)
 
 watch(() => props.modelValue, (newVal) => {
   renderMarkdown(newVal)
-  setTimeout(addCopyEventListeners, 100)
+  setTimeout(() => {
+    addCopyEventListeners()
+    if (window.Fancybox) {
+      Fancybox.unbind("[data-fancybox]")
+      Fancybox.bind("[data-fancybox]", {
+        Hash: false,
+        Thumbs: { autoStart: false }
+      })
+    }
+  }, 100)
 }, { immediate: true })
 
 onMounted(() => {
-  setTimeout(addCopyEventListeners, 100)
+  setTimeout(() => {
+    addCopyEventListeners()
+    if (window.Fancybox) {
+      Fancybox.bind("[data-fancybox]", {
+        Hash: false,
+        Thumbs: { autoStart: false }
+      })
+    }
+  }, 100)
 })
 </script>
 
