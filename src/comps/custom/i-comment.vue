@@ -27,28 +27,30 @@
         ></textarea>
         
         <!-- 表情选择面板 -->
-        <div v-if="showEmojiPicker" class="emoji-picker-container mt-2 p-3 border bg-body mb-3" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
-          <!-- 表情分类切换 -->
-          <div class="emoji-categories mb-3">
-            <button 
-              v-for="(emojis, category) in owoEmojis" 
-              :key="category"
-              @click="activeEmojiCategory = category"
-              class="btn btn-sm me-2 mb-2"
-              :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
-            >
-              {{ category }}
-            </button>
-          </div>
-          <!-- 表情列表 -->
-          <div class="d-flex flex-wrap gap-2">
+        <div v-if="showEmojiPicker" class="emoji-picker-panel mt-2 border rounded-3 bg-body shadow-sm" :class="{ 'bg-dark border-secondary': isDarkMode }">
+          <!-- 表情分类导航 -->
+          <ul class="nav nav-pills px-2 pt-2 pb-1" role="tablist">
+            <li class="nav-item" v-for="(emojis, category) in owoEmojis" :key="category">
+              <button 
+                class="nav-link rounded-3 px-3 py-1 mb-1"
+                :class="activeEmojiCategory === category ? 'active bg-primary text-white' : 'text-secondary'"
+                @click="activeEmojiCategory = category"
+                type="button"
+                role="tab"
+              >
+                {{ category }}
+              </button>
+            </li>
+          </ul>
+          <!-- 表情网格 -->
+          <div class="emoji-grid px-2 pb-2">
             <button 
               v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
               :key="index"
               @click="insertEmoji(emoji.icon)"
-              class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
-              :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+              class="emoji-btn rounded-2"
               :title="emoji.text"
+              type="button"
             >
               {{ emoji.icon }}
             </button>
@@ -183,28 +185,30 @@
             ></textarea>
             
             <!-- 回复表情选择面板 -->
-            <div v-if="showReplyEmojiPicker" class="emoji-picker-container mt-2 mb-3 p-3 border bg-body" :class="{ 'bg-dark border-dark-subtle': isDarkMode }">
-              <!-- 表情分类切换 -->
-              <div class="emoji-categories mb-3">
-                <button 
-                  v-for="(emojis, category) in owoEmojis" 
-                  :key="category"
-                  @click="activeEmojiCategory = category"
-                  class="btn btn-sm me-2 mb-2"
-                  :class="activeEmojiCategory === category ? 'btn-primary' : 'btn-outline-secondary'"
-                >
-                  {{ category }}
-                </button>
-              </div>
-              <!-- 表情列表 -->
-              <div class="d-flex flex-wrap gap-2">
+            <div v-if="showReplyEmojiPicker" class="emoji-picker-panel mt-2 mb-3 border rounded-3 bg-body shadow-sm" :class="{ 'bg-dark border-secondary': isDarkMode }">
+              <!-- 表情分类导航 -->
+              <ul class="nav nav-pills px-2 pt-2 pb-1" role="tablist">
+                <li class="nav-item" v-for="(emojis, category) in owoEmojis" :key="category">
+                  <button 
+                    class="nav-link rounded-3 px-3 py-1 mb-1"
+                    :class="activeEmojiCategory === category ? 'active bg-primary text-white' : 'text-secondary'"
+                    @click="activeEmojiCategory = category"
+                    type="button"
+                    role="tab"
+                  >
+                    {{ category }}
+                  </button>
+                </li>
+              </ul>
+              <!-- 表情网格 -->
+              <div class="emoji-grid px-2 pb-2">
                 <button 
                   v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
                   :key="index"
                   @click="insertReplyEmoji(emoji.icon)"
-                  class="btn btn-sm btn-outline-secondary rounded-3 emoji-item"
-                  :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                  class="emoji-btn rounded-2"
                   :title="emoji.text"
+                  type="button"
                 >
                   {{ emoji.icon }}
                 </button>
@@ -768,7 +772,7 @@ const focusTextarea = (placeholder) => {
 
 // 点击外部关闭表情面板
 const handleClickOutside = (event) => {
-  const emojiPickers = event.target.closest('.emoji-picker-container')
+  const emojiPickers = event.target.closest('.emoji-picker-panel')
   const emojiButtons = event.target.closest('.emoji-button')
   if (!emojiPickers && !emojiButtons) {
     showEmojiPicker.value = false
@@ -1001,6 +1005,95 @@ watch(
   background-color: rgba(var(--bs-primary-rgb), 0.02);
 }
 
+/* 表情面板样式 */
+.emoji-picker-panel {
+  max-width: 100%;
+  animation: emojiFadeIn 0.2s ease;
+}
+
+@keyframes emojiFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
+  padding: 6px;
+}
+
+.emoji-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.emoji-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+.emoji-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 8px;
+  line-height: 1.2;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.emoji-btn:hover {
+  background: rgba(var(--bs-primary-rgb), 0.2);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.emoji-btn:active {
+  transform: scale(0.95);
+}
+
+:deep(.nav-pills .nav-link) {
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+:deep(.nav-pills .nav-link:hover:not(.active)) {
+  background: rgba(var(--bs-primary-rgb), 0.1);
+  color: var(--bs-primary);
+}
+
+:deep(.nav-pills .nav-link.active) {
+  box-shadow: 0 2px 4px rgba(var(--bs-primary-rgb), 0.3);
+}
+
 /* 深色模式 */
 :deep(.bg-dark) {
   --bs-secondary-subtle: #2b2b2b;
@@ -1010,6 +1103,27 @@ watch(
 :deep(.tooltip-dark) {
   --bs-tooltip-bg: #333;
   --bs-tooltip-color: #fff;
+}
+
+/* 深色模式下的表情面板 */
+:deep(.bg-dark) .emoji-grid {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+:deep(.bg-dark) .emoji-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:deep(.bg-dark) .emoji-btn {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:deep(.bg-dark) .emoji-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+:deep(.bg-dark) .nav-pills .nav-link:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* 移动端适配 */
@@ -1035,6 +1149,19 @@ watch(
   .comment-item p {
     padding: 0.5rem;
     font-size: 0.9rem;
+  }
+
+  .emoji-grid {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .emoji-btn {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 6px;
   }
 }
 
@@ -1155,72 +1282,5 @@ watch(
 .emoji-button:hover {
   transform: scale(1.1);
   border-color: var(--bs-primary);
-}
-
-/* 表情选择面板 */
-.emoji-picker-container {
-  transition: all 0.3s ease;
-  max-height: 200px;
-  overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 5;
-}
-
-.emoji-item {
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  min-width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.emoji-item:hover {
-  border-color: var(--bs-primary);
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-}
-
-/* 表情滚动条 */
-.emoji-picker-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.emoji-picker-container::-webkit-scrollbar-track {
-  background: rgba(var(--bs-primary-rgb), 0.1);
-  border-radius: 3px;
-}
-
-.emoji-picker-container::-webkit-scrollbar-thumb {
-  background: rgba(var(--bs-primary-rgb), 0.3);
-  border-radius: 3px;
-}
-
-.emoji-picker-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--bs-primary-rgb), 0.5);
-}
-
-/* 深色模式表情 */
-:deep(.bg-dark) .emoji-item {
-  border-color: #444;
-  color: #fff;
-}
-
-:deep(.bg-dark) .emoji-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.2);
-}
-
-/* 移动端表情 */
-@media (max-width: 768px) {
-  .emoji-picker-container {
-    max-height: 150px;
-  }
-  
-  .emoji-item {
-    font-size: 1rem;
-    min-width: 32px;
-    height: 32px;
-  }
 }
 </style>

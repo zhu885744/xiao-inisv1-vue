@@ -163,13 +163,13 @@
                 
                 <!-- 用户组标识 -->
                 <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                  <span v-for="(group, index) in userGroups" :key="index" class="badge text-bg-info px-3 py-1 text-sm">
+                  <span v-for="(group, index) in userGroups" :key="index" class="badge text-bg-success px-3 py-1 text-sm">
                     {{ group.name }}
                   </span>
                   <!-- 用户等级 -->
-                    <span v-if="userLevelInfo" class="badge text-bg-success rounded-full px-3 py-1 text-sm font-medium">
-                      Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
-                    </span>
+                  <span v-if="userLevelInfo" class="badge text-bg-primary rounded-full px-3 py-1 text-sm font-medium">
+                    Lv.{{ userLevelInfo.current.value }} {{ userLevelInfo.current.name }}
+                  </span>
                 </div>
 
                 <!-- 个人网站 -->
