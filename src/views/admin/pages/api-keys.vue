@@ -129,7 +129,7 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils'
 import AtomApiKey from '@/comps/admin/atom/api-key.vue'
 import TableApiKeys from '@/comps/admin/table/api-keys.vue'
-import cache from '@/utils/cache.js'
+import { cache } from '@/utils/network.js'
 
 // 组件引用
 const allRef = ref(null)

@@ -268,8 +268,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import request from '@/utils/request'
-import toast from '@/utils/toast'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
 import { useCommStore } from '@/store/comm'
 
 const store = useCommStore()
@@ -400,8 +400,8 @@ const sendEmailCode = async () => {
       email: emailForm.email
     })
 
-    if (res.code === 200) {
-      toast.success('验证码已发送，请查收')
+    if (res.code === 200 || res.code === 201) {
+      toast.success(res.msg || '验证码已发送，请查收')
       // 记录发送验证码
       recordSendCode('email', emailForm.email)
       // 开始倒计时
@@ -471,8 +471,8 @@ const sendPhoneCode = async () => {
       phone: phoneForm.phone
     })
 
-    if (res.code === 200) {
-      toast.success('验证码已发送，请查收')
+    if (res.code === 200 || res.code === 201) {
+      toast.success(res.msg || '验证码已发送，请查收')
       // 记录发送验证码
       recordSendCode('phone', phoneForm.phone)
       // 开始倒计时

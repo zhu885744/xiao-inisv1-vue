@@ -1,9 +1,9 @@
 // 配置状态管理
 import { defineStore } from 'pinia'
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
-import { push } from '@/utils/route'
+import { request as axios } from '@/utils/network'
+import { route } from '@/utils/app'
 
 // ==================== 新增：配置相关工具函数 ====================
 // 获取指定配置
@@ -90,7 +90,7 @@ const logout = (state = {}, path = null) => {
   // 返回首页
   if (!utils.is.empty(path))
     setTimeout(() => {
-      push(path)
+      route.push(path)
     }, 300)
 }
 

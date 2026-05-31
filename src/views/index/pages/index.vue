@@ -257,10 +257,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import request from '@/utils/request' 
-import { usePageTitle } from '@/utils/usePageTitle'
-import cache from '@/utils/cache'
+import { request } from '@/utils/network'
+import { usePageTitle } from '@/utils/app'
+import { cache } from '@/utils/network'
 import { useCommStore } from '@/store/comm'
+import { useBannerStore } from '@/store/banner'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();
@@ -272,6 +273,7 @@ import loadingGif from '@/assets/img/ljz.gif'
 
 const router = useRouter()
 const commStore = useCommStore()
+const bannerStore = useBannerStore()
 
 // 图片缓存
 const imageCache = new Set()
@@ -611,11 +613,6 @@ const loadAllImages = () => {
   })
 }
 
-// 手动触发加载（用于特殊情况下）
-const loadVisibleImages = () => {
-  // 移除滚动事件的调用，避免重复加载
-}
-
 const getArticleList = async (page = 1, isRefresh = true) => {
   // 缓存键（包含分页信息）
   const cacheKey = `index_articles_page_${page}_limit_${limit.value}`
@@ -717,23 +714,12 @@ const getBanners = async () => {
   bannersLoading.value = true
   
   try {
-    // 缓存键
-    const cacheKey = 'index_banners'
-    const cacheExpire = 30 // 缓存30分钟
+    const { code, data } = await bannerStore.setCurrent()
     
-    // 尝试从缓存获取
-    const cachedBanners = cache.get(cacheKey)
-    if (cachedBanners) {
-      banners.value = cachedBanners
-      bannersLoading.value = false
-      return
-    }
-    
-    const res = await request.get('/api/banner/all', { limit: 5, order: 'create_time desc' })
-    if (res.code === 200) {
-      banners.value = res.data.data || []
-      // 缓存轮播图数据
-      cache.set(cacheKey, banners.value, cacheExpire)
+    if (code === 200) {
+      banners.value = data || []
+    } else {
+      banners.value = []
     }
   } catch (error) {
     console.error('获取轮播图数据失败:', error)

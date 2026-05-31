@@ -267,13 +267,13 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import request from '@/utils/request'
+import { request } from '@/utils/network'
 import iMarkdown from '@/comps/custom/i-markdown.vue'
 import CommentList from '@/comps/custom/i-comment.vue'
 import { useCommStore } from '@/store/comm'
 import utils from '@/utils/utils'
-import cache from '@/utils/cache'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { cache } from '@/utils/network'
+import { usePageTitle, toast } from '@/utils/app'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();
@@ -469,20 +469,14 @@ const handlePublishComment = async (data) => {
       // 重新获取评论列表
 await getComments(articleInfo.value.id, currentPage.value)
       // 显示成功提示
-      if (window.Toast) {
-        window.Toast.success('评论发布成功！')
-      }
+      toast.success('评论发布成功！')
     } else {
       // 显示失败提示
-      if (window.Toast) {
-        window.Toast.error(res.msg || '评论发布失败')
-      }
+      toast.error(res.msg || '评论发布失败')
     }
   } catch (error) {
     // console.error('发布评论失败：', error)
-    if (window.Toast) {
-      window.Toast.error('网络异常，评论发布失败')
-    }
+    toast.error('网络异常，评论发布失败')
   }
 }
 
@@ -503,20 +497,14 @@ const handleReplyComment = async (data) => {
       // 重新获取评论列表
 await getComments(articleInfo.value.id, currentPage.value)
       // 显示成功提示
-      if (window.Toast) {
-        window.Toast.success('回复发布成功！')
-      }
+      toast.success('回复发布成功！')
     } else {
       // 显示失败提示
-      if (window.Toast) {
-        window.Toast.error(res.msg || '回复发布失败')
-      }
+      toast.error(res.msg || '回复发布失败')
     }
   } catch (error) {
     // console.error('回复评论失败：', error)
-    if (window.Toast) {
-      window.Toast.error('网络异常，回复发布失败')
-    }
+    toast.error('网络异常，回复发布失败')
   }
 }
 
@@ -592,18 +580,12 @@ const handleLike = async () => {
         }
       }
       
-      if (window.Toast) {
-        window.Toast.success(newState ? '点赞成功！' : '取消点赞成功！')
-      }
+      toast.success(newState ? '点赞成功！' : '取消点赞成功！')
     } else {
-      if (window.Toast) {
-        window.Toast.error(res.msg || '操作失败')
-      }
+      toast.error(res.msg || '操作失败')
     }
   } catch (error) {
-    if (window.Toast) {
-      window.Toast.error('网络异常，操作失败')
-    }
+    toast.error('网络异常，操作失败')
   }
 }
 
@@ -629,9 +611,7 @@ const handleShare = async () => {
     })
 
     // 显示成功提示
-    if (window.Toast) {
-      window.Toast.success('标题和链接已复制到剪贴板！')
-    }
+    toast.success('标题和链接已复制到剪贴板！')
 
     // 更新分享数
     if (res.code === 200) {
@@ -639,9 +619,7 @@ const handleShare = async () => {
     }
   } catch (error) {
     // console.error('分享操作失败：', error)
-    if (window.Toast) {
-      window.Toast.error('复制失败，请手动复制链接')
-    }
+    toast.error('复制失败，请手动复制链接')
   }
 }
 
@@ -693,18 +671,12 @@ const handleCollect = async () => {
         }
       }
       
-      if (window.Toast) {
-        window.Toast.success(newState ? '收藏成功！' : '取消收藏成功！')
-      }
+      toast.success(newState ? '收藏成功！' : '取消收藏成功！')
     } else {
-      if (window.Toast) {
-        window.Toast.error(res.msg || '操作失败')
-      }
+      toast.error(res.msg || '操作失败')
     }
   } catch (error) {
-    if (window.Toast) {
-      window.Toast.error('网络异常，操作失败')
-    }
+    toast.error('网络异常，操作失败')
   }
 }
 

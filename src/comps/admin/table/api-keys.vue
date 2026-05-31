@@ -99,8 +99,8 @@
 <script setup>
 import { ref, reactive, onMounted, watch, nextTick, computed, getCurrentInstance } from 'vue'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
-import Toast from '@/utils/toast'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
 import ITable from '@/comps/custom/i-table.vue'
 
 const emit  = defineEmits(['refresh','update:init'])
@@ -190,15 +190,15 @@ const method = {
     },
     // 保存数据
     save: async (params = state.struct || {}) => {
-        if (utils.is.empty(params)) return Toast.warning('你在想什么？什么都不填！')
+        if (utils.is.empty(params)) return toast.warning('你在想什么？什么都不填！')
 
         state.item.wait     = true
 
-        const { code, msg } = await axios.post(`/api/${state.item.table}/save`, params)
+        const { code, msg } = await request.post(`/api/${state.item.table}/save`, params)
 
         state.item.wait     = false
 
-        if (code !== 200) return Toast.error(msg)
+        if (code !== 200) return toast.error(msg)
 
         // 关闭对话框
         const modal = bootstrap.Modal.getInstance(document.getElementById('apiKeyFormModal'))
@@ -242,9 +242,9 @@ const method = {
         // 拼接服务地址
         const uri = `/api/${state.item.table}/${isSoft ? 'remove' : 'delete'}`
 
-        const { code, msg } = await axios.del(uri, { ids })
+        const { code, msg } = await request.del(uri, { ids })
 
-        if (code !== 200) return Toast.error(msg)
+        if (code !== 200) return toast.error(msg)
 
         // 刷新回收站数据
         emit('refresh', 'remove')
@@ -256,9 +256,9 @@ const method = {
     async restore(ids = []) {
         if (utils.is.empty(ids)) return
 
-        const { code, msg } = await axios.put(`/api/${state.item.table}/restore`, { ids })
+        const { code, msg } = await request.put(`/api/${state.item.table}/restore`, { ids })
 
-        if (code !== 200) return Toast.error(msg)
+        if (code !== 200) return toast.error(msg)
 
         // 刷新全部数据
         emit('refresh', 'all')
@@ -278,8 +278,8 @@ const method = {
     },
     // 清空回收站
     async clearRecycle() {
-        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
-        if (code !== 200) return Toast.error(msg)
+        const { code, msg } = await request.del(`/api/${state.item.table}/clear`)
+        if (code !== 200) return toast.error(msg)
         // 刷新回收站数据
         emit('refresh', 'remove')
         // 重新加载数据

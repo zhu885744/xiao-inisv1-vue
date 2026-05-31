@@ -1,7 +1,7 @@
 // 配置接口
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
-import cache from '@/utils/cache'
+import { request } from '@/utils/network'
+import { cache } from '@/utils/network'
 
 const config = {
     one: (key = null) => {
@@ -15,7 +15,7 @@ const config = {
             if (cache.has(cacheName)) return resolve(cache.get(cacheName))
 
             // 请求数据
-            axios.get('/api/config/one', { key }).then(({ code, data }) => {
+            request.get('/api/config/one', { key }).then(({ code, data }) => {
 
                 if (code !== 200) return resolve(null)
 

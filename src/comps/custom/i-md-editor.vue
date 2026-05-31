@@ -35,7 +35,7 @@
 import { ref, reactive, computed } from 'vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
-import axios from '@/utils/request'
+import { request as axios } from '@/utils/network'
 
 // 定义属性
 const props = defineProps({

@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { usePageTitle } from '@/utils/usePageTitle'
+import { usePageTitle } from '@/utils/app'
 
 // 设置页面标题
 const { setDynamicTitle } = usePageTitle()

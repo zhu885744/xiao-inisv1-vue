@@ -191,13 +191,13 @@
 <script setup>
 import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import request from '@/utils/request'
+import { request } from '@/utils/network'
 
 // 导入本地图片
 import defaultCover from '@/assets/img/fm.avif'
 import loadingGif from '@/assets/img/ljz.gif'
 import { useCommStore } from '@/store/comm'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { usePageTitle } from '@/utils/app'
 
 // 图片缓存
 const imageCache = new Set()

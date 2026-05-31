@@ -1,6 +1,6 @@
 <!-- src/comps/CommentList.vue 通用评论组件 -->
 <template>
-  <div class="card shadow-sm bg-body-tertiary">
+  <div v-if="articleId" class="card shadow-sm bg-body-tertiary">
     <!-- 评论区标题：接收props的评论数，动态展示 -->
     <div class="card-header bg-transparent">
       <h3 class="h5 fw-bold mt-2">
@@ -27,35 +27,11 @@
         ></textarea>
         
         <!-- 表情选择面板 -->
-        <div v-if="showEmojiPicker" class="emoji-picker-panel mt-2 border rounded-3 bg-body shadow-sm" :class="{ 'bg-dark border-secondary': isDarkMode }">
-          <!-- 表情分类导航 -->
-          <ul class="nav nav-pills px-2 pt-2 pb-1" role="tablist">
-            <li class="nav-item" v-for="(emojis, category) in owoEmojis" :key="category">
-              <button 
-                class="nav-link rounded-3 px-3 py-1 mb-1"
-                :class="activeEmojiCategory === category ? 'active bg-primary text-white' : 'text-secondary'"
-                @click="activeEmojiCategory = category"
-                type="button"
-                role="tab"
-              >
-                {{ category }}
-              </button>
-            </li>
-          </ul>
-          <!-- 表情网格 -->
-          <div class="emoji-grid px-2 pb-2">
-            <button 
-              v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
-              :key="index"
-              @click="insertEmoji(emoji.icon)"
-              class="emoji-btn rounded-2"
-              :title="emoji.text"
-              type="button"
-            >
-              {{ emoji.icon }}
-            </button>
-          </div>
-        </div>
+        <i-emoji-picker 
+          v-model="showEmojiPicker"
+          :is-dark-mode="isDarkMode"
+          @select="insertEmoji"
+        />
         
         <!-- 按钮区域：表情按钮和发布评论按钮在同一行 -->
         <div class="d-flex gap-2 mt-3">
@@ -185,35 +161,11 @@
             ></textarea>
             
             <!-- 回复表情选择面板 -->
-            <div v-if="showReplyEmojiPicker" class="emoji-picker-panel mt-2 mb-3 border rounded-3 bg-body shadow-sm" :class="{ 'bg-dark border-secondary': isDarkMode }">
-              <!-- 表情分类导航 -->
-              <ul class="nav nav-pills px-2 pt-2 pb-1" role="tablist">
-                <li class="nav-item" v-for="(emojis, category) in owoEmojis" :key="category">
-                  <button 
-                    class="nav-link rounded-3 px-3 py-1 mb-1"
-                    :class="activeEmojiCategory === category ? 'active bg-primary text-white' : 'text-secondary'"
-                    @click="activeEmojiCategory = category"
-                    type="button"
-                    role="tab"
-                  >
-                    {{ category }}
-                  </button>
-                </li>
-              </ul>
-              <!-- 表情网格 -->
-              <div class="emoji-grid px-2 pb-2">
-                <button 
-                  v-for="(emoji, index) in owoEmojis[activeEmojiCategory].container" 
-                  :key="index"
-                  @click="insertReplyEmoji(emoji.icon)"
-                  class="emoji-btn rounded-2"
-                  :title="emoji.text"
-                  type="button"
-                >
-                  {{ emoji.icon }}
-                </button>
-              </div>
-            </div>
+            <i-emoji-picker 
+              v-model="showReplyEmojiPicker"
+              :is-dark-mode="isDarkMode"
+              @select="insertReplyEmoji"
+            />
             
             <!-- 按钮区域 -->
             <div class="d-flex gap-2 mt-2">
@@ -344,12 +296,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch, computed, shallowRef } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick, shallowRef } from 'vue'
 import { useCommStore } from '@/store/comm'
-import utils from '@/utils/utils'
-import request from '@/utils/request'
-import Toast from '@/utils/toast'
-import OwOData from '@/assets/json/OwO.json'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
+import iEmojiPicker from './i-emoji-picker.vue'
+import { validateComment, checkRateLimit as checkRateLimitUtil } from '@/utils/app'
+import { formatters } from '@/utils/app'
+import { STORAGE_KEYS } from '@/constants'
 
 /**
  * @typedef {Object} CommentItem
@@ -387,8 +341,8 @@ import OwOData from '@/assets/json/OwO.json'
 const props = defineProps({
   articleId: {
     type: [String, Number],
-    required: true,
-    validator: (val) => String(val).trim() !== ''
+    required: false,
+    default: null
   },
   commentCount: {
     type: [String, Number],
@@ -435,10 +389,10 @@ const commentInput = ref('')
 const replyInput = ref('')
 const showReplyIndex = ref(null)
 const replyTarget = ref(null)
-const showEmojiPicker = ref(false)
-const showReplyEmojiPicker = ref(false)
 const isSystemDark = ref(false)
 const isLoading = ref(false)
+const showEmojiPicker = ref(false)
+const showReplyEmojiPicker = ref(false)
 
 // 点赞状态（使用shallowRef优化性能）
 const commentLikes = shallowRef(new Map())
@@ -450,10 +404,6 @@ const isCommentEnabled = ref(true)
 const lastCommentTime = ref(0)
 const isCommenting = ref(false)
 const maxCommentLength = ref(500)
-
-// 表情数据
-const owoEmojis = ref(OwOData)
-const activeEmojiCategory = ref('颜文字')
 
 // 常量
 const fallbackAvatar = 'https://picsum.photos/60/60'
@@ -513,23 +463,27 @@ const getCommentConfig = async () => {
 
 // 验证评论内容
 const validateCommentContent = (content) => {
-  const config = commentConfig.value
-  const length = content.length
+  const result = validateComment(content, {
+    minLength: 1,
+    maxLength: maxCommentLength.value
+  })
   
-  if (length > maxCommentLength.value) {
-    Toast.error(`评论长度不能超过 ${maxCommentLength.value} 字`)
+  if (!result.valid) {
+    toast.error(result.message)
     return false
   }
   
+  const config = commentConfig.value
+  
   if (config.require_chinese === 1 && !/[\u4e00-\u9fa5]/.test(content)) {
-    Toast.error('评论内容必须包含中文')
+    toast.error('评论内容必须包含中文')
     return false
   }
   
   if (config.sensitive_filter === 1 && config.sensitive_words) {
     for (const word of config.sensitive_words) {
       if (content.includes(word)) {
-        Toast.error('评论内容包含敏感词，请修改后重试')
+        toast.error('评论内容包含敏感词，请修改后重试')
         return false
       }
     }
@@ -543,13 +497,10 @@ const checkRateLimit = () => {
   const rateLimit = commentConfig.value.rate_limit || {}
   if (rateLimit.enabled !== 1) return true
   
-  const maxCount = rateLimit.max_count || 5
-  const timeWindow = rateLimit.time_window || 60
-  const now = Date.now() / 1000
-  const timeSinceLastComment = now - lastCommentTime.value
+  const result = checkRateLimitUtil(lastCommentTime.value * 1000, rateLimit.time_window || 60)
   
-  if (timeSinceLastComment < timeWindow) {
-    Toast.error(`评论过于频繁，请等待 ${Math.ceil(timeWindow - timeSinceLastComment)} 秒后再试`)
+  if (!result.allowed) {
+    toast.error(`评论过于频繁，请等待 ${result.remaining} 秒后再试`)
     return false
   }
   return true
@@ -560,7 +511,7 @@ const saveCommentTime = () => {
   const currentTime = Date.now() / 1000
   lastCommentTime.value = currentTime
   try {
-    localStorage.setItem('lastCommentTime', currentTime.toString())
+    localStorage.setItem(STORAGE_KEYS.LAST_COMMENT_TIME, currentTime.toString())
   } catch (error) {
     console.error('存储评论时间失败:', error)
   }
@@ -619,7 +570,7 @@ const isArticleAuthor = (commentAuthorId) => {
 const processedCommentList = computed(() => {
   const formatTime = (timestamp) => {
     if (!timestamp || timestamp === 0) return '未知时间'
-    return utils.timeToDate(timestamp, 'Y-m-d H:i')
+    return formatters.formatDate(timestamp, 'YYYY-MM-DD HH:mm')
   }
 
   const processReply = (reply) => {
@@ -674,7 +625,7 @@ const handlePublish = async () => {
     commentInput.value = ''
   } catch (error) {
     console.error('发布评论失败:', error)
-    Toast.error('发布评论失败，请稍后重试')
+    toast.error('发布评论失败，请稍后重试')
   } finally {
     isCommenting.value = false
   }
@@ -728,7 +679,7 @@ const handleSubmitReply = async () => {
     cancelReply()
   } catch (error) {
     console.error('提交回复失败:', error)
-    Toast.error('提交回复失败，请稍后重试')
+    toast.error('提交回复失败，请稍后重试')
   } finally {
     isCommenting.value = false
   }
@@ -770,16 +721,6 @@ const focusTextarea = (placeholder) => {
   }, 50)
 }
 
-// 点击外部关闭表情面板
-const handleClickOutside = (event) => {
-  const emojiPickers = event.target.closest('.emoji-picker-panel')
-  const emojiButtons = event.target.closest('.emoji-button')
-  if (!emojiPickers && !emojiButtons) {
-    showEmojiPicker.value = false
-    showReplyEmojiPicker.value = false
-  }
-}
-
 // 登录注册处理
 const handleToLogin = () => {
   store.switchAuth('login', true)
@@ -818,16 +759,16 @@ const handleCommentLike = async (commentId) => {
       const newCount = newState ? currentCount + 1 : Math.max(0, currentCount - 1)
       commentLikeCounts.value.set(commentId, newCount)
       
-      Toast.success(newState ? '点赞成功！' : '已取消点赞')
+      toast.success(newState ? '点赞成功！' : '已取消点赞')
     } else if (res.code === 400 && res.msg === '已经点过赞啦！') {
       commentLikes.value.set(commentId, true)
-      Toast.info('已经点过赞啦！')
+      toast.info('已经点过赞啦！')
     } else {
-      Toast.error(res.msg || '操作失败，请重试')
+      toast.error(res.msg || '操作失败，请重试')
     }
   } catch (error) {
     console.error('评论点赞操作失败:', error)
-    Toast.error('网络异常，操作失败')
+    toast.error('网络异常，操作失败')
   }
 }
 
@@ -911,7 +852,6 @@ const applyCommentConfig = (config) => {
 
 // 生命周期
 onMounted(async () => {
-  document.addEventListener('click', handleClickOutside)
   initTooltip()
   
   if (!props.isDarkMode) {
@@ -924,7 +864,7 @@ onMounted(async () => {
   applyCommentConfig(config)
   
   try {
-    const storedTime = localStorage.getItem('lastCommentTime')
+    const storedTime = localStorage.getItem(STORAGE_KEYS.LAST_COMMENT_TIME)
     if (storedTime) lastCommentTime.value = parseFloat(storedTime) || 0
   } catch (error) {
     console.error('读取评论时间失败:', error)
@@ -934,7 +874,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
   if (initLikeDataTimer) clearTimeout(initLikeDataTimer)
 })
 
@@ -1005,95 +944,6 @@ watch(
   background-color: rgba(var(--bs-primary-rgb), 0.02);
 }
 
-/* 表情面板样式 */
-.emoji-picker-panel {
-  max-width: 100%;
-  animation: emojiFadeIn 0.2s ease;
-}
-
-@keyframes emojiFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.emoji-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
-  padding: 6px;
-}
-
-.emoji-grid::-webkit-scrollbar {
-  width: 6px;
-}
-
-.emoji-grid::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.emoji-grid::-webkit-scrollbar-thumb {
-  background: rgba(128, 128, 128, 0.3);
-  border-radius: 3px;
-}
-
-.emoji-grid::-webkit-scrollbar-thumb:hover {
-  background: rgba(128, 128, 128, 0.5);
-}
-
-.emoji-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 4px 8px;
-  font-size: 14px;
-  font-family: 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
-  border: none;
-  background: rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border-radius: 8px;
-  line-height: 1.2;
-  color: inherit;
-  flex-shrink: 0;
-}
-
-.emoji-btn:hover {
-  background: rgba(var(--bs-primary-rgb), 0.2);
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.emoji-btn:active {
-  transform: scale(0.95);
-}
-
-:deep(.nav-pills .nav-link) {
-  transition: all 0.2s ease;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-:deep(.nav-pills .nav-link:hover:not(.active)) {
-  background: rgba(var(--bs-primary-rgb), 0.1);
-  color: var(--bs-primary);
-}
-
-:deep(.nav-pills .nav-link.active) {
-  box-shadow: 0 2px 4px rgba(var(--bs-primary-rgb), 0.3);
-}
-
 /* 深色模式 */
 :deep(.bg-dark) {
   --bs-secondary-subtle: #2b2b2b;
@@ -1103,27 +953,6 @@ watch(
 :deep(.tooltip-dark) {
   --bs-tooltip-bg: #333;
   --bs-tooltip-color: #fff;
-}
-
-/* 深色模式下的表情面板 */
-:deep(.bg-dark) .emoji-grid {
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-}
-
-:deep(.bg-dark) .emoji-grid::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-:deep(.bg-dark) .emoji-btn {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-:deep(.bg-dark) .emoji-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-:deep(.bg-dark) .nav-pills .nav-link:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 /* 移动端适配 */

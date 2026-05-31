@@ -57,8 +57,8 @@
 
 <script setup>
 import { ref, reactive, onMounted, watch, nextTick } from 'vue'
-import axios from '@/utils/request'
-import Toast from '@/utils/toast'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
 
 // 模态框实例
 let modalInstance = null
@@ -90,7 +90,7 @@ const method = {
         state.status.loading = true
 
         try {
-            const { code, data } = await axios.get('/api/config/one', {
+            const { code, data } = await request.get('/api/config/one', {
                 key: 'SYSTEM_API_KEY'
             })
 
@@ -106,7 +106,7 @@ const method = {
     },
     show() {
         if (!state.status.finish) {
-            Toast.warning('API KEY配置获取失败，无法进行配置！')
+            toast.warning('API KEY配置获取失败，无法进行配置！')
             return
         }
         
@@ -124,19 +124,19 @@ const method = {
     change: async (event) => {
         const value = event.target.checked
         try {
-            const { code, msg } = await axios.post('/api/config/save', {
+            const { code, msg } = await request.post('/api/config/save', {
                 key: 'SYSTEM_API_KEY',
                 value: value ? 1 : 0
             })
 
             if (code !== 200) {
                 state.status.active = !value
-                Toast.error(msg)
+                toast.error(msg)
             }
         } catch (error) {
             console.error('保存配置失败:', error)
             state.status.active = !value
-            Toast.error('保存失败：网络错误')
+            toast.error('保存失败：网络错误')
         }
     },
 }

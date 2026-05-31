@@ -191,10 +191,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from '@/utils/request'
-import Toast from '@/utils/toast'
-import cache from '@/utils/cache'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { request as axios } from '@/utils/network'
+import { toast } from '@/utils/app'
+import { cache } from '@/utils/network'
+import { usePageTitle } from '@/utils/app'
+import { STORAGE_KEYS } from '@/constants'
 
 // Router
 const router = useRouter()
@@ -216,8 +217,8 @@ const selectedIndex = ref(-1) // 当前选中的搜索结果索引
 
 // 热门搜索关键词
 const hotSearches = [
-  'Vue',
-  'React',
+  '随记',
+  '旅行',
   'JavaScript',
   'TypeScript',
   'Node.js',
@@ -259,41 +260,33 @@ watch(searchScope, (newScope) => {
 
 // 加载搜索历史
 const loadSearchHistory = () => {
-  const history = localStorage.getItem('search-history')
+  const history = localStorage.getItem(STORAGE_KEYS.SEARCH_HISTORY)
   if (history) {
     searchHistory.value = JSON.parse(history)
   }
 }
 
-// 保存搜索历史
 const saveSearchHistory = (query) => {
   if (!query) return
   
-  // 移除重复项
   searchHistory.value = searchHistory.value.filter(item => item !== query)
-  
-  // 添加到开头
   searchHistory.value.unshift(query)
   
-  // 限制历史记录数量
   if (searchHistory.value.length > 10) {
     searchHistory.value = searchHistory.value.slice(0, 10)
   }
   
-  // 保存到 localStorage
-  localStorage.setItem('search-history', JSON.stringify(searchHistory.value))
+  localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(searchHistory.value))
 }
 
-// 清除搜索历史
 const clearSearchHistory = () => {
   searchHistory.value = []
-  localStorage.removeItem('search-history')
+  localStorage.removeItem(STORAGE_KEYS.SEARCH_HISTORY)
 }
 
-// 删除单条搜索历史
 const removeSearchHistory = (index) => {
   searchHistory.value.splice(index, 1)
-  localStorage.setItem('search-history', JSON.stringify(searchHistory.value))
+  localStorage.setItem(STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(searchHistory.value))
 }
 
 // 使用搜索历史
@@ -490,7 +483,7 @@ const performSearch = async () => {
     saveSearchHistory(query)
   } catch (error) {
     console.error('搜索失败:', error)
-    Toast.error('搜索失败，请稍后重试')
+    toast.error('搜索失败，请稍后重试')
   } finally {
     loading.value = false
   }
@@ -644,7 +637,7 @@ const navigateToResult = (result) => {
       if (result.key) {
         router.push(`/${result.key}`)
       } else {
-        Toast.error('页面路径无效，无法跳转')
+        toast.error('页面路径无效，无法跳转')
       }
       break
     case 'tag':

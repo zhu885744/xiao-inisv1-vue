@@ -1177,10 +1177,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useCommStore } from '@/store/comm'
-import toast from '@/utils/toast'
-import request from '@/utils/request'
-import cache from '@/utils/cache'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { toast, request, usePageTitle } from '@/utils/app'
+import { cache as networkCache } from '@/utils/network'
 
 const store = useCommStore()
 

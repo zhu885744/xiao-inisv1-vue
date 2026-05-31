@@ -104,10 +104,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '@/utils/request'
-import { list as getMenuList } from '@/utils/menu'
+import { request } from '@/utils/network'
+import { menu } from '@/utils/app'
 import { useCommStore } from '@/store/comm'
-import Toast from '@/utils/toast'
+import { toast } from '@/utils/app'
 import defaultAvatar from '@/assets/img/avatar.png'
 
 // 导航项数据
@@ -158,7 +158,7 @@ const handleAvatarError = (event) => {
 // 退出登录
 const handleLogout = async () => {
   try {
-    const response = await axios.del('/api/comm/logout')
+    const response = await request.del('/api/comm/logout')
     
     if (response.code === 200) {
       // 清理状态
@@ -168,14 +168,14 @@ const handleLogout = async () => {
       // 清理缓存
       localStorage.removeItem('user-info')
       
-      Toast.success('已退出登录')
+      toast.success('已退出登录')
       // 跳转到首页
       router.push('/')
     } else {
-      Toast.error(response.msg || '退出登录失败')
+      toast.error(response.msg || '退出登录失败')
     }
   } catch (error) {
-    Toast.error('网络异常，已本地退出登录')
+    toast.error('网络异常，已本地退出登录')
     // 兜底清理
     store.comm.login.finish = false
     store.comm.login.user = null
@@ -195,7 +195,7 @@ const fetchSiteInfo = async () => {
 // 获取菜单数据
 const fetchMenuList = async () => {
   try {
-    const menuData = await getMenuList()
+    const menuData = await menu.getMenuList()
     menuList.value = menuData
   } catch (error) {
     console.error('获取菜单数据失败:', error)

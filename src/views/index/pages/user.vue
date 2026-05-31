@@ -96,7 +96,7 @@ import { onMounted } from 'vue'
 import BasicInfoSettings from '@/comps/user/settings/basic-info.vue'
 import AccountSecuritySettings from '@/comps/user/settings/account-security.vue'
 import ContactInfoSettings from '@/comps/user/settings/contact-info.vue'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { usePageTitle } from '@/utils/app'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();

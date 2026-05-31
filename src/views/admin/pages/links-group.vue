@@ -240,8 +240,8 @@
 <script setup>
 import { ref, reactive, onMounted, watch, computed } from 'vue'
 import utils from '@/utils/utils'
-import axios from '@/utils/request.js'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { request } from '@/utils/network.js'
+import { usePageTitle } from '@/utils/app'
 
 // 页面标题管理
 const { setDynamicTitle } = usePageTitle()
@@ -318,7 +318,7 @@ const method = {
                 ]
             }
             
-            const { data, code } = await axios.get('/api/links-group/all', { params })
+            const { data, code } = await request.get('/api/links-group/all', { params })
             if (code === 200) {
                 state.groups = data.data || []
                 state.item.count = data.count || 0
@@ -344,7 +344,7 @@ const method = {
                 ]
             }
             
-            const { data, code } = await axios.get('/api/links-group/all', { params })
+            const { data, code } = await request.get('/api/links-group/all', { params })
             if (code === 200) {
                 state.recycleGroups = data.data || []
             }
@@ -383,10 +383,10 @@ const method = {
             let response
             if (state.groupModal.id) {
                 // 更新分组
-                response = await axios.put('/api/links-group/update', state.groupModal)
+                response = await request.put('/api/links-group/update', state.groupModal)
             } else {
                 // 创建分组
-                response = await axios.post('/api/links-group/create', state.groupModal)
+                response = await request.post('/api/links-group/create', state.groupModal)
             }
             
             if (response.code === 200) {
@@ -412,7 +412,7 @@ const method = {
         
         try {
             const uri = `/api/links-group/${isSoft ? 'remove' : 'delete'}`
-            const { code, msg } = await axios.del(uri, { ids: [id] })
+            const { code, msg } = await request.del(uri, { ids: [id] })
             if (code === 200) {
                 // 重新加载分组数据
                 method.loadGroups()
@@ -428,7 +428,7 @@ const method = {
     // 恢复分组
     restoreGroup: async (id) => {
         try {
-            const { code, msg } = await axios.put('/api/links-group/restore', { ids: [id] })
+            const { code, msg } = await request.put('/api/links-group/restore', { ids: [id] })
             if (code === 200) {
                 // 重新加载分组数据
                 method.loadGroups()
@@ -446,7 +446,7 @@ const method = {
         if (!confirm('确定要清空回收站吗？此操作将永久删除所有回收站中的分组，不可恢复！')) return
         
         try {
-            const { code, msg } = await axios.del('/api/links-group/clear')
+            const { code, msg } = await request.del('/api/links-group/clear')
             if (code === 200) {
                 // 重新加载回收站数据
                 method.loadRecycleGroups()

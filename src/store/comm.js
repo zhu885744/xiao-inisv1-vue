@@ -1,9 +1,10 @@
 // 通用状态管理
 import { defineStore } from 'pinia'
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
-import { push } from '@/utils/route'
+import { request as axios } from '@/utils/network'
+import { route } from '@/utils/app'
+import { STORAGE_KEYS } from '@/constants'
 
 // 定义Token名称（和后端配置一致）
 const TOKEN_NAME = globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
@@ -110,7 +111,7 @@ const logout = async (state = {}, path = null) => {
 
     // 3. 跳转指定页面（默认首页）
     if (path || path === '') {
-        setTimeout(() => push(path || '/'), 300)
+        setTimeout(() => route.push(path || '/'), 300)
     }
 }
 
@@ -223,7 +224,7 @@ export const useCommStore = defineStore('comm', {
         const cachedUser = cache.get('user-info') || {}
         const hasUser = !utils.is.empty(cachedUser)
         const cachedSiteInfo = cache.get('xiao_functions') || {}
-        const cachedDarkMode = localStorage.getItem('dark-mode') === 'true'
+        const cachedDarkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true'
         
         return {
             auth: {
@@ -311,19 +312,16 @@ export const useCommStore = defineStore('comm', {
          * 切换暗黑模式
          */
         toggleDarkMode() {
-            // 确保darkMode有初始值
             if (this.darkMode === undefined) {
-                this.darkMode = localStorage.getItem('dark-mode') === 'true'
+                this.darkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE) === 'true'
             }
             
             this.darkMode = !this.darkMode
             
-            // 更新HTML的data-bs-theme属性
             const htmlElement = document.documentElement
             htmlElement.setAttribute('data-bs-theme', this.darkMode ? 'dark' : 'light')
             
-            // 保存用户偏好到localStorage
-            localStorage.setItem('dark-mode', this.darkMode.toString())
+            localStorage.setItem(STORAGE_KEYS.DARK_MODE, this.darkMode.toString())
         }
     },
     getters: {

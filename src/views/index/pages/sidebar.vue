@@ -523,10 +523,10 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
-import request from '@/utils/request'
+import { request } from '@/utils/network'
 import utils from '@/utils/utils'
-import Toast from '@/utils/toast'
-import cache from '@/utils/cache'
+import { toast } from '@/utils/app'
+import { cache } from '@/utils/network'
 import defaultAvatar from '@/assets/img/avatar.png'
 
 const router = useRouter()
@@ -1173,12 +1173,12 @@ const initUserStats = async () => {
 
 const doSign = async () => {
   if (!store.comm.login.finish || !store.comm.login.user) {
-    Toast.warning('请先登录')
+    toast.warning('请先登录')
     return
   }
   
   if (hasSigned.value) {
-    Toast.info('今日已签到')
+    toast.info('今日已签到')
     return
   }
   
@@ -1189,15 +1189,15 @@ const doSign = async () => {
     if (response.code === 200) {
       hasSigned.value = true
       signDays.value += 1
-      Toast.success(`签到成功！获得 ${response.data?.exp || 10} 点经验`)
+      toast.success(`签到成功！获得 ${response.data?.exp || 10} 点经验`)
       // 刷新等级排行
       getLevelRank()
     } else {
-      Toast.error(response.msg || '签到失败')
+      toast.error(response.msg || '签到失败')
     }
   } catch (error) {
     // console.error('签到失败：', error)
-    Toast.error('网络异常，签到失败')
+    toast.error('网络异常，签到失败')
   } finally {
     signLoading.value = false
   }

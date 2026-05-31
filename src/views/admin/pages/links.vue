@@ -338,11 +338,11 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils'
-import { push } from '@/utils/route'
+import { route } from '@/utils/app'
 import TableLinks from '@/comps/admin/table/links.vue'
-import cache from '@/utils/cache.js'
-import { usePageTitle } from '@/utils/usePageTitle'
-import axios from '@/utils/request.js'
+import { cache } from '@/utils/network.js'
+import { usePageTitle } from '@/utils/app'
+import { request } from '@/utils/network.js'
 
 // 组件引用
 const refs = {
@@ -461,10 +461,10 @@ const method = {
             let response
             if (state.linkModal.id) {
                 // 更新友链
-                response = await axios.put('/api/links/update', state.linkModal)
+                response = await request.put('/api/links/update', state.linkModal)
             } else {
                 // 创建友链
-                response = await axios.post('/api/links/create', state.linkModal)
+                response = await request.post('/api/links/create', state.linkModal)
             }
             
             if (response.code === 200) {
@@ -529,7 +529,7 @@ const method = {
     // 加载分组数据
     loadGroups: async () => {
         try {
-            const { data, code } = await axios.get('/api/links-group/all')
+            const { data, code } = await request.get('/api/links-group/all')
             if (code === 200) {
                 state.groups = data.data || []
             }
@@ -562,10 +562,10 @@ const method = {
             let response
             if (state.groupModal.id) {
                 // 更新分组
-                response = await axios.put('/api/links-group/update', state.groupModal)
+                response = await request.put('/api/links-group/update', state.groupModal)
             } else {
                 // 创建分组
-                response = await axios.post('/api/links-group/create', state.groupModal)
+                response = await request.post('/api/links-group/create', state.groupModal)
             }
             
             if (response.code === 200) {
@@ -590,7 +590,7 @@ const method = {
         if (!confirm('确定要删除这个分组吗？')) return
         
         try {
-            const { code, msg } = await axios.del('/api/links-group/remove', { ids: [id] })
+            const { code, msg } = await request.del('/api/links-group/remove', { ids: [id] })
             if (code === 200) {
                 // 重新加载分组数据
                 await method.loadGroups()

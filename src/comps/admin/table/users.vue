@@ -106,7 +106,7 @@
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import utils from '@/utils/utils.js'
-import axios from '@/utils/request.js'
+import { request } from '@/utils/network.js'
 import iTable from '@/comps/custom/i-table.vue'
 
 const router = useRouter()
@@ -206,7 +206,7 @@ const method = {
         }
 
         try {
-            const { code, msg } = await axios.put('/api/users/status', {
+            const { code, msg } = await request.put('/api/users/status', {
                 id: struct.id,
                 status: newStatus
             })
@@ -232,7 +232,7 @@ const method = {
         }
 
         const uri = `/api/${state.item.table}/${isSoft ? 'remove' : 'delete'}`
-        const { code, msg } = await axios.del(uri, { ids })
+        const { code, msg } = await request.del(uri, { ids })
         if (code !== 200) {
             alert('删除失败：' + msg)
             return
@@ -243,7 +243,7 @@ const method = {
     },
     async restore(ids = []) {
         if (utils.is.empty(ids)) return
-        const { code, msg } = await axios.put(`/api/${state.item.table}/restore`, { ids })
+        const { code, msg } = await request.put(`/api/${state.item.table}/restore`, { ids })
         if (code !== 200) {
             alert('恢复失败：' + msg)
             return

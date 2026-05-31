@@ -194,9 +194,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import iTable from '@/comps/custom/i-table.vue'
-import request from '@/utils/request'
-import toast from '@/utils/toast'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
+import { usePageTitle } from '@/utils/app'
 
 // 页面标题管理
 const { setDynamicTitle } = usePageTitle()

@@ -5,7 +5,7 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import toast from '@/utils/toast.js'
+import { toast } from '@/utils/app'
 
 // 使用普通对象，确保不是响应式的
 const state = {

@@ -177,7 +177,7 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
+import { request } from '@/utils/network'
 import { getCurrentInstance } from 'vue'
 
 const emit = defineEmits(['selection:change'])
@@ -313,7 +313,7 @@ const method = {
         error.value = false
 
         try {
-            const { data, code, msg } = await axios[state.config.opts.method](state.config.opts.url, {
+            const { data, code, msg } = await request[state.config.opts.method](state.config.opts.url, {
                 page, limit, order: state.item.order, ...state.config.opts.params
             })
 

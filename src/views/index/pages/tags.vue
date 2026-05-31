@@ -233,8 +233,8 @@
 <script setup>
 import { ref, onMounted, watch, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import request from '@/utils/request'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { request } from '@/utils/network'
+import { usePageTitle } from '@/utils/app'
 
 // 定义组件属性
 const props = defineProps({

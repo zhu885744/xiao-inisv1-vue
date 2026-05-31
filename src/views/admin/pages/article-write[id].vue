@@ -243,13 +243,13 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
+import { request } from '@/utils/network'
 import IMdEditor from '@/comps/custom/i-md-editor.vue'
 import { useCommStore } from '@/store/comm'
-import { usePageTitle } from '@/utils/usePageTitle'
-import toast from '@/utils/toast'
+import { usePageTitle } from '@/utils/app'
+import { toast } from '@/utils/app'
 
 // 路由和状态管理
 const route = useRoute()
@@ -343,7 +343,7 @@ const method = {
     // 获取文章信息
     getArticle: async (id = null) => {
         try {
-            const { code, msg, data } = await axios.get('/api/article/one', { id })
+            const { code, msg, data } = await request.get('/api/article/one', { id })
             if (code !== 200) {
                 await router.push({ path: '/admin/article/write' })
                 toast.info(`已为您跳转到文章撰写页！${msg}`)
@@ -508,7 +508,7 @@ const method = {
                     const formData = new FormData()
                     formData.append('file', file)
 
-                    const { code, msg, data } = await axios.post('/api/file/upload', formData, {
+                    const { code, msg, data } = await request.post('/api/file/upload', formData, {
                         headers: method.headers()
                     })
 

@@ -268,7 +268,7 @@
                     <p class="article-desc text-muted text-sm mb-3 flex-grow-1">{{ article.abstract || '暂无摘要' }}</p>
                     <div class="d-flex align-items-center justify-content-between text-sm text-muted flex-shrink-0">
                       <span class="article-category">{{ article?.result?.group?.[0]?.name || '未分类' }}</span>
-                      <span class="article-date">{{ formatDate(article.publish_time) }}</span>
+                      <span class="article-date">{{ formatters.formatDate(article.publish_time) }}</span>
                     </div>
                   </div>
                 </div>
@@ -311,14 +311,14 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import request from '@/utils/request'
-import toast from '@/utils/toast'
-import cache from '@/utils/cache'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
+import { cache } from '@/utils/network'
 import defaultAvatar from '@/assets/img/avatar.png'
 import defaultBanner from '@/assets/img/fm.avif'
 import defaultCover from '@/assets/img/fm.avif'
 import { useCommStore } from '@/store/comm'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { usePageTitle, formatters } from '@/utils/app'
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();

@@ -478,12 +478,13 @@
 
 <script setup>
 import { reactive, ref, getCurrentInstance, onUnmounted, computed, watch } from 'vue'
-import cache from '@/utils/cache.js'
+import { cache } from '@/utils/network.js'
 import utils from '@/utils/utils.js'
-import axios from '@/utils/request.js'
+import { request } from '@/utils/network.js'
 import cryptoUtil from '@/utils/crypto'
 import { useCommStore } from '@/store/comm'
 import { useConfigStore } from '@/store/config'
+import { toast } from '@/utils/app'
 
 const { proxy } = getCurrentInstance()
 const emit = defineEmits(['finish'])
@@ -951,23 +952,10 @@ const cryptoUtils = {
 
 const showNotification = (message, type = 'info') => {
     try {
-        if (typeof window !== 'undefined' && window.Toast) {
-            const toastType = type === 'success' ? 'success' : 
-                           type === 'error' ? 'error' : 
-                           type === 'warning' ? 'warning' : 'info'
-            
-            if (window.Toast[toastType]) {
-                window.Toast[toastType](message)
-                return
-            }
-        }
-        
-        if (typeof window !== 'undefined' && window.$toast) {
-            if (window.$toast[type]) {
-                window.$toast[type](message)
-                return
-            }
-        }
+        const toastType = type === 'success' ? 'success' : 
+                       type === 'error' ? 'error' : 
+                       type === 'warning' ? 'warning' : 'info'
+        toast[toastType](message)
     } catch (error) {
         // 忽略显示消息失败的错误
     }
@@ -1097,7 +1085,7 @@ const method = {
                 password: AES.encrypt(state.struct.password)
             }
 
-            const { data, code, msg } = await axios.post('/api/comm/login', params, {
+            const { data, code, msg } = await request.post('/api/comm/login', params, {
                 headers: {
                     'X-Khronos': unix,
                     'X-Gorgon': `${safeKey} ${safeIv}`,
@@ -1201,7 +1189,7 @@ const method = {
         state.item.wait = true
 
         try {
-            const { code, msg, data } = await axios.post('/api/comm/register', {
+            const { code, msg, data } = await request.post('/api/comm/register', {
                 ...state.struct, 
                 password: state.password.value
             })
@@ -1243,7 +1231,7 @@ const method = {
 
         try {
             state.item.wait = true
-            const { code: resCode, msg } = await axios.post('/api/comm/reset-password', {
+            const { code: resCode, msg } = await request.post('/api/comm/reset-password', {
                 ...state.struct, 
                 password: state.password.value
             })
@@ -1301,7 +1289,7 @@ const method = {
 
         try {
             state.item.loading = true
-            const { code: resCode, msg } = await axios.post(type === 'register' ? '/api/comm/register' : '/api/comm/reset-password', {
+            const { code: resCode, msg } = await request.post(type === 'register' ? '/api/comm/register' : '/api/comm/reset-password', {
                 social,
                 account: state.struct.account
             })
@@ -1526,7 +1514,7 @@ const method = {
     // 获取unix时间戳方法
     async unix() {
         try {
-            const { code, data } = await axios.get('/dev/info/time', {
+            const { code, data } = await request.get('/dev/info/time', {
                 timeout: 5000
             })
             if (code === 200 && data.unix && typeof data.unix === 'number') {

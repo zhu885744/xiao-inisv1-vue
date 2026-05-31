@@ -95,7 +95,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils.js'
-import axios from '@/utils/request.js'
+import { request } from '@/utils/network.js'
 import { useRouter } from 'vue-router'
 import iTable from '@/comps/custom/i-table.vue'
 
@@ -186,7 +186,7 @@ const method = {
         }
 
         const uri = `/api/${state.item.table}/${isSoft ? 'remove' : 'delete'}`
-        const { code, msg } = await axios.del(uri, { ids })
+        const { code, msg } = await request.del(uri, { ids })
         if (code !== 200) {
             alert('删除失败：' + msg)
             return
@@ -197,7 +197,7 @@ const method = {
     },
     async restore(ids = []) {
         if (utils.is.empty(ids)) return
-        const { code, msg } = await axios.put(`/api/${state.item.table}/restore`, { ids })
+        const { code, msg } = await request.put(`/api/${state.item.table}/restore`, { ids })
         if (code !== 200) {
             alert('恢复失败：' + msg)
             return
@@ -229,7 +229,7 @@ const method = {
             return
         }
 
-        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
+        const { code, msg } = await request.del(`/api/${state.item.table}/clear`)
         if (code !== 200) {
             alert('清空失败：' + msg)
             return

@@ -1,8 +1,8 @@
 // 权限规则状态管理
 import { defineStore } from 'pinia'
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
+import { request as axios } from '@/utils/network'
 
 // 规则树
 const tree = (state = {}) => {

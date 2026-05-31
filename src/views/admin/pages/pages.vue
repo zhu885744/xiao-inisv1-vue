@@ -93,10 +93,10 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils'
-import { push } from '@/utils/route'
+import { route } from '@/utils/app'
 import TablePages from '@/comps/admin/table/pages.vue'
-import cache from '@/utils/cache.js'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { cache } from '@/utils/network.js'
+import { usePageTitle } from '@/utils/app'
 
 const refs = {
   all: ref(null),
@@ -136,7 +136,7 @@ const method = {
         for (let item in state.params) state.params[item].order = order
         method.refresh('all', 'remove')
     },
-    add: () => push({ name: 'admin-pages-write' }),
+    add: () => route.push({ name: 'admin-pages-write' }),
     refresh(...args) {
         let allow = ['all', 'remove']
         if (args.length === 0) args = allow

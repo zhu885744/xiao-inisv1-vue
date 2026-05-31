@@ -116,9 +116,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import request from '@/utils/request'
+import { request } from '@/utils/network'
 import defaultAvatar from '@/assets/img/avatar.png'
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import { useCommStore } from '@/store/comm'
 
 const router = useRouter()

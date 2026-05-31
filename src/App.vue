@@ -57,9 +57,9 @@ import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
 import ConfigInit from '@/comps/config/init.vue'
 import iFloatButtons from '@/comps/custom/i-float-buttons.vue'
-import socket from '@/utils/socket'
+import { socketManager as socket } from '@/utils/network'
 import { useCommStore } from '@/store/comm'
-import request from '@/utils/request'
+import { request } from '@/utils/network'
 
 const navRef = ref(null)
 const store = useCommStore()

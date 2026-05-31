@@ -1,7 +1,7 @@
 // 权限页面状态管理
 import { defineStore } from 'pinia'
-import cache from '@/utils/cache'
-import axios from '@/utils/request'
+import { cache } from '@/utils/network'
+import { request as axios } from '@/utils/network'
 
 // 规则扁平化
 const flat = (state = {}) => {

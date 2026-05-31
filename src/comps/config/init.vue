@@ -127,14 +127,14 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import config from '@/utils/config'
-import toast from '@/utils/toast'
+import { config } from '@/utils/app'
+import { toast } from '@/utils/app'
 
 const showConfigModal = ref(false)
 const configForm = ref({
   api_uri: 'https://cs.zhuxu.asia',
   socket_uri: '',
-  router_mode: 'hash',
+  router_mode: 'history',
   api_key: '',
   base_url: '/',
   token_name: 'INIS_LOGIN_TOKEN',

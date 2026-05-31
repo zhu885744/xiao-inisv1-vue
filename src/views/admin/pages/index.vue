@@ -519,8 +519,8 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import socket from '@/utils/socket';
-import { usePageTitle } from '@/utils/usePageTitle';
+import { socketManager as socket } from '@/utils/network';
+import { usePageTitle } from '@/utils/app';
 
 // 使用页面标题管理
 const { setDynamicTitle } = usePageTitle();

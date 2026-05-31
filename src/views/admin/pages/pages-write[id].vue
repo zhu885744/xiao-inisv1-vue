@@ -85,12 +85,12 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
+import { request } from '@/utils/network'
 import IMdEditor from '@/comps/custom/i-md-editor.vue'
-import { usePageTitle } from '@/utils/usePageTitle'
-import toast from '@/utils/toast'
+import { usePageTitle } from '@/utils/app'
+import { toast } from '@/utils/app'
 
 const route = useRoute()
 const router = useRouter()
@@ -192,7 +192,7 @@ const method = {
             if (state.item.id) {
                 response = await axios.put('/api/pages/update', saveData)
             } else {
-                response = await axios.post('/api/pages/create', saveData)
+                  response = await request.post('/api/pages/create', saveData)
             }
 
             const { code, msg, data } = response

@@ -347,13 +347,14 @@
 
 <script setup>
 import { ref, onMounted, computed, nextTick, reactive, watch, onUpdated } from 'vue'
-import axios from '@/utils/request'
+import { request } from '@/utils/network'
 import utils from '@/utils/utils'
-import Toast from '@/utils/toast'
-import cache from '@/utils/cache'
+import { toast } from '@/utils/app'
+import { cache } from '@/utils/network'
 import { useRouter } from 'vue-router'
 import { useCommStore } from '@/store/comm'
 import { useConfigStore } from '@/store/config'
+import { STORAGE_KEYS } from '@/constants'
 
 // 引入对话框组件
 import DialogAuth from '@/comps/index/dialog/auth.vue'
@@ -387,29 +388,22 @@ const store = {
 
 // 清除缓存方法
 const clearCache = () => {
-  // 二次确认弹窗
   if (confirm('确定要清除所有缓存吗？此操作不会影响您的登录状态。')) {
-    // 保存用户登录相关的缓存
     const userInfo = cache.get('user-info')
-    const uid = localStorage.getItem('uid')
+    const uid = localStorage.getItem(STORAGE_KEYS.UID)
     
-    // 清除所有缓存
     cache.clear()
-    // 清除localStorage中的相关缓存
-    localStorage.removeItem('search-history')
-    localStorage.removeItem('lastCommentTime')
+    localStorage.removeItem(STORAGE_KEYS.SEARCH_HISTORY)
+    localStorage.removeItem(STORAGE_KEYS.LAST_COMMENT_TIME)
     
-    // 恢复用户登录相关的缓存
     if (userInfo) {
-      cache.set('user-info', userInfo, 7 * 24 * 60) // 保持7天过期时间
+      cache.set('user-info', userInfo, 7 * 24 * 60)
     }
     if (uid) {
-      localStorage.setItem('uid', uid)
+      localStorage.setItem(STORAGE_KEYS.UID, uid)
     }
     
-    // 显示成功提示
-    Toast.success('缓存已清除')
-    // 延迟刷新页面，让提示有足够时间显示
+    toast.success('缓存已清除')
     setTimeout(() => {
       window.location.reload()
     }, 1500)
@@ -492,7 +486,7 @@ const method = {
       store.comm.login.user = user
       closeSidebar()
       // 登录成功提示
-      Toast.success('登录成功')
+      toast.success('登录成功')
       // 重新初始化下拉菜单（用户登录后）
       nextTick(() => {
         initDropdowns()
@@ -501,7 +495,7 @@ const method = {
       // 密码重置成功
       // console.log('密码重置成功')
       // 密码重置成功提示
-      Toast.success('密码重置成功，请登录')
+      toast.success('密码重置成功，请登录')
       method.showLogin()
     }
   },
@@ -510,7 +504,7 @@ const method = {
   logout: async () => {
     try {
       // 1. 调用后端退出登录接口（DELETE 请求）
-      const response = await axios.delete('/api/comm/logout')
+      const response = await request.delete('/api/comm/logout')
       
       // 2. 处理接口响应（根据后端返回状态码判断）
       if (response.code === 200) {
@@ -527,10 +521,10 @@ const method = {
         }
         
         // 成功提示
-        Toast.success('已退出登录')
+        toast.success('已退出登录')
       } else {
         // 接口返回错误
-        Toast.error(response.msg || '退出登录失败')
+        toast.error(response.msg || '退出登录失败')
       }
     } catch (error) {
       // 网络错误/接口调用失败
@@ -542,7 +536,7 @@ const method = {
       store.comm.login.user = null
       
       // 错误提示
-      Toast.error('网络异常，已本地退出登录')
+      toast.error('网络异常，已本地退出登录')
     } finally {
       // 无论成功失败，都关闭侧边栏
       closeSidebar()
@@ -553,7 +547,7 @@ const method = {
   
   // 显示发布文章通知
   showPublishNotification: () => {
-    Toast.info('该功能正在开发中，敬请期待！')
+    toast.info('该功能正在开发中，敬请期待！')
     closeSidebar()
   },
   
@@ -693,7 +687,7 @@ const fetchNavData = async () => {
     
     // 如果缓存不存在，从API获取
     if (!cachedNavItems) {
-      const response = await axios.get('/api/pages/all', {
+      const response = await request.get('/api/pages/all', {
         params: {
           field: 'key,title',
           cache: false
@@ -741,7 +735,7 @@ const fetchCategories = async () => {
     
     // 如果缓存不存在，从API获取
     if (!cachedCategories) {
-      const response = await axios.get('/api/article-group/all', {
+      const response = await request.get('/api/article-group/all', {
         params: {
           field: 'id,key,name',
           cache: false
@@ -778,7 +772,7 @@ const checkSignStatus = async () => {
   if (!store.comm.login.finish || !store.comm.login.user) return
   
   try {
-    const response = await axios.get('/api/exp/check-in/status')
+    const response = await request.get('/api/exp/check-in/status')
     if (response.code === 200) {
       hasSigned.value = response.data?.hasSigned || false
       signDays.value = response.data?.signDays || 0
@@ -790,29 +784,29 @@ const checkSignStatus = async () => {
 
 const doSign = async () => {
   if (!store.comm.login.finish || !store.comm.login.user) {
-    Toast.warning('请先登录')
+    toast.warning('请先登录')
     return
   }
   
   if (hasSigned.value) {
-    Toast.info('今日已签到')
+    toast.info('今日已签到')
     return
   }
   
   try {
     signLoading.value = true
-    const response = await axios.post('/api/exp/check-in')
+    const response = await request.post('/api/exp/check-in')
     
     if (response.code === 200) {
       hasSigned.value = true
       signDays.value += 1
-      Toast.success(`签到成功！获得 ${response.data?.exp || 10} 点经验`)
+      toast.success(`签到成功！获得 ${response.data?.exp || 10} 点经验`)
     } else {
-      Toast.error(response.msg || '签到失败')
+      toast.error(response.msg || '签到失败')
     }
   } catch (error) {
     // console.error('签到失败：', error)
-    Toast.error('网络异常，签到失败')
+    toast.error('网络异常，签到失败')
   } finally {
     signLoading.value = false
   }

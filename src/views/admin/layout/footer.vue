@@ -64,7 +64,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import axios from '@/utils/request'
+import { request } from '@/utils/network'
 import { useCommStore } from '@/store/comm'
 
 // 环境变量

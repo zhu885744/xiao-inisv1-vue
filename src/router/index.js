@@ -9,18 +9,41 @@
  */
 
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
-import cache from '@/utils/cache'
+import { cache, request } from '@/utils/network'
 import utils from '@/utils/utils'
 import { useCommStore } from '@/store/comm'
-import config from '@/utils/config'
-import { setupRouteTitle } from '@/utils/usePageTitle'
-import axios from '@/utils/request'
+import { config } from '@/utils/app'
+const setupRouteTitle = (router) => {
+  router.beforeEach((to, from, next) => {
+    if (to.path !== from.path) {
+      let siteTitle = 'Xiao-INIS'
+      try {
+        siteTitle = config.getSync('title') || siteTitle
+      } catch (error) {
+        console.warn('获取配置失败，使用默认标题')
+      }
+      const pageTitle = to.meta.title || to.name || '未知页面'
+      document.title = `${pageTitle} - ${siteTitle}`
+    }
+    next()
+  })
+}
 
-/** 路由基础路径，从配置读取 */
-const ROUTER_BASE = config.getSync('base_url') || '/'
+const getRouterBase = () => {
+  try {
+    return config.getSync('base_url') || '/'
+  } catch {
+    return '/'
+  }
+}
 
-/** 路由模式（hash/history），从配置读取 */
-const ROUTER_MODE = config.getSync('router_mode') || 'hash'
+const getRouterMode = () => {
+  try {
+    return config.getSync('router_mode') || 'hash'
+  } catch {
+    return 'hash'
+  }
+}
 
 /**
  * 维护模式缓存对象
@@ -223,10 +246,11 @@ const routes = [
  * @returns {RouterHistory} 路由历史对象
  */
 const createRouterHistory = () => {
-  const currentMode = config.getSync('router_mode') || 'hash'
+  const currentMode = getRouterMode()
+  const baseUrl = getRouterBase()
   return currentMode === 'history'
-    ? createWebHistory(ROUTER_BASE)
-    : createWebHashHistory(ROUTER_BASE)
+    ? createWebHistory(baseUrl)
+    : createWebHashHistory(baseUrl)
 }
 
 /**
@@ -264,7 +288,7 @@ const checkMaintenanceMode = async () => {
   }
 
   try {
-    const response = await axios.get('/api/config/one', { key: 'xiao_functions' })
+    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
     if (response.code === 200 && response.data) {
       // 兼容多种数据结构
       const siteInfo = response.data.data?.json || response.data.json || response.data

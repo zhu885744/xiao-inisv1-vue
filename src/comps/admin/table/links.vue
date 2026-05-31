@@ -149,7 +149,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils.js'
-import axios from '@/utils/request.js'
+import { request } from '@/utils/network.js'
 import { useRouter } from 'vue-router'
 import iTable from '@/comps/custom/i-table.vue'
 
@@ -239,7 +239,7 @@ const method = {
     },
     // 审核友链
     async audit(id, audit) {
-        const { code, msg } = await axios.put(`/api/links/update`, { id, audit })
+        const { code, msg } = await request.put(`/api/links/update`, { id, audit })
         if (code !== 200) {
             alert('审核失败：' + msg)
             return
@@ -251,7 +251,7 @@ const method = {
     async batchAudit(audit) {
         if (utils.is.empty(state.item.selection)) return
         const ids = state.item.selection.map(item => item.id)
-        const { code, msg } = await axios.put(`/api/links/update`, { ids, audit })
+        const { code, msg } = await request.put(`/api/links/update`, { ids, audit })
         if (code !== 200) {
             alert('批量审核失败：' + msg)
             return
@@ -273,7 +273,7 @@ const method = {
         
         // 拼接服务地址
         const uri = `/api/${state.item.table}/${isSoft ? 'remove' : 'delete'}`
-        const { code, msg } = await axios.del(uri, { ids })
+        const { code, msg } = await request.del(uri, { ids })
         if (code !== 200) {
             alert('删除失败：' + msg)
             return
@@ -288,7 +288,7 @@ const method = {
     // 恢复数据
     async restore(ids = []) {
         if (utils.is.empty(ids)) return
-        const { code, msg } = await axios.put(`/api/${state.item.table}/restore`, { ids })
+        const { code, msg } = await request.put(`/api/${state.item.table}/restore`, { ids })
         if (code !== 200) {
             alert('恢复失败：' + msg)
             return
@@ -329,7 +329,7 @@ const method = {
             return
         }
         
-        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
+        const { code, msg } = await request.del(`/api/${state.item.table}/clear`)
         if (code !== 200) {
             alert('清空失败：' + msg)
             return

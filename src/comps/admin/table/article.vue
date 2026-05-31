@@ -108,7 +108,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils.js'
-import axios from '@/utils/request.js'
+import { request } from '@/utils/network.js'
 import { useRouter } from 'vue-router'
 import iTable from '@/comps/custom/i-table.vue'
 
@@ -212,7 +212,7 @@ const method = {
         
         // 拼接服务地址
         const uri = `/api/${state.item.table}/${isSoft ? 'remove' : 'delete'}`
-        const { code, msg } = await axios.del(uri, { ids })
+        const { code, msg } = await request.del(uri, { ids })
         if (code !== 200) {
             alert('删除失败：' + msg)
             return
@@ -227,7 +227,7 @@ const method = {
     // 恢复数据
     async restore(ids = []) {
         if (utils.is.empty(ids)) return
-        const { code, msg } = await axios.put(`/api/${state.item.table}/restore`, { ids })
+        const { code, msg } = await request.put(`/api/${state.item.table}/restore`, { ids })
         if (code !== 200) {
             alert('恢复失败：' + msg)
             return

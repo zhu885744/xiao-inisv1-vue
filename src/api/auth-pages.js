@@ -1,7 +1,7 @@
 // 权限页面接口
-import cache from '@/utils/cache'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
-import axios from '@/utils/request'
+import { request } from '@/utils/network'
 
 const authPages = {
     column: (params = {}) => {
@@ -13,7 +13,7 @@ const authPages = {
             if (cache.has(cacheName)) return resolve(cache.get(cacheName))
 
             // 请求数据
-            const { code, msg, data } = await axios.get('/api/auth-pages/column', params).catch(reject)
+            const { code, msg, data } = await request.get('/api/auth-pages/column', params).catch(reject)
 
             if (code !== 200) return resolve(msg)
 

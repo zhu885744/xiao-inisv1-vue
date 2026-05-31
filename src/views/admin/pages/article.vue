@@ -171,11 +171,11 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import utils from '@/utils/utils'
-import { push } from '@/utils/route'
+import { route } from '@/utils/app'
 import AtomArticle from '@/comps/admin/atom/article.vue'
 import TableArticle from '@/comps/admin/table/article.vue'
-import cache from '@/utils/cache.js'
-import { usePageTitle } from '@/utils/usePageTitle'
+import { cache } from '@/utils/network.js'
+import { usePageTitle } from '@/utils/app'
 
 // 组件引用
 const refs = {
@@ -236,7 +236,7 @@ const method = {
         method.refresh('all', 'check', 'audit', 'remove')
     },
     // 添加
-    add: () => push({ name: 'admin-article-write' }),
+    add: () => route.push({ name: 'admin-article-write' }),
     // 刷新
     refresh(...args) {
         // 允许刷新的参数

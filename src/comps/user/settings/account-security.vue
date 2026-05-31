@@ -184,8 +184,8 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import request from '@/utils/request'
-import toast from '@/utils/toast'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
 import { useCommStore } from '@/store/comm'
 
 const store = useCommStore()
@@ -443,7 +443,7 @@ const sendCode = async () => {
     })
     
     if (resCode === 200 || resCode === 201) {
-      toast.success('验证码发送成功！')
+      toast.success(msg || '验证码发送成功！')
       recordSendCode('reset', social)
       startCountdown()
     } else {

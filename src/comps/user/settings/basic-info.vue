@@ -221,10 +221,9 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
-import request from '@/utils/request'
-import toast from '@/utils/toast'
+import { request, uploadImage } from '@/utils/network'
+import { toast } from '@/utils/app'
 import { useCommStore } from '@/store/comm'
-import { uploadImage } from '@/utils/upload'
 import defaultAvatar from '@/assets/img/avatar.png'
 
 const store = useCommStore()

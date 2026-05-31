@@ -115,9 +115,9 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import cache from '@/utils/cache'
-import axios from '@/utils/request'
-import toast from '@/utils/toast'
+import { cache } from '@/utils/network'
+import { request } from '@/utils/network'
+import { toast } from '@/utils/app'
 
 // 模态框实例
 let modalInstance = null
@@ -184,7 +184,7 @@ const method = {
         state.status.loading = true
 
         try {
-            const { code, data } = await axios.get('/api/config/one', {
+            const { code, data } = await request.get('/api/config/one', {
                 key: 'ARTICLE'
             })
 
@@ -226,7 +226,7 @@ const method = {
         state.struct.json.editor = 'md-editor-v3'
         
         try {
-            const { code, msg } = await axios.post('/api/config/save', {
+            const { code, msg } = await request.post('/api/config/save', {
                 ...state.struct,
                 json: JSON.stringify(state.struct.json)
             })
