@@ -1,11 +1,5 @@
 <template>
-  <ConfigInit />
-  
-  <template v-if="$route.path === '/maintenance'">
-    <router-view></router-view>
-  </template>
-  
-  <template v-else-if="$route.path.startsWith('/admin')">
+  <template v-if="$route.path.startsWith('/admin')">
     <router-view key="$route.fullPath" v-slot="{ Component }">
       <transition name="fade" mode="out-in">
         <component :is="Component" />
@@ -55,7 +49,6 @@ import upgradePage from '@/comps/upgrade/page.vue'
 import iNav from '@/views/index/layout/nav.vue'
 import ISidebar from '@/views/index/pages/sidebar.vue'
 import iFooter from '@/views/index/layout/footer.vue'
-import ConfigInit from '@/comps/config/init.vue'
 import iFloatButtons from '@/comps/custom/i-float-buttons.vue'
 import { socketManager as socket } from '@/utils/network'
 import { useCommStore } from '@/store/comm'

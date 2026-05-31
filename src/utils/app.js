@@ -8,64 +8,9 @@ import { request, cache, socketManager, uploadImage } from '@/utils/network'
 
 const DEV = import.meta.env.DEV
 
-const defaultConfig = {
-  title: '朱某的生活印记',
-  api_uri: 'https://cs.zhuxu.asia',
-  socket_uri: 'wss://cs.zhuxu.asia/socket',
-  router_mode: 'history',
-  api_key: '',
-  base_url: '/',
-  token_name: 'INIS_LOGIN_TOKEN',
-  enable_socket: true,
-  socket_debug: false,
-  lazy_time: 500
-}
-
 let cachedConfig = null
 
-const loadConfigFile = async () => {
-  try {
-    const response = await fetch('/config/app.toml')
-    if (response.ok) {
-      const content = await response.text()
-      if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
-        cachedConfig = { ...defaultConfig }
-        return null
-      }
-      const config = {}
-      content.split('\n').forEach(line => {
-        line = line.trim()
-        if (line && !line.startsWith('#')) {
-          const [key, value] = line.split('=').map(item => item.trim())
-          if (key && value) {
-            const cleanedValue = value.replace(/^['"]|['"]$/g, '')
-            if (cleanedValue === 'true') {
-              config[key] = true
-            } else if (cleanedValue === 'false') {
-              config[key] = false
-            } else if (!isNaN(cleanedValue)) {
-              config[key] = Number(cleanedValue)
-            } else {
-              config[key] = cleanedValue
-            }
-          }
-        }
-      })
-      if (Object.keys(config).length === 0) {
-        cachedConfig = { ...defaultConfig }
-        return null
-      }
-      cachedConfig = config
-      return config
-    }
-  } catch (error) {
-  }
-  cachedConfig = { ...defaultConfig }
-  return null
-}
-
 const getConfigSync = (key, defaultValue = null) => {
-  // 优先从 localStorage 读取
   const localKey = `inis_theme_config_${key}`
   const localValue = localStorage.getItem(localKey)
   if (localValue !== null) {
@@ -76,26 +21,19 @@ const getConfigSync = (key, defaultValue = null) => {
     }
   }
   
-  if (import.meta.env.DEV) {
-    const envKey = `VITE_${key.toUpperCase()}`
-    if (import.meta.env[envKey] !== undefined) {
-      return import.meta.env[envKey]
-    }
+  const envKey = `VITE_${key.toUpperCase()}`
+  if (import.meta.env[envKey] !== undefined) {
+    return import.meta.env[envKey]
   }
 
   if (cachedConfig && cachedConfig[key] !== undefined) {
     return cachedConfig[key]
-  }
-
-  if (defaultConfig[key] !== undefined) {
-    return defaultConfig[key]
   }
 
   return defaultValue
 }
 
 const getConfig = async (key, defaultValue = null) => {
-  // 优先从 localStorage 读取
   const localKey = `inis_theme_config_${key}`
   const localValue = localStorage.getItem(localKey)
   if (localValue !== null) {
@@ -106,19 +44,13 @@ const getConfig = async (key, defaultValue = null) => {
     }
   }
   
-  if (import.meta.env.DEV) {
-    const envKey = `VITE_${key.toUpperCase()}`
-    if (import.meta.env[envKey] !== undefined) {
-      return import.meta.env[envKey]
-    }
+  const envKey = `VITE_${key.toUpperCase()}`
+  if (import.meta.env[envKey] !== undefined) {
+    return import.meta.env[envKey]
   }
 
   if (cachedConfig && cachedConfig[key] !== undefined) {
     return cachedConfig[key]
-  }
-
-  if (defaultConfig[key] !== undefined) {
-    return defaultConfig[key]
   }
 
   return defaultValue
@@ -131,236 +63,29 @@ const setConfig = (key, value) => {
   } else {
     localStorage.setItem(localKey, JSON.stringify(value))
   }
-  // 同时更新缓存
   if (cachedConfig) {
     cachedConfig[key] = value
   }
 }
 
-const saveAllConfig = (config) => {
-  const generateTomlContent = (config) => {
-    let content = `# 主题配置文件\n# 生成时间: ${new Date().toISOString()}\n\n`
-    content += '# 站点配置\n'
-    content += `title = "${config.title || '请设置网站名'}"\n`
-    content += `api_uri = "${config.api_uri}"\n`
-    content += `socket_uri = "${config.socket_uri || ''}"\n`
-    content += `router_mode = "${config.router_mode}"\n`
-    content += `api_key = "${config.api_key || ''}"\n`
-    content += `base_url = "${config.base_url}"\n`
-    content += `token_name = "${config.token_name}"\n\n`
-    content += '# 功能配置\n'
-    content += `enable_socket = ${config.enable_socket !== undefined ? config.enable_socket : true}\n`
-    content += `socket_debug = ${config.socket_debug !== undefined ? config.socket_debug : false}\n`
-    content += `lazy_time = ${config.lazy_time}\n`
-    return content
-  }
-  
-  const content = generateTomlContent(config)
-  const blob = new Blob([content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'app.toml'
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 const initConfig = () => {
-  const isDev = import.meta.env.DEV
-  
-  if (isDev) {
-    const envConfig = {
-      title: import.meta.env.VITE_TITLE || defaultConfig.title,
-      api_uri: import.meta.env.VITE_API_URI || defaultConfig.api_uri,
-      socket_uri: import.meta.env.VITE_SOCKET_URI || defaultConfig.socket_uri,
-      router_mode: import.meta.env.VITE_ROUTER_MODE || defaultConfig.router_mode,
-      base_url: import.meta.env.VITE_BASE_URL || defaultConfig.base_url,
-      api_key: import.meta.env.VITE_API_KEY || defaultConfig.api_key,
-      token_name: import.meta.env.VITE_TOKEN_NAME || defaultConfig.token_name,
-      socket_debug: import.meta.env.VITE_SOCKET_DEBUG === 'true' || defaultConfig.socket_debug,
-      lazy_time: parseInt(import.meta.env.VITE_LAZY_TIME) || defaultConfig.lazy_time
-    }
-    cachedConfig = { ...defaultConfig, ...envConfig }
-    return
-  }
-  
-  // 生产环境逻辑
-  try {
-    const xhr = new XMLHttpRequest()
-    xhr.open('GET', '/config/app.toml', false)
-    xhr.send()
-    
-    if (xhr.status === 200) {
-      const content = xhr.responseText
-      if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
-        cachedConfig = { ...defaultConfig }
-        return
-      }
-      const config = {}
-      content.split('\n').forEach(line => {
-        line = line.trim()
-        if (line && !line.startsWith('#')) {
-          const eqIndex = line.indexOf('=')
-          if (eqIndex !== -1) {
-            const key = line.substring(0, eqIndex).trim()
-            let value = line.substring(eqIndex + 1).trim()
-            
-            if (key && value) {
-              let cleanedValue = value
-              
-              if (value.startsWith('"') && value.endsWith('"')) {
-                cleanedValue = value.slice(1, -1)
-              } else if (value.startsWith("'") && value.endsWith("'")) {
-                cleanedValue = value.slice(1, -1)
-              }
-              
-              cleanedValue = cleanedValue.trim()
-              
-              if (cleanedValue.startsWith('`') && cleanedValue.endsWith('`')) {
-                cleanedValue = cleanedValue.slice(1, -1)
-              }
-              
-              cleanedValue = cleanedValue.trim()
-              
-              if (cleanedValue === 'true') {
-                config[key] = true
-              } else if (cleanedValue === 'false') {
-                config[key] = false
-              } else if (!isNaN(cleanedValue) && cleanedValue !== '') {
-                config[key] = Number(cleanedValue)
-              } else {
-                config[key] = cleanedValue
-              }
-            }
-          }
-        }
-      })
-      if (Object.keys(config).length === 0) {
-        cachedConfig = { ...defaultConfig }
-        return
-      }
-      cachedConfig = config
-    } else {
-      cachedConfig = { ...defaultConfig }
-    }
-  } catch (error) {
-    cachedConfig = { ...defaultConfig }
+  cachedConfig = {
+    title: import.meta.env.VITE_TITLE || '',
+    api_uri: import.meta.env.VITE_API_URI || '',
+    socket_uri: import.meta.env.VITE_SOCKET_URI || '',
+    router_mode: import.meta.env.VITE_ROUTER_MODE || 'hash',
+    base_url: import.meta.env.VITE_BASE_URL || '/',
+    api_key: import.meta.env.VITE_API_KEY || '',
+    token_name: import.meta.env.VITE_TOKEN_NAME || '',
+    socket_debug: import.meta.env.VITE_SOCKET_DEBUG === 'true',
+    lazy_time: parseInt(import.meta.env.VITE_LAZY_TIME) || 500
   }
 }
 
 initConfig()
 
 const getAllConfig = () => {
-  if (!cachedConfig) {
-    return { ...defaultConfig }
-  }
-  return cachedConfig
-}
-
-const resetConfig = () => {
-  const generateDefaultTomlContent = () => {
-    let content = `# 主题配置文件\n# 生成时间: ${new Date().toISOString()}\n\n`
-    content += '# 站点配置\n'
-    content += `title = "${defaultConfig.title}"\n`
-    content += `api_uri = "${defaultConfig.api_uri}"\n`
-    content += `socket_uri = "${defaultConfig.socket_uri}"\n`
-    content += `router_mode = "${defaultConfig.router_mode}"\n`
-    content += `api_key = "${defaultConfig.api_key}"\n`
-    content += `base_url = "${defaultConfig.base_url}"\n`
-    content += `token_name = "${defaultConfig.token_name}"\n\n`
-    content += '# 功能配置\n'
-    content += `enable_socket = ${defaultConfig.enable_socket}\n`
-    content += `socket_debug = ${defaultConfig.socket_debug}\n`
-    content += `lazy_time = ${defaultConfig.lazy_time}\n`
-    return content
-  }
-  
-  const content = generateDefaultTomlContent()
-  const blob = new Blob([content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'app.toml'
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-const exportConfig = () => {
-  const config = getAllConfig()
-  const configStr = JSON.stringify(config, null, 2)
-  const blob = new Blob([configStr], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `theme-config-${new Date().toISOString().split('T')[0]}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-const importConfig = (configStr) => {
-  try {
-    const config = JSON.parse(configStr)
-    
-    const generateTomlContent = (config) => {
-      let content = `# 主题配置文件\n# 生成时间: ${new Date().toISOString()}\n\n`
-      content += '# 站点配置\n'
-      content += `title = "${config.title || '请设置网站名'}"\n`
-      content += `api_uri = "${config.api_uri}"\n`
-      content += `socket_uri = "${config.socket_uri || ''}"\n`
-      content += `router_mode = "${config.router_mode}"\n`
-      content += `api_key = "${config.api_key || ''}"\n`
-      content += `base_url = "${config.base_url}"\n`
-      content += `token_name = "${config.token_name}"\n\n`
-      content += '# 功能配置\n'
-      content += `enable_socket = ${config.enable_socket !== undefined ? config.enable_socket : true}\n`
-      content += `socket_debug = ${config.socket_debug !== undefined ? config.socket_debug : false}\n`
-      content += `lazy_time = ${config.lazy_time}\n`
-      return content
-    }
-    
-    const content = generateTomlContent(config)
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'app.toml'
-    a.click()
-    URL.revokeObjectURL(url)
-    
-    return true
-  } catch (error) {
-    return false
-  }
-}
-
-const isConfigInitialized = async () => {
-  try {
-    // 先检查本地存储是否已标记为初始化
-    const localInitialized = localStorage.getItem('inis_theme_initialized')
-    if (localInitialized === 'true') {
-      return true
-    }
-    
-    const response = await fetch('/config/app.toml')
-    if (response.ok) {
-      const content = await response.text()
-      const exists = content.trim() !== '' && 
-             (content.includes('title =') || content.includes('api_uri =')) &&
-             !content.includes('<!DOCTYPE html>') &&
-             !content.includes('<html')
-      if (exists) {
-        localStorage.setItem('inis_theme_initialized', 'true')
-      }
-      return exists
-    }
-    return false
-  } catch (error) {
-    return false
-  }
-}
-
-const markConfigInitialized = () => {
-  localStorage.setItem('inis_theme_initialized', 'true')
+  return cachedConfig || {}
 }
 
 const config = {
@@ -368,12 +93,6 @@ const config = {
   getSync: getConfigSync,
   set: setConfig,
   getAll: getAllConfig,
-  saveAll: saveAllConfig,
-  reset: resetConfig,
-  export: exportConfig,
-  import: importConfig,
-  isInitialized: isConfigInitialized,
-  markInitialized: markConfigInitialized
 }
 
 class Channel {

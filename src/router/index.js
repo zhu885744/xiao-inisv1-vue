@@ -9,19 +9,13 @@
  */
 
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
-import { cache, request } from '@/utils/network'
+import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
 import { useCommStore } from '@/store/comm'
-import { config } from '@/utils/app'
 const setupRouteTitle = (router) => {
   router.beforeEach((to, from, next) => {
     if (to.path !== from.path) {
-      let siteTitle = 'Xiao-INIS'
-      try {
-        siteTitle = config.getSync('title') || siteTitle
-      } catch (error) {
-        console.warn('获取配置失败，使用默认标题')
-      }
+      const siteTitle = import.meta.env.VITE_TITLE || 'Xiao-INIS'
       const pageTitle = to.meta.title || to.name || '未知页面'
       document.title = `${pageTitle} - ${siteTitle}`
     }
@@ -30,37 +24,16 @@ const setupRouteTitle = (router) => {
 }
 
 const getRouterBase = () => {
-  try {
-    return config.getSync('base_url') || '/'
-  } catch {
-    return '/'
-  }
+  return import.meta.env.VITE_BASE_URL || '/'
 }
 
 const getRouterMode = () => {
-  try {
-    return config.getSync('router_mode') || 'hash'
-  } catch {
-    return 'hash'
-  }
-}
-
-/**
- * 维护模式缓存对象
- * 用于减少重复的API请求
- * @property {boolean} enabled - 维护模式是否开启
- * @property {number} lastChecked - 上次检查时间戳
- * @property {number} cacheDuration - 缓存有效期（毫秒），默认1分钟
- */
-let maintenanceModeCache = {
-  enabled: false,
-  lastChecked: 0,
-  cacheDuration: 60 * 1000
+  return import.meta.env.VITE_ROUTER_MODE || 'hash'
 }
 
 /**
  * 路由配置数组
- * 按功能模块分组：重定向、维护页面、核心页面、用户相关、文章相关、分类标签、独立页面、管理路由、404兜底
+ * 按功能模块分组：重定向、核心页面、用户相关、文章相关、分类标签、独立页面、管理路由、404兜底
  * 
  * 路由meta字段说明：
  * - title: 页面标题
@@ -73,14 +46,6 @@ const routes = [
   {
     path: '/index',
     redirect: '/'
-  },
-
-  // ========== 维护页面路由 ==========
-  {
-    path: '/maintenance',
-    name: '维护页面',
-    component: () => import('@/views/maintenance.vue'),
-    meta: { title: '网站维护', requiresAuth: false }
   },
 
   // ========== 核心页面路由 ==========
@@ -274,59 +239,6 @@ const router = createRouter({
 })
 
 /**
- * 检查网站维护模式
- * 优先使用缓存，避免频繁API请求
- * 
- * @returns {Promise<boolean>} 是否开启维护模式
- */
-const checkMaintenanceMode = async () => {
-  const now = Date.now()
-  
-  // 使用缓存结果（有效期1分钟）
-  if (now - maintenanceModeCache.lastChecked < maintenanceModeCache.cacheDuration) {
-    return maintenanceModeCache.enabled
-  }
-
-  try {
-    const response = await request.get('/api/config/one', { key: 'xiao_functions' })
-    if (response.code === 200 && response.data) {
-      // 兼容多种数据结构
-      const siteInfo = response.data.data?.json || response.data.json || response.data
-      
-      // 检查维护模式是否开启（兼容布尔值、字符串、数字）
-      const isEnabled = siteInfo.maintenance?.enabled === true || 
-                        siteInfo.maintenance?.enabled === 'true' ||
-                        siteInfo.maintenance?.enabled === 1
-
-      let isStillEnabled = isEnabled
-      
-      // 检查维护是否已结束
-      if (isEnabled && siteInfo.maintenance?.end_time) {
-        try {
-          const endTime = new Date(siteInfo.maintenance.end_time).getTime()
-          isStillEnabled = now <= endTime
-        } catch (e) {
-          console.error('解析维护结束时间失败:', e)
-        }
-      }
-
-      // 更新缓存
-      maintenanceModeCache = {
-        enabled: isStillEnabled,
-        lastChecked: now,
-        cacheDuration: maintenanceModeCache.cacheDuration
-      }
-      return isStillEnabled
-    }
-  } catch (error) {
-    console.error('检查维护模式失败:', error)
-  }
-  
-  maintenanceModeCache.lastChecked = now
-  return false
-}
-
-/**
  * 检查用户是否具有管理员权限
  * 
  * @param {Object} userInfo - 用户信息对象
@@ -344,48 +256,10 @@ const checkAdminPermission = (userInfo) => {
 }
 
 /**
- * 检查当前登录用户是否为管理员
- * 
- * @returns {Promise<boolean>} 是否为管理员
- */
-const checkCurrentUserAdmin = async () => {
-  try {
-    const commStore = useCommStore()
-    let userInfo = commStore.getLogin.user
-    
-    // 用户信息为空时尝试刷新
-    if (utils.is.empty(userInfo)) {
-      await commStore.checkLoginState()
-      userInfo = commStore.getLogin.user
-      if (utils.is.empty(userInfo)) {
-        return false
-      }
-    }
-    
-    return checkAdminPermission(userInfo)
-  } catch (error) {
-    console.error('检查管理员权限失败:', error)
-    return false
-  }
-}
-
-/**
  * 全局前置守卫
- * 处理维护模式检查和权限校验
+ * 处理权限校验
  */
 router.beforeEach(async (to, from, next) => {
-  if (to.path !== '/maintenance') {
-    const [maintenanceEnabled, isAdmin] = await Promise.all([
-      checkMaintenanceMode(),
-      checkCurrentUserAdmin()
-    ])
-    
-    if (maintenanceEnabled && !isAdmin) {
-      next('/maintenance')
-      return
-    }
-  }
-
   if (to.meta.requiresAuth) {
     const commStore = useCommStore()
     

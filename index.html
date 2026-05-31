@@ -135,49 +135,6 @@
     <script type="module" src="/src/main.js"></script>
 
     <script>
-      // 配置检测脚本
-      const checkConfigStatus = async () => {
-        try {
-          let configExists = false
-          try {
-            const response = await fetch('/config/app.toml')
-            if (response.ok) {
-              const contentType = response.headers.get('content-type')
-              const content = await response.text()
-              configExists = content.trim() !== '' && 
-                           (content.includes('title =') || content.includes('api_uri =')) &&
-                           !content.includes('<!DOCTYPE html>') &&
-                           !content.includes('<html')
-            }
-          } catch (error) {
-            configExists = false
-          }
-          
-          localStorage.removeItem('themeConfig')
-          document.cookie = 'THEME_CONFIG=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-          
-          let configSource = '默认配置'
-          if (configExists) {
-            configSource = '配置文件 (app.toml)'
-          }
-          
-          console.log('=== 配置文件状态 ===')
-          console.log('配置文件是否存在:', configExists)
-          console.log('当前使用的配置来源:', configSource)
-          console.log('================')
-        } catch (error) {
-          console.error('检测配置状态失败:', error)
-        }
-      }
-      
-      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      
-      if (!isDev) {
-        checkConfigStatus()
-      } else {
-        console.log('开发环境：跳过配置文件检测')
-      }
-      
       // 加载页面处理
       const loadingPage = document.getElementById('loadingPage')
       const hideLoading = () => {
