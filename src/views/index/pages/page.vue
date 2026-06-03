@@ -776,7 +776,7 @@ import iComment from '@/comps/custom/i-comment.vue'
 import iEmojiPicker from '@/comps/custom/i-emoji-picker.vue'
 import utils from '@/utils/utils'
 import { cache } from '@/utils/network'
-import { usePageTitle, uploadImage, toast, formatters } from '@/utils/app'
+import { usePageTitle, uploadImage, toast } from '@/utils/app'
 import Sortable from 'sortablejs'
 
 // 状态管理
@@ -922,7 +922,7 @@ const groupLinkMap = computed(() => {
  */
 const formatTime = (timestamp) => {
   if (!timestamp || timestamp === 0) return '未知时间'
-  return formatters.formatDate(timestamp, 'YYYY-MM-DD')
+  return utils.timeToDate(timestamp, 'Y-M-D')
 }
 
 /**

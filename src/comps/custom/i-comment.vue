@@ -296,13 +296,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick, shallowRef } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useCommStore } from '@/store/comm'
 import { request } from '@/utils/network'
 import { toast } from '@/utils/app'
 import iEmojiPicker from './i-emoji-picker.vue'
 import { validateComment, checkRateLimit as checkRateLimitUtil } from '@/utils/app'
-import { formatters } from '@/utils/app'
+import utils from '@/utils/utils'
 import { STORAGE_KEYS } from '@/constants'
 
 /**
@@ -394,9 +394,9 @@ const isLoading = ref(false)
 const showEmojiPicker = ref(false)
 const showReplyEmojiPicker = ref(false)
 
-// 点赞状态（使用shallowRef优化性能）
-const commentLikes = shallowRef(new Map())
-const commentLikeCounts = shallowRef(new Map())
+// 点赞状态
+const commentLikes = ref(new Map())
+const commentLikeCounts = ref(new Map())
 
 // 评论配置
 const commentConfig = ref({})
@@ -570,7 +570,7 @@ const isArticleAuthor = (commentAuthorId) => {
 const processedCommentList = computed(() => {
   const formatTime = (timestamp) => {
     if (!timestamp || timestamp === 0) return '未知时间'
-    return formatters.formatDate(timestamp, 'YYYY-MM-DD HH:mm')
+    return utils.timeToDate(timestamp, 'Y-M-D H:i')
   }
 
   const processReply = (reply) => {
