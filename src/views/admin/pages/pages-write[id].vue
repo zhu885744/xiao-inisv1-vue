@@ -139,7 +139,7 @@ const method = {
     },
     getPage: async (id = null) => {
         try {
-            const { code, msg, data } = await axios.get('/api/pages/one', { id })
+            const { code, msg, data } = await request.get('/api/pages/one', { id })
             if (code !== 200) {
                 await router.push({ path: '/admin/pages/write' })
                 toast.info(`已为您跳转到独立页面编辑页！${msg}`)
@@ -190,7 +190,7 @@ const method = {
 
             let response
             if (state.item.id) {
-                response = await axios.put('/api/pages/update', saveData)
+                response = await request.put('/api/pages/update', saveData)
             } else {
                   response = await request.post('/api/pages/create', saveData)
             }

@@ -392,7 +392,7 @@ onMounted(() => {
 
 /* 深色模式适配 */
 .dark .skeleton-loader {
-  background: linear-gradient(90deg, var(--bs-tertiary-bg-dark) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg-dark) 75%);
+  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg) 75%);
   background-size: 200% 100%;
 }
 

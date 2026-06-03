@@ -203,7 +203,7 @@ const props = defineProps({
                 order: 'descending'
             },
             rowStyle: {
-                backgroundColor: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.8))`,
+                backgroundColor: `rgba(var(--bs-primary-rgb), 0.64)`,
             },
             cellStyle: {
                 backgroundColor: 'transparent',
@@ -214,11 +214,11 @@ const props = defineProps({
                 backgroundColor: 'transparent !important',
             },
             headerCellStyle: {
-                backgroundColor: `rgba(var(--theme-color), var(--theme-opacity))`,
+                backgroundColor: `rgba(var(--bs-primary-rgb), 0.8)`,
                 border: 'unset',
             },
             style: {
-                background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.15))`,
+                background: `rgba(var(--bs-primary-rgb), 0.12)`,
                 backdropFilter: 'blur(10px)',
                 borderRadius: '8px',
             },
@@ -263,7 +263,7 @@ const state = reactive({
                 order: 'descending'
             },
             rowStyle: {
-                backgroundColor: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.8))`,
+                backgroundColor: `rgba(var(--bs-primary-rgb), 0.64)`,
             },
             cellStyle: {
                 backgroundColor: 'transparent',
@@ -273,12 +273,12 @@ const state = reactive({
                 backgroundColor: 'transparent !important',
             },
             headerCellStyle: {
-                backgroundColor: `rgba(var(--theme-color), var(--theme-opacity))`,
+                backgroundColor: `rgba(var(--bs-primary-rgb), 0.8)`,
                 border: 'unset',
             },
             style: {
-                background: `rgba(var(--theme-color), calc(var(--theme-opacity) * 0.65))`,
-                backdropFilter: 'var(--theme-blur)',
+                background: `rgba(var(--bs-primary-rgb), 0.52)`,
+                backdropFilter: 'blur(10px)',
             },
             ...props.table
         },
@@ -517,7 +517,7 @@ method.init()
 .table-responsive {
     border-radius: 0.375rem;
     overflow: hidden;
-    border: 1px solid rgba(var(--bs-border-rgb), 0.2);
+    border: 1px solid var(--bs-border-color);
 }
 
 /* 表格边框 */
@@ -527,7 +527,7 @@ method.init()
 
 .table-bordered th,
 .table-bordered td {
-    border: 1px solid rgba(var(--bs-border-rgb), 0.1);
+    border: 1px solid var(--bs-border-color);
 }
 
 .table-bordered thead th {

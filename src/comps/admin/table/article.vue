@@ -268,7 +268,7 @@ const method = {
             return
         }
         
-        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
+        const { code, msg } = await request.del(`/api/${state.item.table}/clear`)
         if (code !== 200) {
             alert('清空失败：' + msg)
             return
@@ -317,7 +317,7 @@ onMounted(async () => {
     // 初始化Bootstrap tooltip
     if (window.bootstrap) {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new window.bootstrap.Tooltip(tooltipTriggerEl))
+        ;[...tooltipTriggerList].map(tooltipTriggerEl => new window.bootstrap.Tooltip(tooltipTriggerEl))
     }
 })
 

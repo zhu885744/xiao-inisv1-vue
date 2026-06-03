@@ -399,7 +399,7 @@ const method = {
     // 获取文章分组
     getGroup: async () => {
         try {
-            const { code, data } = await axios.get('/api/article-group/column', {
+            const { code, data } = await request.get('/api/article-group/column', {
                 field: 'id,pid,name,avatar'
             })
             if (code !== 200) return
@@ -412,7 +412,7 @@ const method = {
     // 获取文章标签
     getTags: async () => {
         try {
-            const { code, data } = await axios.get('/api/tags/column', {
+            const { code, data } = await request.get('/api/tags/column', {
                 field: 'id,name'
             })
             if (code !== 200) return
@@ -467,10 +467,10 @@ const method = {
             let response
             if (state.item.id) {
                 // 更新文章
-                response = await axios.put('/api/article/update', saveData)
+                response = await request.put('/api/article/update', saveData)
             } else {
                 // 创建文章
-                response = await axios.post('/api/article/create', saveData)
+                response = await request.post('/api/article/create', saveData)
             }
 
             const { code, msg, data } = response
@@ -571,7 +571,7 @@ const addTag = async () => {
         }
 
         // 创建新标签
-        const { code, msg, data } = await axios.post('/api/tags/save', { name: newTag.value })
+        const { code, msg, data } = await request.post('/api/tags/save', { name: newTag.value })
         if (code !== 200) {
             toast.error('添加标签失败：' + msg)
             return

@@ -2059,7 +2059,7 @@ onUnmounted(() => {
   border-radius: 0.5rem;
   margin: 1.5rem auto;
   display: block;
-  box-shadow: var(--bs-shadow-sm);
+  box-shadow: var(--bs-box-shadow-sm);
 }
 .article-content :deep(ul),
 .article-content :deep(ol) {
@@ -2137,15 +2137,15 @@ onUnmounted(() => {
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  background-color: var(--bs-card-bg);
+  background-color: var(--bs-body-bg);
   border: 1px solid var(--bs-border-color);
-  box-shadow: var(--bs-shadow-sm);
+  box-shadow: var(--bs-box-shadow-sm);
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: var(--bs-shadow);
+  box-shadow: var(--bs-box-shadow);
   border-color: var(--bs-border-color-translucent);
 }
 
@@ -2221,17 +2221,17 @@ onUnmounted(() => {
   padding: 0.5rem 1rem;
   border: 1px solid var(--bs-border-color);
   border-radius: 0.375rem;
-  background-color: var(--bs-button-bg);
-  color: var(--bs-button-color);
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .refresh-btn:hover {
-  background-color: var(--bs-button-hover-bg);
-  border-color: var(--bs-button-hover-border-color);
-  color: var(--bs-button-hover-color);
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+  color: var(--bs-white);
 }
 
 .refresh-btn:disabled {
@@ -2364,7 +2364,7 @@ onUnmounted(() => {
 }
 
 .timeline-content {
-  background-color: var(--bs-card-bg);
+  background-color: var(--bs-body-bg);
   border: 1px solid var(--bs-border-color);
   border-radius: 0.75rem;
   padding: 1.25rem;
@@ -2387,7 +2387,7 @@ onUnmounted(() => {
 }
 
 .timeline-content:hover {
-  box-shadow: var(--bs-shadow-lg);
+  box-shadow: var(--bs-box-shadow-lg);
   transform: translateY(-3px);
   border-color: var(--bs-primary);
 }
@@ -2677,13 +2677,13 @@ onUnmounted(() => {
   border: 1px solid var(--bs-border-color);
   border-radius: 0.875rem;
   transition: all 0.3s ease;
-  background-color: var(--bs-card-bg);
+  background-color: var(--bs-body-bg);
   min-height: 120px; /* 长方形高度 */
 }
 
 /* 卡片悬浮效果 */
 .link-card:hover {
-  box-shadow: var(--bs-shadow-lg);
+  box-shadow: var(--bs-box-shadow-lg);
   border-color: var(--bs-border-color-translucent);
   transform: translateY(-3px);
 }
@@ -2826,13 +2826,13 @@ onUnmounted(() => {
   border: 1px solid var(--bs-border-color);
   border-radius: 0.5rem;
   padding: 1rem;
-  background-color: var(--bs-card-bg);
+  background-color: var(--bs-body-bg);
   transition: all 0.3s ease;
 }
 
 .link-card-small:hover {
   transform: translateY(-3px);
-  box-shadow: var(--bs-shadow-lg);
+  box-shadow: var(--bs-box-shadow-lg);
   border-color: var(--bs-primary);
 }
 
@@ -2890,7 +2890,7 @@ onUnmounted(() => {
 }
 
 .message-stats .card:hover {
-  box-shadow: var(--bs-shadow-lg);
+  box-shadow: var(--bs-box-shadow-lg);
   border-color: var(--bs-border-color-translucent);
 }
 
@@ -3058,7 +3058,7 @@ onUnmounted(() => {
 }
 
 .message-display .card:hover {
-  box-shadow: var(--bs-shadow-lg);
+  box-shadow: var(--bs-box-shadow-lg);
   border-color: var(--bs-border-color-translucent);
 }
 

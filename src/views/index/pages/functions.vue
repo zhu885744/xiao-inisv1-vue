@@ -1782,12 +1782,12 @@ onMounted(async () => {
 .error-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--bs-text-primary);
+  color: var(--bs-body-color);
 }
 
 .error-description {
   font-size: 1rem;
-  color: var(--bs-text-muted);
+  color: var(--bs-secondary-color);
   line-height: 1.6;
 }
 
@@ -1806,7 +1806,7 @@ onMounted(async () => {
   padding: 1rem 1.75rem;
   font-weight: 500;
   font-size: 1rem;
-  color: var(--bs-text-muted);
+  color: var(--bs-secondary-color);
   border: none;
   border-radius: 0;
   transition: all 0.3s ease;
@@ -1840,13 +1840,13 @@ onMounted(async () => {
 .section-title {
   font-size: 1.35rem;
   font-weight: 600;
-  color: var(--bs-text-primary);
+  color: var(--bs-body-color);
   margin-bottom: 0.5rem;
 }
 
 .section-description {
   font-size: 0.95rem;
-  color: var(--bs-text-muted);
+  color: var(--bs-secondary-color);
 }
 
 /* Bootstrap 5 卡片样式已内置 */
@@ -1867,7 +1867,7 @@ onMounted(async () => {
 .form-section-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--bs-text-primary);
+  color: var(--bs-body-color);
   margin-bottom: 1.5rem;
 }
 
@@ -1906,7 +1906,7 @@ onMounted(async () => {
 
 .btn-outline-secondary {
   border-color: var(--bs-border-color);
-  color: var(--bs-text-muted);
+  color: var(--bs-secondary-color);
 }
 
 .btn-outline-secondary:hover {
@@ -1931,7 +1931,7 @@ onMounted(async () => {
 .input-group-text {
   border-radius: 0;
   border: 1px solid var(--bs-border-color);
-  background-color: var(--bs-gray-50);
+  background-color: var(--bs-gray-100);
 }
 
 /* 颜色选择器 */
@@ -2015,7 +2015,7 @@ onMounted(async () => {
 /* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
   .config-nav-tabs .nav-link {
-    color: var(--bs-dark-text-muted);
+    color: var(--bs-tertiary-color);
   }
   
   .config-nav-tabs .nav-link:hover {
@@ -2027,14 +2027,14 @@ onMounted(async () => {
   }
   
   .config-card {
-    background-color: var(--bs-dark-bg-subtle);
-    border-color: var(--bs-dark-border-color);
+    background-color: var(--bs-body-bg-subtle);
+    border-color: var(--bs-border-color);
   }
   
   .form-control {
-    background-color: var(--bs-dark-bg);
-    border-color: var(--bs-dark-border-color);
-    color: var(--bs-dark-text);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
   }
   
   .form-control:focus {
@@ -2043,9 +2043,9 @@ onMounted(async () => {
   }
   
   .input-group-text {
-    background-color: var(--bs-dark-bg);
-    border-color: var(--bs-dark-border-color);
-    color: var(--bs-dark-text);
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
   }
 
   /* 隐藏滚动条 */

@@ -115,17 +115,20 @@
                   rel="noopener noreferrer"
                   class="btn btn-primary w-full mb-3"
                 >
-                  <i class="bi bi-download me-2"></i>下载最新版本
+                  <i class="bi bi-download me-2"></i>下载{{ latestVersion.version }}版本源码
                 </a>
                 
-                <!-- 更新步骤提示 -->
+                <!-- 本地打包部署提示 -->
                 <div class="alert alert-info">
-                  <h6 class="fw-bold mb-2">更新步骤：</h6>
+                  <h6 class="fw-bold mb-2">本地打包部署：</h6>
                   <ol class="mb-0 text-body">
-                    <li class="mb-1">删除主题目录内的 <code class="bg-body-secondary">static</code> 文件夹和 <code class="bg-body-secondary">index.html</code> 文件</li>
-                    <li class="mb-1">上传下载的压缩包到主题目录</li>
-                    <li class="mb-1">解压压缩包到主题目录</li>
-                    <li>打开你的主题域名，同时按住快捷键 <kbd>Ctrl+Shift+R</kbd> 强制刷新网页缓存即可！</li>
+                    <li class="mb-1">点击上方按钮下载最新版本源码压缩包</li>
+                    <li class="mb-1">解压源码压缩包到本地目录</li>
+                    <li class="mb-1">在目录下打开终端，执行 <code class="bg-body-secondary">npm install</code> 安装依赖</li>
+                    <li class="mb-1">修改 <code class="bg-body-secondary">.env</code> 文件，将 <code class="bg-body-secondary">VITE_API_URI</code>、<code class="bg-body-secondary">VITE_SOCKET_URI</code> 等配置改为你自己的后端地址</li>
+                    <li class="mb-1">执行 <code class="bg-body-secondary">npm run build</code> 构建生成 <code class="bg-body-secondary">dist</code> 目录</li>
+                    <li class="mb-1">将 <code class="bg-body-secondary">dist</code> 目录内的所有文件上传到你的服务器主题目录</li>
+                    <li class="mb-1">打开你的主题域名，同时按住快捷键 <kbd>Ctrl+Shift+R</kbd> 强制刷新网页缓存即可！</li>
                   </ol>
                 </div>
               </div>

@@ -946,8 +946,8 @@ watch(
 
 /* 深色模式 */
 :deep(.bg-dark) {
-  --bs-secondary-subtle: #2b2b2b;
-  --bs-body-tertiary: #212121;
+  --bs-secondary-bg-subtle: #2b2b2b;
+  --bs-tertiary-color: #212121;
 }
 
 :deep(.tooltip-dark) {

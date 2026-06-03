@@ -114,7 +114,7 @@ const themeVersion = computed(() => THEME_VERSION)
 // 获取系统版本
 const fetchSystemVersion = async () => {
   try {
-    const response = await axios.get('/api/system/info')
+    const response = await request.get('/api/system/info')
     if (response.code === 200 && response.data?.version) {
       systemVersion.value = response.data.version
     }

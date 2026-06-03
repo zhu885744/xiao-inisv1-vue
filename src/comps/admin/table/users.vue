@@ -23,12 +23,12 @@
                         </button>
                     </template>
 
-                    <template v-slot:end-header>
+                    <template #end-header>
                         <th class="text-center" style="width: 160px;">操作</th>
                     </template>
-                    <template v-if="props.type !== 'remove'" v-slot:end="{ scope }">
+                    <template #end="{ scope }">
                         <td class="text-center">
-                            <div class="btn-group" role="group" aria-label="User actions">
+                            <div v-if="props.type !== 'remove'" class="btn-group" role="group" aria-label="User actions">
                                 <button class="btn btn-sm btn-outline-primary" @click="method.edit(scope)" title="编辑">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -42,11 +42,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
-                        </td>
-                    </template>
-                    <template v-if="props.type === 'remove'" v-slot:end="{ scope }">
-                        <td class="text-center">
-                            <div class="btn-group" role="group" aria-label="Recycle actions">
+                            <div v-else class="btn-group" role="group" aria-label="Recycle actions">
                                 <button class="btn btn-sm btn-outline-success" @click="method.restore(scope.id)" title="恢复">
                                     <i class="bi bi-arrow-clockwise"></i>
                                 </button>
@@ -275,7 +271,7 @@ const method = {
             return
         }
 
-        const { code, msg } = await axios.del(`/api/${state.item.table}/clear`)
+        const { code, msg } = await request.del(`/api/${state.item.table}/clear`)
         if (code !== 200) {
             alert('清空失败：' + msg)
             return
@@ -304,7 +300,7 @@ onMounted(async () => {
 
     if (window.bootstrap) {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new window.bootstrap.Tooltip(tooltipTriggerEl))
+        ;[...tooltipTriggerList].map(tooltipTriggerEl => new window.bootstrap.Tooltip(tooltipTriggerEl))
     }
 })
 
