@@ -59,7 +59,7 @@ const selectEmoji = (emoji) => {
 
 const handleClickOutside = (event) => {
   const emojiPickers = event.target.closest('.emoji-picker-panel')
-  const emojiButtons = event.target.closest('.emoji-button')
+  const emojiButtons = event.target.closest('[title="表情"], .emoji-button')
   if (!emojiPickers && !emojiButtons) {
     showPicker.value = false
     emit('update:modelValue', false)

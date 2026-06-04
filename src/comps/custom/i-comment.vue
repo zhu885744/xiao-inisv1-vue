@@ -17,14 +17,16 @@
       
       <!-- 评论输入框：仅登录状态显示 -->
       <div class="mb-5" v-if="isCommentEnabled && isLogin">
-        <textarea 
-          v-model="commentInput"
-          class="form-control border border-secondary-subtle bg-body" 
-          rows="3" 
-          placeholder="请输入你的评论..."
-          :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
-          :maxlength="maxCommentLength"
-        ></textarea>
+        <div class="input-group">
+          <textarea 
+            v-model="commentInput"
+            class="form-control border border-secondary-subtle bg-body" 
+            placeholder="随便说点什么吧..."
+            :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+            :maxlength="maxCommentLength"
+            style="resize: vertical; min-height: 60px;"
+          ></textarea>
+        </div>
         
         <!-- 表情选择面板 -->
         <i-emoji-picker 
@@ -33,22 +35,31 @@
           @select="insertEmoji"
         />
         
-        <!-- 按钮区域：表情按钮和发布评论按钮在同一行 -->
-        <div class="d-flex gap-2 mt-3">
+        <!-- 按钮区域：表情按钮和发布按钮 -->
+        <div class="d-flex gap-2 mt-2 align-items-center">
           <button 
-            @click="toggleEmojiPicker"
-            class="btn btn-outline-secondary btn-sm px-4 emoji-button"
-            :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+            @click.stop="toggleEmojiPicker"
+            class="btn btn-light border border-secondary-subtle emoji-button"
+            :class="{ 'bg-dark border-dark-subtle text-white': isDarkMode }"
+            title="表情"
           >
-            <i class="bi bi-emoji-smile me-1"></i> 表情
+            <i class="bi bi-emoji-smile fs-5"></i>
           </button>
           <button 
+            @click="openImageModal"
+            class="btn btn-light border border-secondary-subtle"
+            :class="{ 'bg-dark border-dark-subtle text-white': isDarkMode }"
+            title="图片"
+          >
+            <i class="bi bi-image fs-5"></i>
+          </button>
+          <div class="flex-grow-1"></div>
+          <button 
               @click="handlePublish"
-              class="btn btn-primary px-4 publish-btn flex-grow-1"
+              class="btn btn-primary px-5 rounded-pill"
               :disabled="!commentInput.trim() || isCommenting"
             >
-              <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
-              {{ isCommenting ? ' 发布中...' : ' 发布评论' }}
+              {{ isCommenting ? '发布中...' : '评论' }}
             </button>
         </div>
       </div>
@@ -84,180 +95,212 @@
       <!-- 评论列表 -->
       <div class="comments-list" v-else-if="isCommentEnabled && processedCommentList.length > 0">
         <div 
-          class="comment-item pb-4 mb-4 border-bottom border-secondary-subtle"
+          class="comment-item pb-3 mb-3"
           v-for="(item, index) in processedCommentList" 
           :key="item.id || index"
         >
-          <div class="d-flex align-items-start mb-3">
+          <!-- 分割线：不是第一个评论时显示 -->
+          <hr v-if="index > 0" class="my-3 border-top border-secondary-subtle" />
+          <div class="d-flex">
+            <!-- 头像 -->
             <img 
               :src="item.avatar || fallbackAvatar" 
-              class="avatar rounded-circle me-3 border border-light shadow-sm" 
+              class="avatar rounded-circle me-3" 
               :alt="item.nickname || '用户头像'"
-              style="width: 50px; height: 50px; object-fit: cover;"
+              style="width: 40px; height: 40px; object-fit: cover; flex-shrink: 0;"
             >
+            
             <div class="flex-grow-1">
-              <h6 class="fw-semibold mb-1">
-                <router-link v-if="item.authorId" :to="`/author/${item.authorId}`" class="text-decoration-none ">
-                  {{ item.nickname || '匿名用户' }}
-                </router-link>
-                <span v-else>{{ item.nickname || '匿名用户' }}</span>
-                <span v-if="item.level" class="badge bg-secondary text-white ms-2 rounded-pill">Lv.{{ item.level }} {{ item.levelName }}</span>
-                <span v-if="item.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
-              </h6>
-              <small class="text-muted">{{ item.time || '未知时间' }}</small>
-            </div>
-          </div>
-          <p class="mb-3 px-2 py-1 bg-body-tertiary" v-html="item.content"></p>
-          
-          <!-- 回复和点赞按钮组 -->
-          <div class="d-flex gap-2">
-            <button 
-              class="btn btn-sm btn-outline-primary" 
-              @click="toggleReplyForm(index)"
-              v-if="isLogin"
-            >
-              <i class="bi bi-reply-fill me-1"></i> 回复
-            </button>
-            <button 
-              class="btn btn-sm btn-outline-secondary disabled" 
-              v-else
-              data-bs-toggle="tooltip"
-              data-bs-title="登录后可回复"
-            >
-              <i class="bi bi-reply-fill me-1"></i> 回复
-            </button>
-            <!-- 点赞/点踩按钮 -->
-            <button 
-              class="btn btn-sm" 
-              :class="getLikeStatus(item.id) ? 'btn-outline-danger' : 'btn-outline-success'"
-              @click="handleCommentLike(item.id)"
-              v-if="isLogin"
-            >
-              <i :class="getLikeStatus(item.id) ? 'bi bi-hand-thumbs-down' : 'bi bi-hand-thumbs-up'"></i>
-              <span class="ms-1">{{ getLikeStatus(item.id) ? '点踩' : '点赞' }}</span>
-              <span class="ms-1">{{ getLikeCount(item.id) }}</span>
-            </button>
-            <button 
-              class="btn btn-sm btn-outline-secondary disabled" 
-              v-else
-              data-bs-toggle="tooltip"
-              data-bs-title="登录后可点赞"
-            >
-              <i class="bi bi-hand-thumbs-up"></i>
-              <span class="ms-1">点赞</span>
-              <span class="ms-1">{{ getLikeCount(item.id) }}</span>
-            </button>
-          </div>
-
-          <!-- 回复输入框 -->
-          <div v-if="showReplyIndex === index || (typeof showReplyIndex === 'string' && showReplyIndex.startsWith(`${index}-`))" class="mt-3 reply-form">
-            <textarea 
-              v-model="replyInput"
-              class="form-control border border-secondary-subtle bg-body" 
-              rows="2" 
-              placeholder="请输入你的回复..."
-              :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
-              :maxlength="maxCommentLength"
-            ></textarea>
-            
-            <!-- 回复表情选择面板 -->
-            <i-emoji-picker 
-              v-model="showReplyEmojiPicker"
-              :is-dark-mode="isDarkMode"
-              @select="insertReplyEmoji"
-            />
-            
-            <!-- 按钮区域 -->
-            <div class="d-flex gap-2 mt-2">
-              <button 
-                @click="toggleReplyEmojiPicker"
-                class="btn btn-sm btn-outline-secondary px-3 emoji-button"
-                :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
-              >
-                <i class="bi bi-emoji-smile me-1"></i> 表情
-              </button>
-              <button 
-                @click="handleSubmitReply()"
-                class="btn btn-sm btn-primary px-3 flex-grow-1"
-                :disabled="!replyInput.trim() || isCommenting"
-              >
-                <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : ''"></i>
-                {{ isCommenting ? ' 发送中...' : ' 发送回复' }}
-              </button>
-              <button 
-                @click="cancelReply"
-                class="btn btn-sm btn-outline-secondary px-3"
-              >
-                取消
-              </button>
-            </div>
-          </div>
-
-          <!-- 评论回复：嵌套展示 -->
-          <div 
-            class="ms-5 mt-3 pt-3 border-top border-secondary-subtle reply-item"
-            v-for="(reply, rIndex) in item.replies" 
-            :key="reply.id || rIndex"
-          >
-            <div class="d-flex align-items-start mb-3">
-              <img 
-                :src="reply.avatar || fallbackAvatar" 
-                class="avatar rounded-circle me-3 border border-light shadow-sm" 
-                :alt="reply.nickname || '用户头像'"
-                style="width: 45px; height: 45px; object-fit: cover;"
-              >
-              <div class="flex-grow-1">
-                <h6 class="fw-semibold mb-1">
-                  <router-link v-if="reply.authorId" :to="`/author/${reply.authorId}`" class="text-decoration-none ">
-                    {{ reply.nickname || '匿名用户' }}
+              <!-- 昵称和徽章 -->
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <h6 class="fw-semibold mb-0 me-2">
+                  <router-link v-if="item.authorId" :to="`/author/${item.authorId}`" class="text-decoration-none text-reset">
+                    {{ item.nickname || '匿名用户' }}
                   </router-link>
-                  <span v-else>{{ reply.nickname || '匿名用户' }}</span>
-                  <span v-if="reply.level" class="badge bg-secondary text-white ms-2 rounded-pill">Lv.{{ reply.level }} {{ reply.levelName }}</span>
-                  <span v-if="reply.isAuthor" class="badge bg-primary text-white ms-2 rounded-pill">作者</span>
+                  <span v-else>{{ item.nickname || '匿名用户' }}</span>
                 </h6>
-                <small class="text-muted">{{ reply.time || '未知时间' }}</small>
+                <span v-if="item.level" class="badge bg-primary text-white rounded-pill" style="font-size: 12px; padding: 4px 10px;">Lv.{{ item.level }} {{ item.levelName }}</span>
+                <span v-if="item.isAuthor" class="badge bg-warning text-dark rounded-pill" style="font-size: 12px; padding: 4px 10px;">作者</span>
               </div>
-            </div>
-            <p class="mb-3 px-2 py-1 bg-body-tertiary" v-html="reply.content"></p>
-            
-            <!-- 回复和点赞按钮组 -->
-            <div class="d-flex gap-2">
-              <button 
-                class="btn btn-sm btn-outline-primary" 
-                @click="toggleReplyForm(index, rIndex)"
-                v-if="isLogin"
-              >
-                <i class="bi bi-reply-fill me-1"></i> 回复
-              </button>
-              <button 
-                class="btn btn-sm btn-outline-secondary disabled" 
-                v-else
-                data-bs-toggle="tooltip"
-                data-bs-title="登录后可回复"
-              >
-                <i class="bi bi-reply-fill me-1"></i> 回复
-              </button>
-              <!-- 点赞/点踩按钮 -->
-              <button 
-                class="btn btn-sm" 
-                :class="getLikeStatus(reply.id) ? 'btn-outline-danger' : 'btn-outline-success'"
-                @click="handleCommentLike(reply.id)"
-                v-if="isLogin"
-              >
-                <i :class="getLikeStatus(reply.id) ? 'bi bi-hand-thumbs-down' : 'bi bi-hand-thumbs-up'"></i>
-                <span class="ms-1">{{ getLikeStatus(reply.id) ? '点踩' : '点赞' }}</span>
-                <span class="ms-1">{{ getLikeCount(reply.id) }}</span>
-              </button>
-              <button 
-                class="btn btn-sm btn-outline-secondary disabled" 
-                v-else
-                data-bs-toggle="tooltip"
-                data-bs-title="登录后可点赞"
-              >
-                <i class="bi bi-hand-thumbs-up"></i>
-                <span class="ms-1">点赞</span>
-                <span class="ms-1">{{ getLikeCount(reply.id) }}</span>
-              </button>
+              
+              <!-- 内容 -->
+              <p class="mb-2 text-reset" v-html="item.content"></p>
+              
+              <!-- 时间、位置和操作按钮 -->
+              <div class="d-flex align-items-center text-muted small mb-2">
+                <span class="me-3">{{ item.time || '未知时间' }}</span>
+                <span v-if="item.location" class="me-3">
+                  <i class="bi bi-geo-alt me-1"></i>{{ item.location }}
+                </span>
+                <span v-if="item.device" class="me-auto">{{ item.device }}</span>
+                
+                <button 
+                  class="btn btn-link btn-sm text-decoration-none text-muted p-0 me-3"
+                  @click="toggleReplyForm(index)"
+                >
+                  <i class="bi bi-emoji-smile me-1"></i>回复
+                </button>
+                
+                <button 
+                  class="btn btn-link btn-sm text-decoration-none text-muted p-0 me-3"
+                  @click="handleCommentLike(item.id)"
+                >
+                  <i :class="getLikeStatus(item.id) ? 'bi bi-hand-thumbs-up-fill text-primary' : 'bi bi-hand-thumbs-up'"></i>
+                  <span class="ms-1">{{ getLikeCount(item.id) || '' }}</span>
+                </button>
+              </div>
+              
+              <!-- 回复输入框 -->
+              <div v-if="showReplyIndex === index" class="mb-3 reply-form">
+                <textarea 
+                  v-model="replyInput"
+                  class="form-control border border-secondary-subtle bg-body mb-2" 
+                  rows="2" 
+                  placeholder="回复评论..."
+                  :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                  :maxlength="maxCommentLength"
+                ></textarea>
+                
+                <!-- 表情选择面板 -->
+                <i-emoji-picker 
+                  v-model="showReplyEmojiPicker"
+                  :is-dark-mode="isDarkMode"
+                  @select="insertReplyEmoji"
+                />
+                
+                <div class="d-flex gap-2">
+                  <button 
+                    @click.stop="toggleReplyEmojiPicker"
+                    class="btn btn-outline-secondary px-4 emoji-button"
+                    :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                  >
+                    <i class="bi bi-emoji-smile me-1"></i>表情
+                  </button>
+                  <button 
+                    @click="handleSubmitReply()"
+                    class="btn btn-primary px-4 publish-btn flex-grow-1"
+                    :disabled="!replyInput.trim() || isCommenting"
+                  >
+                    <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
+                    {{ isCommenting ? ' 发送中...' : ' 发送' }}
+                  </button>
+                </div>
+              </div>
+              
+              <!-- 折叠回复区域 -->
+              <div v-if="item.replies && item.replies.length > 0">
+                <button 
+                  v-if="!expandedReplies.has(item.id)"
+                  class="btn btn-link btn-sm text-decoration-none p-0 text-primary"
+                  @click="toggleExpandReply(item.id)"
+                >
+                  <i class="bi bi-chevron-right me-1"></i>
+                  展开 {{ item.replies.length }} 条回复
+                </button>
+                
+                <div v-else class="mt-2">
+                  <div 
+                    class="reply-item mb-2"
+                    v-for="(reply, rIndex) in item.replies" 
+                    :key="reply.id || rIndex"
+                  >
+                    <div class="d-flex">
+                      <img 
+                        :src="reply.avatar || fallbackAvatar" 
+                        class="avatar rounded-circle me-2" 
+                        :alt="reply.nickname || '用户头像'"
+                        style="width: 32px; height: 32px; object-fit: cover; flex-shrink: 0;"
+                      >
+                      
+                      <div class="flex-grow-1">
+                        <!-- 回复昵称和徽章 -->
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                          <h6 class="fw-semibold mb-0 me-2 small">
+                            <router-link v-if="reply.authorId" :to="`/author/${reply.authorId}`" class="text-decoration-none text-reset">
+                              {{ reply.nickname || '匿名用户' }}
+                            </router-link>
+                            <span v-else>{{ reply.nickname || '匿名用户' }}</span>
+                          </h6>
+                          <span v-if="reply.level" class="badge bg-primary text-white rounded-pill" style="font-size: 11px; padding: 3px 8px;">Lv.{{ reply.level }} {{ reply.levelName }}</span>
+                          <span v-if="reply.isAuthor" class="badge bg-warning text-dark rounded-pill" style="font-size: 11px; padding: 3px 8px;">作者</span>
+                        </div>
+                        
+                        <!-- 回复内容 -->
+                        <p class="mb-1 small text-reset" v-html="reply.content"></p>
+                        
+                        <!-- 时间和操作 -->
+                        <div class="d-flex align-items-center text-muted text-xs">
+                          <span class="me-3">{{ reply.time || '未知时间' }}</span>
+                          <span v-if="reply.location" class="me-3">
+                            <i class="bi bi-geo-alt me-1"></i>{{ reply.location }}
+                          </span>
+                          <span v-if="reply.device" class="me-auto">{{ reply.device }}</span>
+                          
+                          <button 
+                            class="btn btn-link btn-sm text-decoration-none text-muted p-0 me-2"
+                            @click="toggleReplyForm(index, rIndex)"
+                          >
+                            <i class="bi bi-emoji-smile me-1"></i>回复
+                          </button>
+                          
+                          <button 
+                            class="btn btn-link btn-sm text-decoration-none text-muted p-0 me-2"
+                            @click="handleCommentLike(reply.id)"
+                          >
+                            <i :class="getLikeStatus(reply.id) ? 'bi bi-hand-thumbs-up-fill text-primary' : 'bi bi-hand-thumbs-up'"></i>
+                            <span class="ms-1">{{ getLikeCount(reply.id) || '' }}</span>
+                          </button>
+                        </div>
+                        
+                        <!-- 二级回复的回复输入框 -->
+                        <div v-if="showReplyIndex === `${index}-${rIndex}`" class="mt-2 reply-form">
+                          <textarea 
+                            v-model="replyInput"
+                            class="form-control border border-secondary-subtle bg-body mb-2" 
+                            rows="2" 
+                            placeholder="回复评论..."
+                            :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                            :maxlength="maxCommentLength"
+                          ></textarea>
+                          
+                          <!-- 表情选择面板 -->
+                          <i-emoji-picker 
+                            v-model="showReplyEmojiPicker"
+                            :is-dark-mode="isDarkMode"
+                            @select="insertReplyEmoji"
+                          />
+                          
+                          <div class="d-flex gap-2">
+                            <button 
+                              @click.stop="toggleReplyEmojiPicker"
+                              class="btn btn-outline-secondary px-3 emoji-button"
+                              :class="{ 'bg-dark border-dark-subtle': isDarkMode }"
+                            >
+                              <i class="bi bi-emoji-smile me-1"></i>表情
+                            </button>
+                            <button 
+                              @click="handleSubmitReply()"
+                              class="btn btn-primary px-3 publish-btn flex-grow-1"
+                              :disabled="!replyInput.trim() || isCommenting"
+                            >
+                              <i class="bi" :class="isCommenting ? 'bi-arrow-clockwise spin' : 'bi-paper-plane-fill'"></i>
+                              {{ isCommenting ? ' 发送中...' : ' 发送' }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    class="btn btn-link btn-sm text-decoration-none p-0 text-primary"
+                    @click="toggleExpandReply(item.id)"
+                  >
+                    <i class="bi bi-chevron-down me-1"></i>
+                    收起回复
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -293,6 +336,33 @@
       </div>
     </div>
   </div>
+
+  <!-- 图片链接输入模态框 -->
+  <div class="modal fade" :class="{ show: showImageModal }" tabindex="-1" v-if="showImageModal" style="display: block; z-index: 1055;">
+    <div class="modal-backdrop show" @click="closeImageModal" style="z-index: 1054;"></div>
+    <div class="modal-dialog" style="z-index: 1056;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">插入图片</h5>
+          <button type="button" class="btn-close" @click="closeImageModal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="imageUrl" class="form-label">图片链接</label>
+            <input type="text" class="form-control" id="imageUrl" v-model="imageUrl" placeholder="请输入图片链接">
+          </div>
+          <div class="mb-3">
+            <label for="imageName" class="form-label">图片名称（可选）</label>
+            <input type="text" class="form-control" id="imageName" v-model="imageName" placeholder="请输入图片名称">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" @click="closeImageModal">取消</button>
+          <button type="button" class="btn btn-primary" @click="insertImage">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -317,6 +387,8 @@ import { STORAGE_KEYS } from '@/constants'
  * @property {string} content - 内容（HTML）
  * @property {boolean} isAuthor - 是否为作者
  * @property {CommentItem[]} replies - 回复列表
+ * @property {string} location - 位置
+ * @property {string} device - 设备
  */
 
 /**
@@ -393,6 +465,12 @@ const isSystemDark = ref(false)
 const isLoading = ref(false)
 const showEmojiPicker = ref(false)
 const showReplyEmojiPicker = ref(false)
+// 展开回复的状态集合
+const expandedReplies = ref(new Set())
+// 图片弹窗状态
+const showImageModal = ref(false)
+const imageUrl = ref('')
+const imageName = ref('')
 
 // 点赞状态
 const commentLikes = ref(new Map())
@@ -413,15 +491,10 @@ const totalPages = computed(() => {
   return Math.ceil(props.totalComments / props.pageSize)
 })
 
-const currentPage = computed(() => props.currentPage)
-const pageSize = computed(() => props.pageSize)
-const totalComments = computed(() => props.totalComments)
-
-// 优化分页显示（最多显示7个页码）
 const displayedPages = computed(() => {
   const pages = []
   const total = totalPages.value
-  const current = currentPage.value
+  const current = props.currentPage
   
   if (total <= 7) {
     for (let i = 1; i <= total; i++) pages.push(i)
@@ -445,6 +518,15 @@ const getLikeCount = (commentId) => {
 // 获取点赞状态
 const getLikeStatus = (commentId) => {
   return commentLikes.value.get(commentId) || false
+}
+
+// 切换展开/收起回复
+const toggleExpandReply = (commentId) => {
+  if (expandedReplies.value.has(commentId)) {
+    expandedReplies.value.delete(commentId)
+  } else {
+    expandedReplies.value.add(commentId)
+  }
 }
 
 // 获取评论配置
@@ -517,10 +599,15 @@ const saveCommentTime = () => {
   }
 }
 
-// 处理@提及和换行
+// 处理@提及、换行和markdown图片（带fancybox）
 const processContent = (content, enableMention = false) => {
   if (!content) return ''
-  let processed = content.replace(/\n/g, '<br>')
+  let processed = content
+  // 解析 markdown 图片 ![名称](链接) 并添加 fancybox 支持，前后加换行
+  processed = processed.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<br><a href="$2" data-fancybox="comments" data-caption="$1"><img src="$2" alt="$1" class="img-fluid rounded shadow-sm" style="max-width: 100%; max-height: 400px; object-fit: contain; margin: 8px 0; cursor: pointer;"></a><br>')
+  // 处理换行
+  processed = processed.replace(/\n/g, '<br>')
+  // 处理@提及
   if (enableMention) {
     processed = processed.replace(/@([\u4e00-\u9fa5\w]+)/g, '<span class="at-mention">@$1</span>')
   }
@@ -570,7 +657,7 @@ const isArticleAuthor = (commentAuthorId) => {
 const processedCommentList = computed(() => {
   const formatTime = (timestamp) => {
     if (!timestamp || timestamp === 0) return '未知时间'
-    return utils.timeToDate(timestamp, 'Y-M-D H:i')
+    return utils.natureTime(timestamp, 5) // 使用 utils.js 的 natureTime 显示相对时间
   }
 
   const processReply = (reply) => {
@@ -584,7 +671,9 @@ const processedCommentList = computed(() => {
       levelName: getLevelName(reply),
       time: formatTime(reply.create_time || reply.time || reply.update_time),
       content: processContent(reply.content || '', true),
-      isAuthor: isArticleAuthor(authorId) || reply.result?.author?.result?.isAuthor || reply.result?.author?.isAuthor || reply.author?.result?.isAuthor || reply.isAuthor || false
+      isAuthor: isArticleAuthor(authorId) || reply.result?.author?.result?.isAuthor || reply.result?.author?.isAuthor || reply.author?.result?.isAuthor || reply.isAuthor || false,
+      location: reply.location || '',
+      device: reply.device || ''
     }
   }
 
@@ -600,7 +689,9 @@ const processedCommentList = computed(() => {
       time: formatTime(item.create_time || item.time || item.update_time),
       content: processContent(item.content || ''),
       isAuthor: isArticleAuthor(authorId) || item.result?.author?.result?.isAuthor || item.result?.author?.isAuthor || item.author?.result?.isAuthor || item.isAuthor || false,
-      replies: Array.isArray(item.replies) ? item.replies.map(processReply) : []
+      replies: Array.isArray(item.replies) ? item.replies.map(processReply) : [],
+      location: item.location || '',
+      device: item.device || ''
     }
   })
 })
@@ -643,15 +734,14 @@ const toggleReplyForm = (index, replyIndex = null) => {
     const targetComment = replyIndex !== null ? parentComment.replies[replyIndex] : parentComment
     
     replyTarget.value = targetComment
-    replyInput.value = `@${targetComment.nickname} `
+    if (targetComment) {
+      replyInput.value = `@${targetComment.nickname} `
+    }
     
-    setTimeout(() => {
-      const textarea = document.querySelector('textarea[placeholder="请输入你的回复..."]')
-      if (textarea) {
-        textarea.focus()
-        textarea.setSelectionRange(replyInput.value.length, replyInput.value.length)
-      }
-    }, 100)
+    nextTick(() => {
+      const textarea = document.querySelector('.reply-form textarea')
+      if (textarea) textarea.focus()
+    })
   }
 }
 
@@ -706,17 +796,43 @@ const toggleReplyEmojiPicker = () => {
 
 const insertEmoji = (emoji) => {
   commentInput.value += emoji
-  focusTextarea('请输入你的评论...')
+  setTimeout(() => {
+    const textarea = document.querySelector('textarea[placeholder="随便说点什么吧..."]')
+    if (textarea) textarea.focus()
+  }, 50)
 }
 
 const insertReplyEmoji = (emoji) => {
   replyInput.value += emoji
-  focusTextarea('请输入你的回复...')
+  setTimeout(() => {
+    const textarea = document.querySelector('.reply-form textarea')
+    if (textarea) textarea.focus()
+  }, 50)
 }
 
-const focusTextarea = (placeholder) => {
+// 图片功能
+const openImageModal = () => {
+  showImageModal.value = true
+  imageUrl.value = ''
+  imageName.value = ''
+}
+
+const closeImageModal = () => {
+  showImageModal.value = false
+  imageUrl.value = ''
+  imageName.value = ''
+}
+
+const insertImage = () => {
+  if (!imageUrl.value.trim()) {
+    toast.error('请输入图片链接')
+    return
+  }
+  const name = imageName.value.trim() || '图片'
+  commentInput.value += `![${name}](${imageUrl.value.trim()})`
+  closeImageModal()
   setTimeout(() => {
-    const textarea = document.querySelector(`textarea[placeholder="${placeholder}"]`)
+    const textarea = document.querySelector('textarea[placeholder="随便说点什么吧..."]')
     if (textarea) textarea.focus()
   }, 50)
 }
@@ -835,25 +951,26 @@ const handlePageChange = (page) => {
   emit('pageChange', page)
 }
 
-// 初始化Tooltip
-const initTooltip = () => {
-  if (window.bootstrap) {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    tooltipTriggerList.forEach(tooltipTriggerEl => {
-      new window.bootstrap.Tooltip(tooltipTriggerEl)
-    })
-  }
-}
-
 // 应用评论配置
 const applyCommentConfig = (config) => {
   maxCommentLength.value = config.max_length || 500
 }
 
+// 初始化 Fancybox
+const initFancybox = () => {
+  setTimeout(() => {
+    if (window.Fancybox) {
+      Fancybox.unbind("[data-fancybox]")
+      Fancybox.bind("[data-fancybox]", {
+        Hash: false,
+        Thumbs: { autoStart: false }
+      })
+    }
+  }, 100)
+}
+
 // 生命周期
 onMounted(async () => {
-  initTooltip()
-  
   if (!props.isDarkMode) {
     isSystemDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
   }
@@ -871,19 +988,19 @@ onMounted(async () => {
   }
   
   initCommentLikeData()
+  initFancybox()
 })
 
 onUnmounted(() => {
   if (initLikeDataTimer) clearTimeout(initLikeDataTimer)
+  if (window.Fancybox) {
+    Fancybox.unbind("[data-fancybox]")
+  }
 })
 
 // 监听深色模式变化
 watch([() => props.isDarkMode, isSystemDark], () => {
-  if (window.bootstrap) {
-    document.querySelectorAll('.tooltip').forEach(el => {
-      el.classList.toggle('tooltip-dark', props.isDarkMode || isSystemDark.value)
-    })
-  }
+  // 深模式处理
 })
 
 // 监听评论列表变化
@@ -891,6 +1008,7 @@ watch(
   () => props.commentList,
   () => {
     initCommentLikeData()
+    initFancybox()
   },
   { deep: true }
 )
@@ -900,97 +1018,35 @@ watch(
 /* 基础样式优化 */
 .avatar {
   transition: transform 0.2s ease;
-  border: 2px solid rgba(var(--bs-primary-rgb), 0.1);
 }
 
 .avatar:hover {
   transform: scale(1.05);
-  border-color: rgba(var(--bs-primary-rgb), 0.3);
 }
 
 .comment-item {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background-color: rgba(var(--bs-primary-rgb), 0.01);
+  transition: all 0.2s ease;
 }
 
 .comment-item:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.03);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transform: translateY(-1px);
-}
-
-/* 评论内容 */
-.comment-item p {
-  line-height: 1.6;
-  font-size: 0.95rem;
-  padding: 0.75rem;
-  border-radius: 6px;
   background-color: rgba(var(--bs-primary-rgb), 0.02);
-  transition: all 0.3s ease;
-}
-
-.comment-item p:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.04);
 }
 
 /* 回复输入框 */
 .reply-form {
   transition: all 0.3s ease;
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: rgba(var(--bs-primary-rgb), 0.02);
-}
-
-/* 深色模式 */
-:deep(.bg-dark) {
-  --bs-secondary-bg-subtle: #2b2b2b;
-  --bs-tertiary-color: #212121;
-}
-
-:deep(.tooltip-dark) {
-  --bs-tooltip-bg: #333;
-  --bs-tooltip-color: #fff;
 }
 
 /* 移动端适配 */
 @media (max-width: 768px) {
-  .ms-5 {
-    margin-left: 1rem !important;
+  .comment-item .avatar {
+    width: 36px !important;
+    height: 36px !important;
   }
-
-  .avatar {
-    width: 40px !important;
-    height: 40px !important;
-  }
-
-  .card-body {
-    padding: 1rem !important;
-  }
-
-  .comment-item {
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .comment-item p {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-  }
-
-  .emoji-grid {
-    gap: 4px;
-    padding: 4px;
-  }
-
-  .emoji-btn {
-    min-width: 28px;
-    min-height: 28px;
-    padding: 3px 6px;
-    font-size: 12px;
-    border-radius: 6px;
+  
+  .reply-item .avatar {
+    width: 28px !important;
+    height: 28px !important;
   }
 }
 
@@ -1005,16 +1061,10 @@ watch(
 :deep(.btn-outline-primary:hover) {
   background-color: var(--bs-primary);
   border-color: var(--bs-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(var(--bs-primary-rgb), 0.3);
 }
 
 :deep(.btn) {
   transition: all 0.2s ease;
-}
-
-:deep(.btn:hover) {
-  transform: translateY(-1px);
 }
 
 /* 加载动画 */
@@ -1027,54 +1077,11 @@ watch(
   to { transform: rotate(360deg); }
 }
 
-/* 评论输入框 */
-:deep(.form-control) {
-  transition: all 0.3s ease;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-:deep(.form-control:focus) {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-  transform: translateY(-1px);
-}
-
-/* 评论时间 */
-.comment-item small {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.comment-item:hover small {
-  opacity: 1;
-}
-
-/* 徽章 */
-.comment-item .badge {
-  font-size: 0.7rem;
-  padding: 0.25rem 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.comment-item:hover .badge {
-  transform: scale(1.05);
-}
-
-/* 回复评论 */
-.reply-item {
-  border-left: 3px solid rgba(var(--bs-primary-rgb), 0.2);
-  padding-left: 1rem;
-  margin-left: 1rem;
-  margin-top: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-.reply-item:hover {
-  border-left-color: rgba(var(--bs-primary-rgb), 0.4);
-  margin-left: 1.25rem;
+/* 评论内容 */
+.comment-item p,
+.reply-item p {
+  line-height: 1.6;
+  word-break: break-word;
 }
 
 /* @提及 */
@@ -1105,11 +1112,18 @@ watch(
 /* 表情按钮 */
 .emoji-button {
   transition: all 0.3s ease;
-  z-index: 10;
 }
 
 .emoji-button:hover {
-  transform: scale(1.1);
-  border-color: var(--bs-primary);
+  transform: scale(1.05);
+}
+
+/* 引用样式 */
+.reply-item:deep(.text-muted span.fw-medium) {
+  color: var(--bs-secondary) !important;
+  background-color: rgba(var(--bs-secondary-rgb), 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 </style>
