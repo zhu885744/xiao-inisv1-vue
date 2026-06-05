@@ -2,7 +2,6 @@
 <template>
   <div class="basic-info-settings">
     <div v-if="loading" class="row">
-      <!-- 头像设置骨架 -->
       <div class="col-md-4 mb-4">
         <div class="card">
           <div class="card-body">
@@ -15,8 +14,6 @@
           </div>
         </div>
       </div>
-
-      <!-- 基本信息表单骨架 -->
       <div class="col-md-8">
         <div class="card">
           <div class="card-body">
@@ -34,19 +31,6 @@
               <div class="space-y-2">
                 <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
                 <div class="skeleton-loader" style="height: 100px; width: 100%;"></div>
-                <div class="skeleton-loader" style="height: 14px; width: 20%; margin-left: auto;"></div>
-              </div>
-              <div class="space-y-2">
-                <div class="skeleton-loader" style="height: 16px; width: 30%;"></div>
-                <div class="row">
-                  <div class="col-md-6 mb-2">
-                    <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="skeleton-loader" style="height: 40px; width: 100%;"></div>
-                  </div>
-                </div>
-                <div class="skeleton-loader" style="height: 14px; width: 80%;"></div>
               </div>
               <div class="d-flex gap-2">
                 <div class="skeleton-loader" style="height: 40px; width: 30%;"></div>
@@ -72,17 +56,57 @@
                   class="rounded-circle avatar-image"
                 >
               </div>
-              <div class="mt-3">
+            </div>
+            <div class="d-flex flex-column gap-2 mb-3">
+              <button 
+                type="button" 
+                class="btn btn-primary btn-sm"
+                @click="handleUploadAvatar"
+                :disabled="uploading"
+              >
+                <i class="bi bi-upload me-2"></i>
+                {{ uploading ? '上传中...' : '上传头像' }}
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-outline-secondary btn-sm"
+                @click="showAvatarUrlInput = !showAvatarUrlInput"
+              >
+                <i class="bi bi-link-45deg me-2"></i>自定义链接
+              </button>
+            </div>
+            <div v-if="showAvatarUrlInput" class="mb-3">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                <input 
+                  type="text" 
+                  v-model="customAvatarUrl"
+                  class="form-control"
+                  placeholder="请输入头像图片链接"
+                  @keyup.enter="applyCustomAvatar"
+                >
                 <button 
                   type="button" 
-                  class="btn btn-outline-secondary btn-sm"
-                  @click="triggerFileInput"
+                  class="btn btn-outline-primary btn-sm"
+                  @click="applyCustomAvatar"
+                  :disabled="!customAvatarUrl.trim()"
                 >
-                  <i class="bi bi-upload me-2"></i>上传头像
+                  应用
                 </button>
               </div>
-              <p class="text-muted small mt-2">支持 JPG、PNG 格式，建议尺寸 200x200px</p>
             </div>
+            <button 
+              v-if="formData.avatar"
+              type="button" 
+              class="btn btn-sm btn-outline-danger w-100"
+              @click="removeAvatar"
+            >
+              <i class="bi bi-trash me-2"></i>移除头像
+            </button>
+            <p class="text-muted small mt-3 mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              支持 JPG、PNG、GIF 格式，最大 10MB
+            </p>
           </div>
         </div>
       </div>
@@ -93,7 +117,6 @@
           <div class="card-body">
             <h6 class="card-title mb-3">个人信息</h6>
             <form @submit.prevent="updateBasicInfo">
-              <!-- 昵称 -->
               <div class="mb-3">
                 <label for="nickname" class="form-label">昵称</label>
                 <input 
@@ -106,7 +129,6 @@
                 >
               </div>
 
-              <!-- 性别 -->
               <div class="mb-3">
                 <label class="form-label">性别</label>
                 <div class="d-flex gap-4">
@@ -114,8 +136,8 @@
                     <input 
                       type="radio" 
                       id="gender-boy" 
-                      v-model="formData.gender" 
-                      :value="'boy'"
+                      v-model.number="formData.gender" 
+                      :value="1"
                       class="form-check-input"
                     >
                     <label for="gender-boy" class="form-check-label">男</label>
@@ -124,8 +146,8 @@
                     <input 
                       type="radio" 
                       id="gender-girl" 
-                      v-model="formData.gender" 
-                      :value="'girl'"
+                      v-model.number="formData.gender" 
+                      :value="2"
                       class="form-check-input"
                     >
                     <label for="gender-girl" class="form-check-label">女</label>
@@ -134,8 +156,8 @@
                     <input 
                       type="radio" 
                       id="gender-none" 
-                      v-model="formData.gender" 
-                      :value="null"
+                      v-model.number="formData.gender" 
+                      :value="0"
                       class="form-check-input"
                     >
                     <label for="gender-none" class="form-check-label">不设置</label>
@@ -143,7 +165,6 @@
                 </div>
               </div>
 
-              <!-- 个人简介 -->
               <div class="mb-3">
                 <label for="description" class="form-label">个人简介</label>
                 <textarea 
@@ -159,7 +180,6 @@
                 </div>
               </div>
 
-              <!-- 联系方式 -->
               <div class="mb-3">
                 <label class="form-label">联系方式</label>
                 <div class="row">
@@ -192,21 +212,20 @@
                 </div>
               </div>
 
-              <!-- 提交按钮 -->
               <div class="d-flex gap-2">
                 <button 
                   type="submit" 
-                  class="btn btn-secondary"
-                  :disabled="loading"
+                  class="btn btn-primary"
+                  :disabled="saving"
                 >
                   <i class="bi bi-save me-2"></i>
-                  {{ loading ? '保存中...' : '保存修改' }}
+                  {{ saving ? '保存中...' : '保存修改' }}
                 </button>
                 <button 
                   type="button" 
                   class="btn btn-outline-secondary"
                   @click="resetForm"
-                  :disabled="loading"
+                  :disabled="saving"
                 >
                   <i class="bi bi-arrow-counterclockwise me-2"></i>重置
                 </button>
@@ -220,7 +239,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { request, uploadImage } from '@/utils/network'
 import { toast } from '@/utils/app'
 import { useCommStore } from '@/store/comm'
@@ -228,53 +247,78 @@ import defaultAvatar from '@/assets/img/avatar.png'
 
 const store = useCommStore()
 const loading = ref(false)
+const saving = ref(false)
+const uploading = ref(false)
+const showAvatarUrlInput = ref(false)
+const customAvatarUrl = ref('')
 
-// 表单数据
 const formData = reactive({
   id: '',
   nickname: '',
-  gender: null,
+  gender: 0,
   description: '',
   avatar: ''
 })
 
-// 用户联系方式
 const userContact = reactive({
   phone: '',
   email: ''
 })
 
-// 原始数据，用于重置
 const originalData = reactive({})
 
-// 触发文件输入
-const triggerFileInput = () => {
-  uploadImage('avatar', (path) => {
+const handleUploadAvatar = () => {
+  if (uploading.value) return
+  uploading.value = true
+
+  uploadImage((path) => {
     formData.avatar = path
-    // 更新用户信息
-    updateBasicInfo()
+    uploading.value = false
+    toast.success('头像上传成功，请点击"保存修改"完成更新')
   })
 }
 
-// 更新基础信息
-const updateBasicInfo = async () => {
-  if (loading.value) return
+const applyCustomAvatar = () => {
+  const url = customAvatarUrl.value.trim()
+  if (!url) {
+    toast.warning('请输入头像链接')
+    return
+  }
 
-  loading.value = true
+  if (!/^https?:\/\//.test(url)) {
+    toast.warning('请输入有效的图片链接（以 http:// 或 https:// 开头）')
+    return
+  }
+
+  formData.avatar = url
+  showAvatarUrlInput.value = false
+  customAvatarUrl.value = ''
+  toast.success('头像链接已应用，请点击"保存修改"完成更新')
+}
+
+const removeAvatar = () => {
+  formData.avatar = ''
+  toast.info('头像已移除，请点击"保存修改"完成更新')
+}
+
+const updateBasicInfo = async () => {
+  if (saving.value) return
+
+  saving.value = true
   try {
-    const res = await request.put('/api/users/update', {
+    const payload = {
       id: formData.id,
       nickname: formData.nickname,
       gender: formData.gender,
       description: formData.description,
       avatar: formData.avatar
-    })
+    }
+
+    const res = await request.put('/api/users/update', payload)
 
     if (res.code === 200) {
       toast.success('用户信息更新成功')
-      // 同步用户信息
       await syncUserInfo()
-      // 更新原始数据
       Object.assign(originalData, { ...formData })
     } else {
       toast.error(res.msg || '用户信息更新失败')
@@ -283,11 +327,10 @@ const updateBasicInfo = async () => {
     console.error('更新失败:', error)
     toast.error('网络错误，请稍后重试')
   } finally {
-    loading.value = false
+    saving.value = false
   }
 }
 
-// 同步用户信息
 const syncUserInfo = async () => {
   try {
     await store.checkLoginState()
@@ -296,12 +339,12 @@ const syncUserInfo = async () => {
   }
 }
 
-// 重置表单
 const resetForm = () => {
   Object.assign(formData, { ...originalData })
+  showAvatarUrlInput.value = false
+  customAvatarUrl.value = ''
 }
 
-// 获取用户信息
 const fetchUserInfo = async () => {
   try {
     const loginState = store.getLogin
@@ -309,13 +352,10 @@ const fetchUserInfo = async () => {
     if (userInfo) {
       formData.id = userInfo.id
       formData.nickname = userInfo.nickname || ''
-      formData.gender = userInfo.gender || null
+      formData.gender = typeof userInfo.gender === 'number' ? userInfo.gender : 0
       formData.description = userInfo.description || ''
       formData.avatar = userInfo.avatar || ''
-      // 保存原始数据
       Object.assign(originalData, { ...formData })
-      
-      // 设置用户联系方式
       userContact.phone = userInfo.phone || ''
       userContact.email = userInfo.email || ''
     }
@@ -324,14 +364,12 @@ const fetchUserInfo = async () => {
   }
 }
 
-// 组件挂载时获取用户信息
 onMounted(() => {
   fetchUserInfo()
 })
 </script>
 
 <style scoped>
-/* 头像样式 */
 .avatar-image {
   width: 120px;
   height: 120px;
@@ -345,7 +383,6 @@ onMounted(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 表单样式 */
 .form-control {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
@@ -358,7 +395,6 @@ onMounted(() => {
   border-color: var(--bs-primary);
 }
 
-/* 按钮样式 */
 .btn {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
@@ -366,14 +402,12 @@ onMounted(() => {
   font-size: 0.875rem;
 }
 
-/* 表单标签 */
 .form-label {
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.375rem;
 }
 
-/* 骨架加载器样式 */
 .skeleton-loader {
   background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.1) 50%, var(--bs-tertiary-bg) 75%);
   background-size: 200% 100%;
@@ -390,72 +424,36 @@ onMounted(() => {
   }
 }
 
-/* 深色模式适配 */
-.dark .skeleton-loader {
-  background: linear-gradient(90deg, var(--bs-tertiary-bg) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bs-tertiary-bg) 75%);
-  background-size: 200% 100%;
-}
-
-/* 响应式调整 */
 @media (max-width: 768px) {
   .avatar-image {
     width: 80px;
     height: 80px;
   }
-  
+
   .card-body {
     padding: 1rem;
   }
-  
+
   .col-md-4,
   .col-md-8 {
     width: 100%;
   }
-  
-  .mb-4 {
-    margin-bottom: 1rem !important;
-  }
-  
-  .mb-3 {
-    margin-bottom: 1rem !important;
-  }
-  
-  .card-title {
-    font-size: 0.9375rem;
-    margin-bottom: 0.75rem !important;
-  }
-  
+
   .form-control {
     padding: 0.5rem 0.625rem;
     font-size: 0.8125rem;
   }
-  
+
   .btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
   }
-  
-  /* 联系方式的input-group保持水平排列 */
-  .input-group-contact {
-    flex-direction: row !important;
-    width: 100%;
-  }
-  
-  .input-group-contact .input-group-text {
-    flex-shrink: 0;
-    width: auto;
-  }
-  
-  .input-group-contact .form-control {
-    flex: 1;
-    min-width: 0;
-  }
-  
+
   .d-flex.gap-2 {
     flex-direction: column;
     gap: 0.5rem !important;
   }
-  
+
   .d-flex.gap-2 .btn {
     width: 100%;
   }
