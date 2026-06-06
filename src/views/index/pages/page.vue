@@ -1759,6 +1759,16 @@ const handleLogin = () => {
   router.push('/login')
 }
 
+// 处理登录弹窗
+const handleToLogin = () => {
+  store.switchAuth('login', true)
+}
+
+// 处理注册弹窗
+const handleToRegister = () => {
+  store.switchAuth('register', true)
+}
+
 // 计算总页数
 const totalPages = computed(() => {
   return Math.ceil(totalComments.value / pageSize.value)

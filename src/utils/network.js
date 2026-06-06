@@ -1,5 +1,6 @@
 import axios from 'axios'
 import utils from '@/utils/utils'
+import { getSync } from '@/utils/app'
 
 const DEV = import.meta.env.DEV
 const DEFAULT_TIMEOUT = 60 * 1000
@@ -362,8 +363,58 @@ axiosInstance.interceptors.request.use(
 )
 
 axiosInstance.interceptors.response.use(
-  response => response,
-  error => Promise.reject(error)
+  async response => {
+    const responseData = response.data
+    if (responseData?.code === 401) {
+      const TOKEN_NAME = getSync('token_name') || globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
+      cache.del('user-info')
+      utils.clear.cookie(TOKEN_NAME)
+      
+      try {
+        await axios.delete('/api/comm/logout', { withCredentials: true })
+      } catch (err) {
+        console.error('登出接口调用失败：', err)
+      }
+      
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1500)
+      
+      return Promise.reject({
+        code: 401,
+        message: responseData?.msg || '登录已过期，请重新登录！',
+        data: responseData?.data,
+        url: response.config?.url
+      })
+    }
+    return response
+  },
+  async error => {
+    const response = error.response
+    if (response?.status === 401 || response?.data?.code === 401) {
+      const TOKEN_NAME = getSync('token_name') || globalThis?.inis?.token_name || 'INIS_LOGIN_TOKEN'
+      cache.del('user-info')
+      utils.clear.cookie(TOKEN_NAME)
+      
+      try {
+        await axios.delete('/api/comm/logout', { withCredentials: true })
+      } catch (err) {
+        console.error('登出接口调用失败：', err)
+      }
+      
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1500)
+      
+      return Promise.reject({
+        code: 401,
+        message: response?.data?.msg || '登录已过期，请重新登录！',
+        data: response?.data,
+        url: error.config?.url
+      })
+    }
+    return Promise.reject(error)
+  }
 )
 
 const request = {

@@ -102,9 +102,28 @@
             </div>
 
             <!-- 个人简介 -->
-            <p class="text-body-secondary mb-0 text-center" style="max-width: 600px;">
+            <p class="text-body-secondary mb-3 text-center" style="max-width: 600px;">
               {{ userInfo.description || '这个人很懒，什么都没有留下！' }}
             </p>
+
+            <!-- 用户基本信息 -->
+            <div class="d-flex flex-wrap justify-content-center gap-4 text-sm text-body-secondary">
+              <!-- 性别 -->
+              <div v-if="genderText" class="d-flex align-items-center gap-1">
+                <i class="bi bi-gender-ambiguous"></i>
+                <span>{{ genderText }}</span>
+              </div>
+              <!-- 头衔 -->
+              <div v-if="userInfo.title" class="d-flex align-items-center gap-1">
+                <i class="bi bi-award"></i>
+                <span>{{ userInfo.title }}</span>
+              </div>
+              <!-- 注册时间 -->
+              <div v-if="userInfo.create_time" class="d-flex align-items-center gap-1">
+                <i class="bi bi-calendar"></i>
+                <span>{{ formatRegisterTime(userInfo.create_time) }}</span>
+              </div>
+            </div>
           </div>
 
           <!-- 统计信息 -->
@@ -219,15 +238,13 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { request } from '@/utils/network'
-import { toast } from '@/utils/app'
 import { cache } from '@/utils/network'
+import utils from '@/utils/utils'
 import defaultAvatar from '@/assets/img/avatar.png'
 import defaultBanner from '@/assets/img/fm.avif'
 import defaultCover from '@/assets/img/fm.avif'
 import { useCommStore } from '@/store/comm'
-import { usePageTitle, formatters } from '@/utils/app'
-
-const { setDynamicTitle } = usePageTitle();
+import { formatters } from '@/utils/app'
 
 const route = useRoute()
 const router = useRouter()
@@ -287,6 +304,21 @@ const userGroups = computed(() => {
   
   return [{ name: '普通用户' }]
 })
+
+const genderText = computed(() => {
+  const gender = userInfo.value?.gender
+  const genderMap = {
+    'boy': '男',
+    'girl': '女',
+    1: '男',
+    2: '女'
+  }
+  return genderMap[gender] || ''
+})
+
+const formatRegisterTime = (timestamp) => {
+  return utils.timeToDate(timestamp, 'Y年m月d日')
+}
 
 const fetchUserInfo = async () => {
   loading.value = true

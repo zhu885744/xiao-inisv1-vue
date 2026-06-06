@@ -71,13 +71,13 @@
               </div>
 
               <!-- 修改账号表单 -->
-              <div v-if="showAccountEdit" class="mt-3 p-3 border rounded bg-light">
-                <h6 class="mb-3 text-warning">
+              <div v-if="showAccountEdit" class="mt-3 p-3 border rounded bg-body-secondary">
+                <h6 class="mb-3 text-danger">
                   <i class="bi bi-exclamation-triangle me-2"></i>修改账号后将影响登录，请谨慎操作
                 </h6>
                 
                 <!-- 新账号 -->
-                <div class="mb-3">
+                <div class="mb-3 mt-1">
                   <label for="newAccount" class="form-label">新账号</label>
                   <input 
                     type="text" 
@@ -95,7 +95,7 @@
                 <div class="d-flex gap-2">
                   <button 
                     type="submit" 
-                    class="btn btn-warning"
+                    class="btn btn-danger"
                     :disabled="accountLoading"
                   >
                     <span v-if="accountLoading" class="spinner-border spinner-border-sm me-2"></span>
@@ -801,6 +801,73 @@ onUnmounted(() => {
   background-size: 200% 100%;
 }
 
+.dark .card {
+  background-color: var(--bs-dark);
+  border-color: var(--bs-border-color);
+}
+
+.dark .card-title {
+  color: var(--bs-light);
+}
+
+.dark .form-control {
+  background-color: var(--bs-gray-800);
+  border-color: var(--bs-gray-700);
+  color: var(--bs-light);
+}
+
+.dark .form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.dark .form-control:disabled {
+  background-color: var(--bs-gray-800);
+  color: var(--bs-gray-400);
+}
+
+.dark .form-label {
+  color: var(--bs-gray-300);
+}
+
+.dark .input-group-text {
+  background-color: var(--bs-gray-700);
+  border-color: var(--bs-gray-600);
+  color: var(--bs-light);
+}
+
+.dark .list-group-item {
+  background-color: transparent;
+  border-color: var(--bs-gray-700);
+  color: var(--bs-gray-300);
+}
+
+.dark .list-group-item:last-child {
+  border-color: transparent;
+}
+
+.dark .text-muted {
+  color: var(--bs-gray-400) !important;
+}
+
+.dark .btn-outline-secondary {
+  border-color: var(--bs-gray-600);
+  color: var(--bs-gray-300);
+}
+
+.dark .btn-outline-secondary:hover {
+  background-color: var(--bs-gray-700);
+  border-color: var(--bs-gray-500);
+}
+
+.dark .border {
+  border-color: var(--bs-gray-700) !important;
+}
+
+.dark .bg-body-secondary {
+  background-color: var(--bs-gray-800) !important;
+}
+
 /* 响应式调整 */
 @media (max-width: 768px) {
   .card-body {
@@ -812,7 +879,7 @@ onUnmounted(() => {
   }
   
   .mb-3 {
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important;
   }
   
   .card-title {
@@ -829,6 +896,15 @@ onUnmounted(() => {
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
     width: 100%;
+    margin-top: 0.25rem;
+  }
+  
+  .btn + .btn {
+    margin-top: 0.5rem;
+  }
+  
+  .input-group .btn {
+    margin-top: 0;
   }
   
   .list-group-item {
