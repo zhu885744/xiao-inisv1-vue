@@ -43,6 +43,80 @@
     </div>
 
     <div v-else class="row">
+      <!-- 账号设置 -->
+      <div class="col-md-12">
+        <div class="card mb-4">
+          <div class="card-body">
+            <h6 class="card-title mb-3">账号设置</h6>
+            <form @submit.prevent="handleAccountSubmit">
+              <!-- 当前账号显示 -->
+              <div class="mb-3">
+                <label class="form-label">当前账号</label>
+                <div class="input-group">
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    :value="currentAccount"
+                    disabled
+                  >
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    @click="toggleAccountEdit"
+                    :disabled="accountLoading"
+                  >
+                    <i class="bi bi-pencil me-1"></i>{{ showAccountEdit ? '取消' : '修改' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 修改账号表单 -->
+              <div v-if="showAccountEdit" class="mt-3 p-3 border rounded bg-light">
+                <h6 class="mb-3 text-warning">
+                  <i class="bi bi-exclamation-triangle me-2"></i>修改账号后将影响登录，请谨慎操作
+                </h6>
+                
+                <!-- 新账号 -->
+                <div class="mb-3">
+                  <label for="newAccount" class="form-label">新账号</label>
+                  <input 
+                    type="text" 
+                    id="newAccount" 
+                    v-model="accountForm.newAccount" 
+                    class="form-control"
+                    placeholder="请输入新账号（字母、数字、下划线，4-20位）"
+                    maxlength="20"
+                    @input="validateNewAccount"
+                  >
+                  <div v-if="accountErrors.newAccount" class="text-danger small mt-1">{{ accountErrors.newAccount }}</div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="d-flex gap-2">
+                  <button 
+                    type="submit" 
+                    class="btn btn-warning"
+                    :disabled="accountLoading"
+                  >
+                    <span v-if="accountLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <i v-else class="bi bi-check-circle me-2"></i>
+                    {{ accountLoading ? '修改中...' : '确认修改账号' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline-secondary"
+                    @click="cancelAccountEdit"
+                    :disabled="accountLoading"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <!-- 重置密码 -->
       <div class="col-md-12">
         <div class="card mb-4">
@@ -193,6 +267,21 @@ const store = useCommStore()
 // 加载状态
 const loading = ref(true)
 const resetLoading = ref(false)
+const accountLoading = ref(false)
+
+// 账号修改相关状态
+const showAccountEdit = ref(false)
+const currentAccount = ref('')
+
+// 账号修改表单数据
+const accountForm = reactive({
+  newAccount: ''
+})
+
+// 账号修改错误信息
+const accountErrors = reactive({
+  newAccount: ''
+})
 
 // 重置密码表单数据
 const resetForm = reactive({
@@ -421,6 +510,121 @@ const passwordStrengthClass = computed(() => {
   return 'bg-success'
 })
 
+// ========== 账号修改相关函数 ==========
+
+// 切换账号编辑状态
+const toggleAccountEdit = () => {
+  showAccountEdit.value = !showAccountEdit.value
+  if (!showAccountEdit.value) {
+    // 取消时清空表单
+    resetAccountForm()
+  }
+}
+
+// 取消账号编辑
+const cancelAccountEdit = () => {
+  showAccountEdit.value = false
+  resetAccountForm()
+}
+
+// 重置账号表单
+const resetAccountForm = () => {
+  accountForm.newAccount = ''
+  accountErrors.newAccount = ''
+}
+
+// 验证新账号
+const validateNewAccount = () => {
+  const account = accountForm.newAccount.trim()
+  
+  if (!account) {
+    accountErrors.newAccount = '请输入新账号'
+    return false
+  }
+  
+  if (account.length < 4) {
+    accountErrors.newAccount = '账号长度不能少于4位'
+    return false
+  }
+  
+  if (account.length > 20) {
+    accountErrors.newAccount = '账号长度不能超过20位'
+    return false
+  }
+  
+  // 只允许字母、数字、下划线
+  if (!/^[a-zA-Z0-9_]+$/.test(account)) {
+    accountErrors.newAccount = '账号只能包含字母、数字和下划线'
+    return false
+  }
+  
+  // 不能与当前账号相同
+  if (account === currentAccount.value) {
+    accountErrors.newAccount = '新账号不能与当前账号相同'
+    return false
+  }
+  
+  accountErrors.newAccount = ''
+  return true
+}
+
+// 处理账号修改提交
+const handleAccountSubmit = async () => {
+  // 验证新账号
+  if (!validateNewAccount()) {
+    return
+  }
+  
+  accountLoading.value = true
+  try {
+    // 获取用户 ID
+    const userInfo = store.getLogin.user
+    if (!userInfo || !userInfo.id) {
+      toast.error('用户信息获取失败，请刷新页面重试')
+      return
+    }
+    
+    // 构造请求数据
+    const requestData = {
+      id: userInfo.id,
+      account: accountForm.newAccount.trim()
+    }
+    
+    // 发送请求
+    const { code: resCode, msg } = await request.put('/api/users/update', requestData)
+    
+    if (resCode === 200) {
+      toast.success('账号修改成功')
+      // 同步用户信息
+      await syncUserInfo()
+      // 关闭编辑状态并清空表单
+      showAccountEdit.value = false
+      resetAccountForm()
+      // 更新当前账号显示
+      const newUserInfo = store.getLogin.user
+      currentAccount.value = newUserInfo?.account || ''
+    } else {
+      toast.error(msg || '账号修改失败')
+    }
+  } catch (error) {
+    console.error('修改账号失败:', error)
+    toast.error('网络异常，请稍后再试！')
+  } finally {
+    accountLoading.value = false
+  }
+}
+
+// 同步用户信息
+const syncUserInfo = async () => {
+  try {
+    await store.checkLoginState()
+  } catch (error) {
+    console.error('同步用户信息失败:', error)
+  }
+}
+
+// ========== 密码重置相关函数 ==========
+
 // 发送验证码
 const sendCode = async () => {
   validateSocial()
@@ -504,7 +708,8 @@ const resetPassword = async () => {
 const fetchUserInfo = () => {
   const loginState = store.getLogin
   if (loginState.user) {
-    // 可以在这里获取用户信息，用于后续操作
+    // 获取当前账号
+    currentAccount.value = loginState.user.account || ''
   }
   loading.value = false
 }

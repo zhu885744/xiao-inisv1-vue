@@ -348,9 +348,55 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="imageUrl" class="form-label">图片链接</label>
-            <input type="text" class="form-control" id="imageUrl" v-model="imageUrl" placeholder="请输入图片链接">
+            <label class="form-label d-block mb-2">上传图片</label>
+            <button 
+              type="button" 
+              class="btn btn-primary btn-sm"
+              @click="handleUploadImage"
+              :disabled="uploadingImage"
+            >
+              <i class="bi bi-upload me-2"></i>
+              {{ uploadingImage ? '上传中...' : '上传图片' }}
+            </button>
           </div>
+          
+          <div class="mb-3">
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm"
+              @click="showCustomUrlInput = !showCustomUrlInput"
+            >
+              <i class="bi bi-link-45deg me-2"></i>自定义链接
+            </button>
+          </div>
+          
+          <div v-if="showCustomUrlInput" class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-globe"></i></span>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="imageUrl" 
+                v-model="imageUrl" 
+                placeholder="请输入图片链接"
+                @keyup.enter="insertImage"
+              >
+              <button 
+                type="button" 
+                class="btn btn-outline-primary"
+                @click="applyCustomImageUrl"
+                :disabled="!imageUrl.trim()"
+              >
+                应用
+              </button>
+            </div>
+          </div>
+          
+          <div v-if="previewImage" class="mb-3">
+            <label class="form-label d-block mb-2">图片预览</label>
+            <img :src="previewImage" class="img-fluid rounded" style="max-height: 200px;" />
+          </div>
+          
           <div class="mb-3">
             <label for="imageName" class="form-label">图片名称（可选）</label>
             <input type="text" class="form-control" id="imageName" v-model="imageName" placeholder="请输入图片名称">
@@ -358,7 +404,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" @click="closeImageModal">取消</button>
-          <button type="button" class="btn btn-primary" @click="insertImage">确定</button>
+          <button type="button" class="btn btn-primary" @click="insertImage" :disabled="!previewImage">确定</button>
         </div>
       </div>
     </div>
@@ -368,7 +414,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useCommStore } from '@/store/comm'
-import { request } from '@/utils/network'
+import { request, uploadImage } from '@/utils/network'
 import { toast } from '@/utils/app'
 import iEmojiPicker from './i-emoji-picker.vue'
 import { validateComment, checkRateLimit as checkRateLimitUtil } from '@/utils/app'
@@ -471,6 +517,9 @@ const expandedReplies = ref(new Set())
 const showImageModal = ref(false)
 const imageUrl = ref('')
 const imageName = ref('')
+const previewImage = ref('')
+const uploadingImage = ref(false)
+const showCustomUrlInput = ref(false)
 
 // 点赞状态
 const commentLikes = ref(new Map())
@@ -815,21 +864,55 @@ const openImageModal = () => {
   showImageModal.value = true
   imageUrl.value = ''
   imageName.value = ''
+  previewImage.value = ''
+  uploadingImage.value = false
+  showCustomUrlInput.value = false
 }
 
 const closeImageModal = () => {
   showImageModal.value = false
   imageUrl.value = ''
   imageName.value = ''
+  previewImage.value = ''
+  uploadingImage.value = false
+  showCustomUrlInput.value = false
+}
+
+const handleUploadImage = () => {
+  if (uploadingImage.value) return
+  uploadingImage.value = true
+
+  uploadImage((path) => {
+    imageUrl.value = path
+    previewImage.value = path
+    uploadingImage.value = false
+    toast.success('图片上传成功')
+  })
+}
+
+const applyCustomImageUrl = () => {
+  const url = imageUrl.value.trim()
+  if (!url) {
+    toast.warning('请输入图片链接')
+    return
+  }
+
+  if (!/^https?:\/\//.test(url)) {
+    toast.warning('请输入有效的图片链接（以 http:// 或 https:// 开头）')
+    return
+  }
+
+  previewImage.value = url
+  toast.success('图片链接已应用')
 }
 
 const insertImage = () => {
-  if (!imageUrl.value.trim()) {
-    toast.error('请输入图片链接')
+  if (!previewImage.value.trim()) {
+    toast.error('请先上传图片或输入图片链接')
     return
   }
   const name = imageName.value.trim() || '图片'
-  commentInput.value += `![${name}](${imageUrl.value.trim()})`
+  commentInput.value += `![${name}](${previewImage.value.trim()})`
   closeImageModal()
   setTimeout(() => {
     const textarea = document.querySelector('textarea[placeholder="随便说点什么吧..."]')

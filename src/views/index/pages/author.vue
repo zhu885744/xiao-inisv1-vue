@@ -49,7 +49,7 @@
     <!-- 用户信息内容 -->
     <div v-else>
       <!-- 用户信息卡片 -->
-      <div class="card border-0 shadow-sm mb-4">
+      <div class="card border-0 shadow-sm mb-2">
         <!-- 横幅背景 -->
         <div 
           class="card-img-top banner-bg" 

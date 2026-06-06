@@ -160,7 +160,7 @@
                       :value="0"
                       class="form-check-input"
                     >
-                    <label for="gender-none" class="form-check-label">不设置</label>
+                    <label for="gender-none" class="form-check-label">保密</label>
                   </div>
                 </div>
               </div>
@@ -239,7 +239,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { request, uploadImage } from '@/utils/network'
 import { toast } from '@/utils/app'
 import { useCommStore } from '@/store/comm'
@@ -306,12 +306,23 @@ const updateBasicInfo = async () => {
 
   saving.value = true
   try {
+    // 性别映射：1->boy, 2->girl, 0->空
+    const genderMap = {
+      1: 'boy',
+      2: 'girl',
+      0: ''
+    }
+    
     const payload = {
       id: formData.id,
       nickname: formData.nickname,
-      gender: formData.gender,
       description: formData.description,
       avatar: formData.avatar
+    }
+    
+    // 只有选择了性别才传递gender字段
+    if (formData.gender !== 0) {
+      payload.gender = genderMap[formData.gender]
     }
 
     const res = await request.put('/api/users/update', payload)
@@ -345,14 +356,27 @@ const resetForm = () => {
   customAvatarUrl.value = ''
 }
 
-const fetchUserInfo = async () => {
+const fetchUserInfo = () => {
   try {
     const loginState = store.getLogin
     const userInfo = loginState.user
-    if (userInfo) {
+    if (userInfo && Object.keys(userInfo).length > 0) {
       formData.id = userInfo.id
       formData.nickname = userInfo.nickname || ''
-      formData.gender = typeof userInfo.gender === 'number' ? userInfo.gender : 0
+      
+      // 性别映射：boy->1, girl->2, 其他->0
+      const genderReverseMap = {
+        'boy': 1,
+        'girl': 2
+      }
+      if (userInfo.gender === 'boy' || userInfo.gender === 'girl') {
+        formData.gender = genderReverseMap[userInfo.gender]
+      } else if (typeof userInfo.gender === 'number') {
+        formData.gender = userInfo.gender
+      } else {
+        formData.gender = 0
+      }
+      
       formData.description = userInfo.description || ''
       formData.avatar = userInfo.avatar || ''
       Object.assign(originalData, { ...formData })
@@ -367,6 +391,17 @@ const fetchUserInfo = async () => {
 onMounted(() => {
   fetchUserInfo()
 })
+
+// 监听 store 中用户信息变化，确保 token 校验完成后能正确回填表单
+watch(
+  () => store.login?.user,
+  (newUser) => {
+    if (newUser && Object.keys(newUser).length > 0) {
+      fetchUserInfo()
+    }
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <style scoped>

@@ -1688,8 +1688,9 @@ const openLinkApplyModal = async () => {
 
 // 上传网站图标
 const handleUploadAvatar = () => {
-  uploadImage('avatar', (path) => {
+  uploadImage((path) => {
     linkForm.value.avatar = path
+    toast.success('网站图标上传成功')
   })
 }
 
