@@ -2,17 +2,15 @@
     <div class="px-1 px-lg-0 mt-2">
         <div class="row">
             <div class="col-lg-9">
-                <div class="card mb-2">
-                    <div class="card-body" style="min-height: 485px">
-                        <div v-if="!state.struct.editor" class="d-flex justify-content-center align-items-center py-5">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">加载中...</span>
-                            </div>
-                            <span class="ms-2">加载编辑器中...</span>
-                        </div>
-                        <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
+                <div v-if="!state.struct.editor" class="d-flex justify-content-center align-items-center py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">加载中...</span>
                     </div>
-                    <div class="card-footer d-flex justify-content-end gap-2">
+                    <span class="ms-2">加载编辑器中...</span>
+                </div>
+                <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
+                <div class="card mt-2">
+                    <div class="card-body d-flex justify-content-end gap-2">
                         <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
                             <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                             保存页面
@@ -108,6 +106,18 @@ const updatePageTitle = () => {
 
 const vditorRef = ref(null)
 
+// 获取当前时间的 datetime-local 格式
+const getCurrentDateTime = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    const seconds = String(now.getSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+}
+
 const state = reactive({
     item: {
         id: null,
@@ -120,7 +130,7 @@ const state = reactive({
         content: '',
         tags: '',
         editor: 'vditor',
-        publishTime: '',
+        publishTime: getCurrentDateTime(),
     },
 })
 
@@ -156,7 +166,8 @@ const method = {
                 const seconds = String(date.getSeconds()).padStart(2, '0')
                 data.publishTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
             } else {
-                data.publishTime = ''
+                // 当 publish_time 为 0 时，默认填充当前时间
+                data.publishTime = getCurrentDateTime()
             }
 
             state.struct = data

@@ -2,18 +2,15 @@
     <div class="px-1 px-lg-0 mt-2">
         <div class="row">
             <div class="col-lg-9">
-                <div class="card mb-2">
-                    <div class="card-body" style="min-height: 485px">
-                        <div v-if="!state.struct.editor" class="d-flex justify-content-center align-items-center py-5">
-                            <div class="spinner-border" role="status">
-                                <span class="visually-hidden">加载中...</span>
-                            </div>
-                            <span class="ms-2">加载编辑器中...</span>
-                        </div>
-                        <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
+                <div v-if="!state.struct.editor" class="d-flex justify-content-center align-items-center py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">加载中...</span>
                     </div>
-                    <div class="card-footer d-flex justify-content-end gap-2">
-                        <button class="btn btn-outline-secondary" type="button">保存草稿</button>
+                    <span class="ms-2">加载编辑器中...</span>
+                </div>
+                <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
+                <div class="card mt-2">
+                    <div class="card-body d-flex justify-content-end gap-2">
                         <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
                             <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                             发布文章
@@ -243,7 +240,6 @@
 <script setup>
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { cache } from '@/utils/network'
 import utils from '@/utils/utils'
 import { request } from '@/utils/network'
 import IMdEditor from '@/comps/custom/i-md-editor.vue'
@@ -277,6 +273,18 @@ const vditorRef = ref(null)
 // 新标签输入
 const newTag = ref('')
 
+// 获取当前时间的 datetime-local 格式
+const getCurrentDateTime = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    const seconds = String(now.getSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+}
+
 // 响应式状态
 const state = reactive({
     item: {
@@ -297,7 +305,7 @@ const state = reactive({
     struct: {
         content: '',
         editor: 'vditor',
-        publishTime: '',
+        publishTime: getCurrentDateTime(),
         json: { comment: { allow: 1, show: 1 } }
     },
     select: {
@@ -365,8 +373,8 @@ const method = {
                 const seconds = String(date.getSeconds()).padStart(2, '0')
                 articleData.publishTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
             } else {
-                // 当 publish_time 为 0 时，清空发布时间字段
-                articleData.publishTime = ''
+                // 当 publish_time 为 0 时，默认填充当前时间
+                articleData.publishTime = getCurrentDateTime()
             }
             
             state.struct = articleData
