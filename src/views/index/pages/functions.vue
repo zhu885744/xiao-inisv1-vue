@@ -1,56 +1,54 @@
-<!-- 主题设置页面 -->
+<!-- 站点配置页面 -->
 <template>
   <div class="config-page mt-2">
     <!-- 页面头部 -->
-    <div class="card shadow-sm mb-2">
+    <div class="card shadow-sm">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center">
-          <div class="header-content">
-            <h1 class="page-title d-flex align-items-center gap-3 fw-bold">
-              <i class="bi bi-sliders fs-2"></i>
+          <div>
+            <h1 class="h5 mb-1 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-gear-wide-connected text-primary"></i>
               站点配置
             </h1>
-            <p class="page-description text-muted mt-1">管理您的网站全局设置、评论配置和主题选项</p>
+            <p class="text-muted small mb-0">管理网站全局设置、评论配置、侧边栏及自定义代码</p>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 权限检查 -->
-    <div v-if="!isAdmin" class="auth-error-container">
-      <div class="card shadow-lg">
-        <div class="card-body text-center py-12 px-4">
-          <div class="error-icon mb-4">
-            <i class="bi bi-shield-lock text-danger fs-4"></i>
-          </div>
-          <h3 class="error-title mb-3">权限不足</h3>
-          <p class="error-description text-muted mb-6">您没有权限访问此页面，请联系管理员</p>
-          <router-link to="/" class="btn btn-primary rounded-3 px-6 py-2">
-            <i class="bi bi-house me-2"></i>
-            返回首页
-          </router-link>
+    <div v-if="!isAdmin" class="card mt-2 shadow-lg">
+      <div class="card-body text-center py-5 px-4">
+        <div class="mb-4">
+          <i class="bi bi-shield-lock text-danger fs-4"></i>
         </div>
+        <h3 class="h5 mb-3">权限不足</h3>
+        <p class="text-muted mb-4">您没有权限访问此页面，请联系管理员</p>
+        <router-link to="/" class="btn btn-primary">
+          <i class="bi bi-house me-2"></i>
+          返回首页
+        </router-link>
       </div>
     </div>
 
     <!-- 配置内容 -->
-    <div v-else-if="isAdmin" class="config-content">
-      <!-- 导航标签 -->
-      <div class="card config-tabs-container mb-2">
-        <div class="tabs-wrapper overflow-x-auto scrollbar-hide" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
-          <ul class="nav nav-tabs config-nav-tabs flex-nowrap" id="configTabs" role="tablist">
+    <div v-else-if="isAdmin">
+      <!-- 导航标签与内容在同一容器内 -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <ul class="nav nav-pills card-header-pills" id="configTabs" role="tablist">
             <li class="nav-item" role="presentation">
               <button 
                 class="nav-link active" 
                 id="global-tab" 
-                data-bs-toggle="tab" 
+                data-bs-toggle="pill" 
                 data-bs-target="#global" 
                 type="button" 
                 role="tab" 
                 aria-controls="global" 
                 aria-selected="true"
               >
-                <i class="bi bi-globe me-2"></i>
+                <i class="bi bi-globe2 me-2"></i>
                 全局设置
               </button>
             </li>
@@ -58,14 +56,14 @@
               <button 
                 class="nav-link" 
                 id="comment-tab" 
-                data-bs-toggle="tab" 
+                data-bs-toggle="pill" 
                 data-bs-target="#comment" 
                 type="button" 
                 role="tab" 
                 aria-controls="comment" 
                 aria-selected="false"
               >
-                <i class="bi bi-chat-left-text me-2"></i>
+                <i class="bi bi-chat-square-text me-2"></i>
                 评论设置
               </button>
             </li>
@@ -73,29 +71,29 @@
               <button 
                 class="nav-link" 
                 id="sidebar-tab" 
-                data-bs-toggle="tab" 
+                data-bs-toggle="pill" 
                 data-bs-target="#sidebar" 
                 type="button" 
                 role="tab" 
                 aria-controls="sidebar" 
                 aria-selected="false"
               >
-                <i class="bi bi-columns me-2"></i>
-                侧边栏设置
+                <i class="bi bi-layout-sidebar me-2"></i>
+                侧边栏
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button 
                 class="nav-link" 
                 id="article-tab" 
-                data-bs-toggle="tab" 
+                data-bs-toggle="pill" 
                 data-bs-target="#article" 
                 type="button" 
                 role="tab" 
                 aria-controls="article" 
                 aria-selected="false"
               >
-                <i class="bi bi-file-earmark-text me-2"></i>
+                <i class="bi bi-file-earmark-richtext me-2"></i>
                 文章设置
               </button>
             </li>
@@ -103,116 +101,118 @@
               <button 
                 class="nav-link" 
                 id="custom-code-tab" 
-                data-bs-toggle="tab" 
+                data-bs-toggle="pill" 
                 data-bs-target="#custom-code" 
                 type="button" 
                 role="tab" 
                 aria-controls="custom-code" 
                 aria-selected="false"
               >
-                <i class="bi bi-code-slash me-2"></i>
+                <i class="bi bi-code-square me-2"></i>
                 自定义代码
               </button>
             </li>
           </ul>
         </div>
-      </div>
-
-      <!-- 标签内容 -->
-      <div class="tab-content" id="configTabsContent">
-        <!-- 全局设置 -->
-        <div 
-          class="tab-pane fade show active" 
-          id="global" 
-          role="tabpanel" 
-          aria-labelledby="global-tab"
-        >
-          <div class="config-section">
-            <div class="card shadow-sm">
-              <div class="card-body p-3">
-              <form class="global-config-form">
+        <div class="card-body">
+          <!-- 标签内容 -->
+          <div class="tab-content" id="configTabsContent">
+            <!-- 全局设置 -->
+            <div 
+              class="tab-pane fade show active" 
+              id="global" 
+              role="tabpanel" 
+              aria-labelledby="global-tab"
+            >
+              <form>
                 <!-- 网站基本信息 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">网站基本信息</h3>
-                  <div class="row g-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle-fill text-primary"></i>
+                    网站基本信息
+                  </h2>
+                  <div class="row g-3">
                     <div class="col-md-6">
-                      <label for="site-title" class="form-label">网站标题</label>
+                      <label for="site-title" class="form-label small fw-medium">网站标题</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="site-title"
                         v-model="globalConfig.title"
                         placeholder="输入您的网站标题"
                       >
-                      <div class="form-text text-muted mt-1">显示在浏览器标签和网站头部</div>
+                      <div class="form-text small mt-1">显示在浏览器标签和网站头部</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="site-description" class="form-label">网站描述</label>
+                      <label for="site-description" class="form-label small fw-medium">网站描述</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="site-description"
                         v-model="globalConfig.description"
                         placeholder="输入您的网站描述"
                       >
-                      <div class="form-text text-muted mt-1">用于SEO和社交媒体分享</div>
+                      <div class="form-text small mt-1">用于SEO和社交媒体分享</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="site-keyword" class="form-label">网站关键词</label>
+                      <label for="site-keyword" class="form-label small fw-medium">网站关键词</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="site-keyword"
                         v-model="globalConfig.keyword"
                         placeholder="输入关键词，用逗号分隔"
                       >
-                      <div class="form-text text-muted mt-1">用于SEO优化，多个关键词用逗号分隔</div>
+                      <div class="form-text small mt-1">用于SEO优化，多个关键词用逗号分隔</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="site-avatar" class="form-label">网站LOGO</label>
+                      <label for="site-avatar" class="form-label small fw-medium">网站LOGO</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="site-avatar"
                         v-model="globalConfig.avatar"
                         placeholder="输入LOGO URL"
                       >
-                      <div class="form-text text-muted mt-1">网站的LOGO图片</div>
+                      <div class="form-text small mt-1">网站的LOGO图片</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="site-favicon" class="form-label">网站图标</label>
+                      <label for="site-favicon" class="form-label small fw-medium">网站图标</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="site-favicon"
                         v-model="globalConfig.favicon"
                         placeholder="输入favicon URL"
                       >
-                      <div class="form-text text-muted mt-1">浏览器标签显示的图标</div>
+                      <div class="form-text small mt-1">浏览器标签显示的图标</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="site-date" class="form-label">建站日期</label>
+                      <label for="site-date" class="form-label small fw-medium">建站日期</label>
                       <input 
                         type="date" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="site-date"
                         :value="formatDate(globalConfig.date)"
                         @change="handleDateChange"
                       >
-                      <div class="form-text text-muted mt-1">网站的建立日期</div>
+                      <div class="form-text small mt-1">网站的建立日期</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 显示设置 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">显示设置</h3>
-                  <div class="row g-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-display-fill text-primary"></i>
+                    显示设置
+                  </h2>
+                  <div class="row">
                     <div class="col-md-6">
-                      <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
                         <div>
-                          <label class="form-label fw-medium">文章列表布局</label>
-                          <p class="form-text text-muted mt-1">选择文章列表卡片的显示模式</p>
+                          <label class="form-label small fw-medium mb-1">文章列表布局</label>
+                          <p class="form-text small mb-0">选择文章列表卡片的显示模式</p>
                         </div>
                         <div class="form-check form-switch">
                           <input 
@@ -231,65 +231,71 @@
                 </div>
 
                 <!-- 备案信息 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">备案信息</h3>
-                  <div class="row g-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-primary"></i>
+                    备案信息
+                  </h2>
+                  <div class="row g-3">
                     <div class="col-md-6">
-                      <label for="copy-code" class="form-label">ICP 备案号</label>
+                      <label for="copy-code" class="form-label small fw-medium">ICP 备案号</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="copy-code"
                         v-model="globalConfig.copy.code"
                         placeholder="输入 ICP 备案号"
                       >
-                      <div class="form-text text-muted mt-1">工信部 ICP 备案号</div>
+                      <div class="form-text small mt-1">工信部 ICP 备案号</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="copy-link" class="form-label">ICP 备案链接</label>
+                      <label for="copy-link" class="form-label small fw-medium">ICP 备案链接</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="copy-link"
                         v-model="globalConfig.copy.link"
                         placeholder="输入备案链接"
                       >
-                      <div class="form-text text-muted mt-1">备案查询链接</div>
+                      <div class="form-text small mt-1">备案查询链接</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="police-code" class="form-label">公安备案号</label>
+                      <label for="police-code" class="form-label small fw-medium">公安备案号</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="police-code"
                         v-model="globalConfig.police.code"
                         placeholder="输入公安备案号"
                       >
-                      <div class="form-text text-muted mt-1">公安联网备案号</div>
+                      <div class="form-text small mt-1">公安联网备案号</div>
                     </div>
                     <div class="col-md-6">
-                      <label for="police-link" class="form-label">公安备案链接</label>
+                      <label for="police-link" class="form-label small fw-medium">公安备案链接</label>
                       <input 
                         type="text" 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="police-link"
                         v-model="globalConfig.police.link"
                         placeholder="输入公安备案链接"
                       >
-                      <div class="form-text text-muted mt-1">公安备案查询链接</div>
+                      <div class="form-text small mt-1">公安备案查询链接</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 登录协议提示配置 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">登录协议提示配置</h3>
-                  <div class="row g-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-text-fill text-primary"></i>
+                    登录协议提示配置
+                  </h2>
+                  <div class="row g-3">
                     <div class="col-12">
-                      <div class="d-flex align-items-center justify-content-between mb-3">
+                      <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
                         <div>
-                          <label class="form-label fw-medium mb-0">启用登录协议提示</label>
-                          <p class="form-text text-muted mt-1 mb-0">在登录/注册/找回密码弹窗中显示协议同意提示</p>
+                          <label class="form-label small fw-medium mb-1">启用登录协议提示</label>
+                          <p class="form-text small mb-0">在登录/注册/找回密码弹窗中显示协议同意提示</p>
                         </div>
                         <div class="form-check form-switch">
                           <input 
@@ -306,40 +312,43 @@
                     </div>
 
                     <div class="col-12" v-if="globalConfig.auth_dialog_agreement.enabled">
-                      <label for="auth_dialog_agreement_user_content" class="form-label">用户协议内容</label>
+                      <label for="auth_dialog_agreement_user_content" class="form-label small fw-medium">用户协议内容</label>
                       <textarea 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="auth_dialog_agreement_user_content"
                         v-model="globalConfig.auth_dialog_agreement.user_agreement_content"
-                        rows="8"
-                        placeholder="输入用户协议内容，使用普通文本格式（支持换行）"
+                        rows="4"
+                        placeholder="输入用户协议内容"
                       ></textarea>
-                      <div class="form-text text-muted mt-1">点击《用户协议》时弹窗显示此内容</div>
+                      <div class="form-text small mt-1">点击《用户协议》时弹窗显示此内容</div>
                     </div>
 
                     <div class="col-12" v-if="globalConfig.auth_dialog_agreement.enabled">
-                      <label for="auth_dialog_agreement_privacy_content" class="form-label">隐私协议内容</label>
+                      <label for="auth_dialog_agreement_privacy_content" class="form-label small fw-medium">隐私协议内容</label>
                       <textarea 
-                        class="form-control rounded-3 border-gray-300 shadow-sm"
+                        class="form-control form-control-sm" 
                         id="auth_dialog_agreement_privacy_content"
                         v-model="globalConfig.auth_dialog_agreement.privacy_agreement_content"
-                        rows="8"
-                        placeholder="输入隐私协议内容，使用普通文本格式（支持换行）"
+                        rows="4"
+                        placeholder="输入隐私协议内容"
                       ></textarea>
-                      <div class="form-text text-muted mt-1">点击《隐私协议》时弹窗显示此内容</div>
+                      <div class="form-text small mt-1">点击《隐私协议》时弹窗显示此内容</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 悬浮按钮设置 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">右侧悬浮按钮设置</h3>
-                  <div class="row g-4">
+                <div class="pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-arrows-fullscreen text-primary"></i>
+                    右侧悬浮按钮设置
+                  </h2>
+                  <div class="row g-3">
                     <div class="col-12">
-                      <div class="d-flex align-items-center justify-content-between mb-3">
+                      <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
                         <div>
-                          <label class="form-label fw-medium mb-0">启用悬浮按钮</label>
-                          <p class="form-text text-muted mt-1 mb-0">在网站右侧显示悬浮按钮</p>
+                          <label class="form-label small fw-medium mb-1">启用悬浮按钮</label>
+                          <p class="form-text small mb-0">在网站右侧显示悬浮按钮</p>
                         </div>
                         <div class="form-check form-switch">
                           <input 
@@ -356,9 +365,9 @@
                     </div>
 
                     <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <label for="float_buttons_show_back_to_top" class="form-label">显示返回顶部按钮</label>
-                        <div class="form-check form-switch">
+                      <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
+                        <label for="float_buttons_show_back_to_top" class="form-label small fw-medium mb-0">显示返回顶部按钮</label>
+                        <div class="form-check form-switch mb-0">
                           <input 
                             class="form-check-input" 
                             type="checkbox" 
@@ -370,9 +379,9 @@
                     </div>
 
                     <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <label for="float_buttons_show_notice" class="form-label">显示公告按钮</label>
-                        <div class="form-check form-switch">
+                      <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
+                        <label for="float_buttons_show_notice" class="form-label small fw-medium mb-0">显示公告按钮</label>
+                        <div class="form-check form-switch mb-0">
                           <input 
                             class="form-check-input" 
                             type="checkbox" 
@@ -384,148 +393,150 @@
                     </div>
 
                     <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
-                      <label for="float_buttons_style" class="form-label">按钮样式</label>
+                      <label for="float_buttons_style" class="form-label small fw-medium">按钮样式</label>
                       <select 
-                        class="form-select rounded-3 border-gray-300 shadow-sm"
+                        class="form-select form-select-sm" 
                         id="float_buttons_style"
                         v-model="globalConfig.float_buttons.style"
                       >
                         <option value="rounded">圆角按钮</option>
                         <option value="square">方形按钮</option>
                       </select>
-                      <div class="form-text text-muted mt-1">选择悬浮按钮的样式</div>
                     </div>
 
                     <div class="col-md-6" v-if="globalConfig.float_buttons.enabled">
-                      <label for="float_buttons_position" class="form-label">显示位置</label>
+                      <label for="float_buttons_position" class="form-label small fw-medium">显示位置</label>
                       <select 
-                        class="form-select rounded-3 border-gray-300 shadow-sm"
+                        class="form-select form-select-sm" 
                         id="float_buttons_position"
                         v-model="globalConfig.float_buttons.position"
                       >
                         <option value="center">右侧居中</option>
                         <option value="bottom">右侧底部</option>
                       </select>
-                      <div class="form-text text-muted mt-1">选择悬浮按钮的显示位置</div>
                     </div>
 
                     <div class="col-12" v-if="globalConfig.float_buttons.enabled">
-                      <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="form-section-title fw-medium text-gray-700">悬浮按钮管理</h4>
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 mb-0 fw-medium">悬浮按钮管理</h3>
                         <button 
                           type="button" 
-                          class="btn btn-sm btn-primary rounded-3"
+                          class="btn btn-sm btn-outline-primary"
                           @click="addFloatButton"
                         >
-                          <i class="bi bi-plus me-1"></i>
-                          添加按钮
+                          <i class="bi bi-plus-lg me-1"></i>
+                          添加
                         </button>
                       </div>
 
-                      <div class="float-buttons-container space-y-4">
+                      <div class="row g-3">
                         <div 
                           v-for="(button, index) in globalConfig.float_buttons.buttons" 
                           :key="button.id"
-                          class="float-button-form card p-4 border"
+                          class="col-12"
                         >
-                          <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5 class="float-button-title fw-medium">{{ button.name }}</h5>
-                            <div class="d-flex gap-2">
-                              <button 
-                                type="button" 
-                                class="btn btn-sm btn-outline-secondary rounded-3"
-                                @click="moveFloatButton(index, 'up')"
-                                :disabled="index === 0"
-                              >
-                                <i class="bi bi-arrow-up"></i>
-                              </button>
-                              <button 
-                                type="button" 
-                                class="btn btn-sm btn-outline-secondary rounded-3"
-                                @click="moveFloatButton(index, 'down')"
-                                :disabled="index === globalConfig.float_buttons.buttons.length - 1"
-                              >
-                                <i class="bi bi-arrow-down"></i>
-                              </button>
-                              <button 
-                                type="button" 
-                                class="btn btn-sm btn-danger rounded-3"
-                                @click="removeFloatButton(index)"
-                              >
-                                <i class="bi bi-trash"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <div class="row g-4">
-                            <div class="col-md-6">
-                              <div class="d-flex align-items-center justify-content-between">
-                                <label :for="'float-button-enabled-' + button.id" class="form-label">启用</label>
-                                <div class="form-check form-switch">
-                                  <input 
-                                    class="form-check-input" 
-                                    type="checkbox" 
-                                    :id="'float-button-enabled-' + button.id"
-                                    v-model="button.enabled"
+                          <div class="card bg-body-tertiary border">
+                            <div class="card-body p-3">
+                              <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h4 class="h6 mb-0 fw-medium">{{ button.name }}</h4>
+                                <div class="d-flex gap-2">
+                                  <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary"
+                                    @click="moveFloatButton(index, 'up')"
+                                    :disabled="index === 0"
                                   >
+                                    <i class="bi bi-arrow-up"></i>
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary"
+                                    @click="moveFloatButton(index, 'down')"
+                                    :disabled="index === globalConfig.float_buttons.buttons.length - 1"
+                                  >
+                                    <i class="bi bi-arrow-down"></i>
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-danger"
+                                    @click="removeFloatButton(index)"
+                                  >
+                                    <i class="bi bi-trash"></i>
+                                  </button>
                                 </div>
                               </div>
-                            </div>
 
-                            <div class="col-md-6">
-                              <label :for="'float-button-name-' + button.id" class="form-label">按钮名称</label>
-                              <input 
-                                type="text" 
-                                class="form-control rounded-3 border-gray-300 shadow-sm"
-                                :id="'float-button-name-' + button.id"
-                                v-model="button.name"
-                                placeholder="输入按钮名称"
-                              >
-                            </div>
+                              <div class="row g-3">
+                                <div class="col-md-6">
+                                  <div class="d-flex align-items-center justify-content-between p-2 bg-white rounded">
+                                    <label :for="'float-button-enabled-' + button.id" class="form-label small mb-0">启用</label>
+                                    <div class="form-check form-switch mb-0">
+                                      <input 
+                                        class="form-check-input" 
+                                        type="checkbox" 
+                                        :id="'float-button-enabled-' + button.id"
+                                        v-model="button.enabled"
+                                      >
+                                    </div>
+                                  </div>
+                                </div>
 
-                            <div class="col-md-6">
-                              <label :for="'float-button-icon-' + button.id" class="form-label">按钮图标</label>
-                              <input 
-                                type="text" 
-                                class="form-control rounded-3 border-gray-300 shadow-sm"
-                                :id="'float-button-icon-' + button.id"
-                                v-model="button.icon"
-                                placeholder="输入Bootstrap图标类名，如 bi bi-qq"
-                              >
-                            </div>
+                                <div class="col-md-6">
+                                  <label :for="'float-button-name-' + button.id" class="form-label small fw-medium">按钮名称</label>
+                                  <input 
+                                    type="text" 
+                                    class="form-control form-control-sm" 
+                                    :id="'float-button-name-' + button.id"
+                                    v-model="button.name"
+                                    placeholder="输入按钮名称"
+                                  >
+                                </div>
 
-                            <div class="col-md-6">
-                              <label :for="'float-button-url-' + button.id" class="form-label">按钮链接</label>
-                              <input 
-                                type="text" 
-                                class="form-control rounded-3 border-gray-300 shadow-sm"
-                                :id="'float-button-url-' + button.id"
-                                v-model="button.url"
-                                placeholder="输入按钮链接，留空则仅显示悬浮内容"
-                              >
-                            </div>
+                                <div class="col-md-6">
+                                  <label :for="'float-button-icon-' + button.id" class="form-label small fw-medium">按钮图标</label>
+                                  <input 
+                                    type="text" 
+                                    class="form-control form-control-sm" 
+                                    :id="'float-button-icon-' + button.id"
+                                    v-model="button.icon"
+                                    placeholder="如 bi bi-qq"
+                                  >
+                                </div>
 
-                            <div class="col-md-6">
-                              <label :for="'float-button-tooltip-' + button.id" class="form-label">按钮简介</label>
-                              <input 
-                                type="text" 
-                                class="form-control rounded-3 border-gray-300 shadow-sm"
-                                :id="'float-button-tooltip-' + button.id"
-                                v-model="button.tooltip"
-                                placeholder="输入鼠标悬停时显示的文字"
-                              >
-                            </div>
+                                <div class="col-md-6">
+                                  <label :for="'float-button-url-' + button.id" class="form-label small fw-medium">按钮链接</label>
+                                  <input 
+                                    type="text" 
+                                    class="form-control form-control-sm" 
+                                    :id="'float-button-url-' + button.id"
+                                    v-model="button.url"
+                                    placeholder="输入按钮链接"
+                                  >
+                                </div>
 
-                            <div class="col-12">
-                              <label :for="'float-button-image-url-' + button.id" class="form-label">图片链接</label>
-                              <input 
-                                type="text" 
-                                class="form-control rounded-3 border-gray-300 shadow-sm"
-                                :id="'float-button-image-url-' + button.id"
-                                v-model="button.image_url"
-                                placeholder="输入图片链接，鼠标移到此处时显示图片"
-                              >
-                              <div class="form-text text-muted mt-1">设置此处后，按钮链接将失效</div>
+                                <div class="col-md-6">
+                                  <label :for="'float-button-tooltip-' + button.id" class="form-label small fw-medium">按钮简介</label>
+                                  <input 
+                                    type="text" 
+                                    class="form-control form-control-sm" 
+                                    :id="'float-button-tooltip-' + button.id"
+                                    v-model="button.tooltip"
+                                    placeholder="鼠标悬停时显示"
+                                  >
+                                </div>
+
+                                <div class="col-12">
+                                  <label :for="'float-button-image-url-' + button.id" class="form-label small fw-medium">图片链接</label>
+                                  <input 
+                                    type="text" 
+                                    class="form-control form-control-sm" 
+                                    :id="'float-button-image-url-' + button.id"
+                                    v-model="button.image_url"
+                                    placeholder="鼠标移到此处的图片"
+                                  >
+                                  <div class="form-text small mt-1">设置此处后，按钮链接将失效</div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -535,50 +546,46 @@
                 </div>
 
                 <!-- 保存按钮 -->
-                <div class="form-actions mt-8">
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary"
                     @click="saveGlobalConfig"
                     :disabled="saving"
                   >
-                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
-                    {{ saving ? ' 保存中...' : ' 保存全局设置' }}
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-check-lg'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存设置' }}
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary"
                     @click="resetGlobalConfig"
                     :disabled="saving"
                   >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>
                     重置
                   </button>
                 </div>
               </form>
-              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 评论设置 -->
-        <div 
-          class="tab-pane fade" 
-          id="comment" 
-          role="tabpanel" 
-          aria-labelledby="comment-tab"
-        >
-          <div class="config-section">
-            <!-- 评论设置表单 -->
-            <div class="card shadow-sm">
-              <div class="card-body p-3">
-              <form class="comment-config-form">
+            <!-- 评论设置 -->
+            <div 
+              class="tab-pane fade" 
+              id="comment" 
+              role="tabpanel" 
+              aria-labelledby="comment-tab"
+            >
+              <form>
                 <!-- 全局评论开关 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">全局设置</h3>
-                  <div class="form-check mb-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-power text-primary"></i>
+                    全局设置
+                  </h2>
+                  <div class="form-check mb-2">
                     <input 
-                      class="form-check-input rounded border-gray-300"
+                      class="form-check-input" 
                       type="checkbox" 
                       id="comment_enabled"
                       v-model="commentConfig.enabled"
@@ -587,15 +594,18 @@
                       启用全局评论功能
                     </label>
                   </div>
-                  <div class="form-text text-muted mt-1">关闭后，所有页面的评论模块将无法进行评论</div>
+                  <div class="form-text small text-muted">关闭后，所有页面的评论模块将无法进行评论</div>
                 </div>
                 
                 <!-- 速率限制 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">速率限制</h3>
-                  <div class="form-check mb-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-speedometer2 text-primary"></i>
+                    速率限制
+                  </h2>
+                  <div class="form-check mb-3">
                     <input 
-                      class="form-check-input rounded border-gray-300"
+                      class="form-check-input" 
                       type="checkbox" 
                       id="rate_limit_enabled"
                       v-model="commentConfig.rate_limit.enabled"
@@ -604,68 +614,74 @@
                       启用速率限制，防止频繁评论
                     </label>
                   </div>
-                  <div class="row g-4" v-if="commentConfig.rate_limit.enabled">
+                  <div class="row g-3" v-if="commentConfig.rate_limit.enabled">
                     <div class="col-md-4">
-                      <label for="rate_limit_max_count" class="form-label">最大评论数</label>
-                      <div class="input-group">
+                      <label for="rate_limit_max_count" class="form-label small fw-medium">最大评论数</label>
+                      <div class="input-group input-group-sm">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control" 
                           id="rate_limit_max_count"
                           v-model.number="commentConfig.rate_limit.max_count"
                           min="1"
                           max="100"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">条</span>
+                        <span class="input-group-text">条</span>
                       </div>
-                      <div class="form-text text-muted mt-1">时间窗口内允许的最大评论数</div>
+                      <div class="form-text small text-muted mt-1">时间窗口内允许的最大评论数</div>
                     </div>
                     <div class="col-md-4">
-                      <label for="rate_limit_time_window" class="form-label">时间窗口</label>
-                      <div class="input-group">
+                      <label for="rate_limit_time_window" class="form-label small fw-medium">时间窗口</label>
+                      <div class="input-group input-group-sm">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control" 
                           id="rate_limit_time_window"
                           v-model.number="commentConfig.rate_limit.time_window"
                           min="1"
                           max="3600"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">秒</span>
+                        <span class="input-group-text">秒</span>
                       </div>
-                      <div class="form-text text-muted mt-1">速率限制的时间窗口</div>
+                      <div class="form-text small text-muted mt-1">速率限制的时间窗口</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 评论长度限制 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">评论长度</h3>
-                  <div class="row g-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-rulers text-primary"></i>
+                    评论长度
+                  </h2>
+                  <div class="row g-3">
                     <div class="col-md-4">
-                      <label for="max_length" class="form-label">最大长度</label>
-                      <div class="input-group">
+                      <label for="max_length" class="form-label small fw-medium">最大长度</label>
+                      <div class="input-group input-group-sm">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control" 
                           id="max_length"
                           v-model.number="commentConfig.max_length"
                           min="1"
                           max="10000"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">字</span>
+                        <span class="input-group-text">字</span>
                       </div>
-                      <div class="form-text text-muted mt-1">单条评论的最大长度</div>
+                      <div class="form-text small text-muted mt-1">单条评论的最大长度</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 内容要求 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">内容要求</h3>
-                  <div class="form-check mb-3">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-check2-square text-primary"></i>
+                    内容要求
+                  </h2>
+                  <div class="form-check mb-2">
                     <input 
-                      class="form-check-input rounded border-gray-300"
+                      class="form-check-input" 
                       type="checkbox" 
                       id="require_chinese"
                       v-model="commentConfig.require_chinese"
@@ -674,9 +690,9 @@
                       要求评论内容包含中文
                     </label>
                   </div>
-                  <div class="form-check mb-3">
+                  <div class="form-check mb-2">
                     <input 
-                      class="form-check-input rounded border-gray-300"
+                      class="form-check-input" 
                       type="checkbox" 
                       id="sensitive_filter"
                       v-model="commentConfig.sensitive_filter"
@@ -688,27 +704,33 @@
                 </div>
 
                 <!-- 敏感词 -->
-                <div class="form-section mb-6" v-if="commentConfig.sensitive_filter">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">敏感词设置</h3>
-                  <div class="mb-3">
-                    <label for="sensitive_words" class="form-label">敏感词列表</label>
+                <div class="border-bottom pb-3 mb-4" v-if="commentConfig.sensitive_filter">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-exclamation text-primary"></i>
+                    敏感词设置
+                  </h2>
+                  <div>
+                    <label for="sensitive_words" class="form-label small fw-medium">敏感词列表</label>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control form-control-sm" 
                       id="sensitive_words"
                       v-model="commentConfig.sensitive_words"
-                      rows="4"
-                      placeholder="在这里输入敏感词，多个敏感词用「,」分隔"
+                      rows="3"
+                      placeholder="多个敏感词用「,」分隔"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">评论中包含这些词将被拒绝，多个敏感词用「,」分隔</div>
+                    <div class="form-text small text-muted mt-1">评论中包含这些词将被拒绝</div>
                   </div>
                 </div>
 
                 <!-- 邮件通知 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">邮件通知</h3>
-                  <div class="form-check mb-4">
+                <div class="pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-envelope-paper text-primary"></i>
+                    邮件通知
+                  </h2>
+                  <div class="form-check mb-3">
                     <input 
-                      class="form-check-input rounded border-gray-300"
+                      class="form-check-input" 
                       type="checkbox" 
                       id="email_notify_enabled"
                       v-model="commentConfig.email_notify.enabled"
@@ -717,90 +739,86 @@
                       启用邮件通知
                     </label>
                   </div>
-                  <div class="row g-4" v-if="commentConfig.email_notify.enabled">
+                  <div class="row g-3" v-if="commentConfig.email_notify.enabled">
                     <div class="col-md-4">
-                      <label for="email_notify_retry_count" class="form-label">重试次数</label>
-                      <div class="input-group">
+                      <label for="email_notify_retry_count" class="form-label small fw-medium">重试次数</label>
+                      <div class="input-group input-group-sm">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control" 
                           id="email_notify_retry_count"
                           v-model.number="commentConfig.email_notify.retry_count"
                           min="1"
                           max="10"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">次</span>
+                        <span class="input-group-text">次</span>
                       </div>
-                      <div class="form-text text-muted mt-1">发送失败时的重试次数</div>
+                      <div class="form-text small text-muted mt-1">发送失败时的重试次数</div>
                     </div>
                     <div class="col-md-4">
-                      <label for="email_notify_retry_interval" class="form-label">重试间隔</label>
-                      <div class="input-group">
+                      <label for="email_notify_retry_interval" class="form-label small fw-medium">重试间隔</label>
+                      <div class="input-group input-group-sm">
                         <input 
                           type="number" 
-                          class="form-control rounded-3 border-gray-300 shadow-sm"
+                          class="form-control" 
                           id="email_notify_retry_interval"
                           v-model.number="commentConfig.email_notify.retry_interval"
                           min="1"
                           max="60"
                         >
-                        <span class="input-group-text rounded-3 border-gray-300">秒</span>
+                        <span class="input-group-text">秒</span>
                       </div>
-                      <div class="form-text text-muted mt-1">每次重试的时间间隔</div>
+                      <div class="form-text small text-muted mt-1">每次重试的时间间隔</div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 保存按钮 -->
-                <div class="form-actions mt-8">
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary"
                     @click="saveCommentConfig"
                     :disabled="saving"
                   >
-                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
-                    {{ saving ? ' 保存中...' : ' 保存评论设置' }}
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-check-lg'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存设置' }}
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary"
                     @click="resetCommentConfig"
                     :disabled="saving"
                   >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>
                     重置
                   </button>
                 </div>
               </form>
-              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 侧边栏设置 -->
-        <div 
-          class="tab-pane fade" 
-          id="sidebar" 
-          role="tabpanel" 
-          aria-labelledby="sidebar-tab"
-        >
-          <div class="config-section">
-            <!-- 侧边栏设置表单 -->
-            <div class="card shadow-sm">
-              <div class="card-body p-3">
-              <form class="sidebar-config-form">
+            <!-- 侧边栏设置 -->
+            <div 
+              class="tab-pane fade" 
+              id="sidebar" 
+              role="tabpanel" 
+              aria-labelledby="sidebar-tab"
+            >
+              <form>
                 <!-- 侧边栏启用设置 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">基础设置</h3>
-                  <div class="row g-4">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-toggle-on text-primary"></i>
+                    基础设置
+                  </h2>
+                  <div class="row">
                     <div class="col-md-6">
-                      <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
                         <div>
-                          <label class="form-label fw-medium">PC端侧边栏</label>
-                          <p class="form-text text-muted mt-1">开启或关闭PC端侧边栏</p>
+                          <label class="form-label small fw-medium mb-1">PC端侧边栏</label>
+                          <p class="form-text small mb-0">开启或关闭PC端侧边栏</p>
                         </div>
-                        <div class="form-check form-switch">
+                        <div class="form-check form-switch mb-0">
                           <input 
                             class="form-check-input" 
                             type="checkbox" 
@@ -817,120 +835,123 @@
                 </div>
 
                 <!-- 快捷导航配置 -->
-                <div class="form-section mb-6">
-                  <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="form-section-title fw-medium text-primary">快捷导航配置</h3>
+                <div class="pb-3 mb-4">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h6 mb-0 fw-semibold d-flex align-items-center gap-2">
+                      <i class="bi bi-compass text-primary"></i>
+                      快捷导航配置
+                    </h2>
                     <button 
                       type="button" 
-                      class="btn btn-sm btn-primary rounded-3"
+                      class="btn btn-sm btn-outline-primary"
                       @click="addNavItem"
                     >
-                      <i class="bi bi-plus me-1"></i>
-                      添加导航项
+                      <i class="bi bi-plus-lg me-1"></i>
+                      添加
                     </button>
                   </div>
                   
-                  <div class="nav-items-container space-y-4">
+                  <div class="row g-3">
                     <div 
                       v-for="(nav, index) in sidebarConfig.quick_navs" 
                       :key="nav.id"
-                      class="nav-item-form card p-4 border"
+                      class="col-12"
                     >
-                      <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h4 class="nav-item-title fw-medium">导航项 {{ index + 1 }}</h4>
-                        <button 
-                          type="button" 
-                          class="btn btn-sm btn-danger rounded-3"
-                          @click="removeNavItem(index)"
-                        >
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
-                      
-                      <div class="row g-4">
-                        <div class="col-md-6">
-                          <label :for="'nav-name-' + nav.id" class="form-label">导航名称</label>
-                          <input 
-                            type="text" 
-                            class="form-control rounded-3 border-gray-300 shadow-sm"
-                            :id="'nav-name-' + nav.id"
-                            v-model="nav.name"
-                            placeholder="输入导航名称"
-                          >
+                      <div class="card bg-body-tertiary border">
+                        <div class="card-body p-3">
+                          <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h3 class="h6 mb-0 fw-medium">导航项 {{ index + 1 }}</h3>
+                            <button 
+                              type="button" 
+                              class="btn btn-sm btn-outline-danger"
+                              @click="removeNavItem(index)"
+                            >
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </div>
+                          
+                          <div class="row g-3">
+                            <div class="col-md-4">
+                              <label :for="'nav-name-' + nav.id" class="form-label small fw-medium">导航名称</label>
+                              <input 
+                                type="text" 
+                                class="form-control form-control-sm" 
+                                :id="'nav-name-' + nav.id"
+                                v-model="nav.name"
+                                placeholder="输入导航名称"
+                              >
+                            </div>
+                            <div class="col-md-4">
+                              <label :for="'nav-url-' + nav.id" class="form-label small fw-medium">导航链接</label>
+                              <input 
+                                type="text" 
+                                class="form-control form-control-sm" 
+                                :id="'nav-url-' + nav.id"
+                                v-model="nav.url"
+                                placeholder="如 /archive"
+                              >
+                            </div>
+                            <div class="col-md-4">
+                              <label :for="'nav-icon-' + nav.id" class="form-label small fw-medium">图标类名</label>
+                              <input 
+                                type="text" 
+                                class="form-control form-control-sm" 
+                                :id="'nav-icon-' + nav.id"
+                                v-model="nav.icon"
+                                placeholder="如 bi bi-archive"
+                              >
+                            </div>
+                          </div>
                         </div>
-                        <div class="col-md-6">
-                          <label :for="'nav-url-' + nav.id" class="form-label">导航链接</label>
-                          <input 
-                            type="text" 
-                            class="form-control rounded-3 border-gray-300 shadow-sm"
-                            :id="'nav-url-' + nav.id"
-                            v-model="nav.url"
-                            placeholder="输入导航链接，如 /archive"
-                          >
-                        </div>
-                        <div class="col-md-6">
-                          <label :for="'nav-icon-' + nav.id" class="form-label">图标类名</label>
-                          <input 
-                            type="text" 
-                            class="form-control rounded-3 border-gray-300 shadow-sm"
-                            :id="'nav-icon-' + nav.id"
-                            v-model="nav.icon"
-                            placeholder="输入Bootstrap图标类名，如 bi bi-archive"
-                          >
-                        </div>
-
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <!-- 保存按钮 -->
-                <div class="form-actions mt-8">
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary"
                     @click="saveSidebarConfig"
                     :disabled="saving"
                   >
-                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
-                    {{ saving ? ' 保存中...' : ' 保存侧边栏设置' }}
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-check-lg'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存设置' }}
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary"
                     @click="resetSidebarConfig"
                     :disabled="saving"
                   >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>
                     重置
                   </button>
                 </div>
               </form>
-              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 文章设置 -->
-        <div 
-          class="tab-pane fade" 
-          id="article" 
-          role="tabpanel" 
-          aria-labelledby="article-tab"
-        >
-          <div class="config-section">
-            <!-- 打赏设置 -->
-            <div class="card shadow-sm">
-              <div class="card-body p-3">
-                <h3 class="form-section-title mb-4 fw-medium text-primary">打赏设置</h3>
-                <div class="row g-4">
+            <!-- 文章设置 -->
+            <div 
+              class="tab-pane fade" 
+              id="article" 
+              role="tabpanel" 
+              aria-labelledby="article-tab"
+            >
+              <div class="border-bottom pb-3 mb-4">
+                <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                  <i class="bi bi-gift-fill text-primary"></i>
+                  打赏设置
+                </h2>
+                <div class="row g-3">
                   <div class="col-md-6">
-                    <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between p-3 bg-body-tertiary rounded">
                       <div>
-                        <label class="form-label fw-medium">启用打赏功能</label>
-                        <p class="form-text text-muted mt-1">开启或关闭文章打赏功能</p>
+                        <label class="form-label small fw-medium mb-1">启用打赏功能</label>
+                        <p class="form-text small mb-0">开启或关闭文章打赏功能</p>
                       </div>
-                      <div class="form-check form-switch">
+                      <div class="form-check form-switch mb-0">
                         <input 
                           class="form-check-input" 
                           type="checkbox" 
@@ -944,167 +965,176 @@
                     </div>
                   </div>
                 </div>
-                <div class="row g-4 mt-4">
-                  <div class="col-md-6">
-                    <label for="reward_wechat" class="form-label">微信收款码</label>
-                    <input 
-                      type="text" 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
-                      id="reward_wechat"
-                      v-model="globalConfig.reward.wechat"
-                      placeholder="输入微信收款码图片链接"
-                    >
-                    <div class="form-text text-muted mt-1">微信收款码图片链接，建议使用正方形图片</div>
-                  </div>
-                  <div class="col-md-6">
-                    <label for="reward_alipay" class="form-label">支付宝收款码</label>
-                    <input 
-                      type="text" 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
-                      id="reward_alipay"
-                      v-model="globalConfig.reward.alipay"
-                      placeholder="输入支付宝收款码图片链接"
-                    >
-                    <div class="form-text text-muted mt-1">支付宝收款码图片链接，建议使用正方形图片</div>
-                  </div>
+              </div>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label for="reward_wechat" class="form-label small fw-medium">微信收款码</label>
+                  <input 
+                    type="text" 
+                    class="form-control form-control-sm" 
+                    id="reward_wechat"
+                    v-model="globalConfig.reward.wechat"
+                    placeholder="输入微信收款码图片链接"
+                  >
+                  <div class="form-text small text-muted mt-1">建议使用正方形图片</div>
                 </div>
-                
-                <!-- 保存按钮 -->
-                <div class="form-actions mt-4">
-                  <button 
-                    type="button" 
-                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
-                    @click="saveGlobalConfig"
-                    :disabled="saving"
+                <div class="col-md-6">
+                  <label for="reward_alipay" class="form-label small fw-medium">支付宝收款码</label>
+                  <input 
+                    type="text" 
+                    class="form-control form-control-sm" 
+                    id="reward_alipay"
+                    v-model="globalConfig.reward.alipay"
+                    placeholder="输入支付宝收款码图片链接"
                   >
-                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
-                    {{ saving ? ' 保存中...' : ' 保存文章设置' }}
-                  </button>
-                  <button 
-                    type="button" 
-                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
-                    @click="resetGlobalConfig"
-                    :disabled="saving"
-                  >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>
-                    重置
-                  </button>
+                  <div class="form-text small text-muted mt-1">建议使用正方形图片</div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- 自定义代码 -->
-        <div 
-          class="tab-pane fade" 
-          id="custom-code" 
-          role="tabpanel" 
-          aria-labelledby="custom-code-tab"
-        >
-          <div class="config-section">
-            <!-- 自定义代码表单 -->
-            <div class="card shadow-sm">
-              <div class="card-body p-3">
-              <form class="custom-code-config-form">
+              <!-- 保存按钮 -->
+              <div class="d-flex justify-content-end gap-2 pt-3 border-top mt-4">
+                <button 
+                  type="button" 
+                  class="btn btn-primary"
+                  @click="saveGlobalConfig"
+                  :disabled="saving"
+                >
+                  <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-check-lg'"></i>
+                  {{ saving ? ' 保存中...' : ' 保存设置' }}
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-outline-secondary"
+                  @click="resetGlobalConfig"
+                  :disabled="saving"
+                >
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <!-- 自定义代码 -->
+            <div 
+              class="tab-pane fade" 
+              id="custom-code" 
+              role="tabpanel" 
+              aria-labelledby="custom-code-tab"
+            >
+              <form>
                 <!-- CSS代码 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">CSS代码</h3>
-                  <div class="mb-3">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-palette2 text-primary"></i>
+                    CSS代码
+                  </h2>
+                  <div>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control font-monospace" 
                       id="custom-css"
                       v-model="customCodeConfig.css"
-                      rows="6"
+                      rows="4"
                       placeholder="在这里输入自定义CSS代码"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">自定义CSS样式，会全局生效</div>
+                    <div class="form-text small text-muted mt-1">自定义CSS样式，会全局生效</div>
                   </div>
                 </div>
 
                 <!-- JavaScript代码 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">JavaScript代码</h3>
-                  <div class="mb-3">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-braces text-primary"></i>
+                    JavaScript代码
+                  </h2>
+                  <div>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control font-monospace" 
                       id="custom-js"
                       v-model="customCodeConfig.js"
-                      rows="6"
+                      rows="4"
                       placeholder="在这里输入自定义JavaScript代码"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">自定义JavaScript脚本，会在页面加载时执行</div>
+                    <div class="form-text small text-muted mt-1">自定义JavaScript脚本，会在页面加载时执行</div>
                   </div>
                 </div>
 
                 <!-- 头部HTML代码 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">头部HTML代码</h3>
-                  <div class="mb-3">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-layout-text-window-reverse text-primary"></i>
+                    头部HTML代码
+                  </h2>
+                  <div>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control font-monospace" 
                       id="custom-header"
                       v-model="customCodeConfig.header"
-                      rows="4"
+                      rows="3"
                       placeholder="在这里输入自定义头部HTML代码"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">会被插入到HTML的head标签中</div>
+                    <div class="form-text small text-muted mt-1">会被插入到HTML的head标签中</div>
                   </div>
                 </div>
 
                 <!-- 底部HTML代码 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">底部HTML代码</h3>
-                  <div class="mb-3">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-layout-text-window text-primary"></i>
+                    底部HTML代码
+                  </h2>
+                  <div>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control font-monospace" 
                       id="custom-footer"
                       v-model="customCodeConfig.footer"
-                      rows="4"
+                      rows="3"
                       placeholder="在这里输入自定义底部HTML代码"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">会被插入到HTML的body标签末尾</div>
+                    <div class="form-text small text-muted mt-1">会被插入到HTML的body标签末尾</div>
                   </div>
                 </div>
 
                 <!-- 网站统计代码 -->
-                <div class="form-section mb-6">
-                  <h3 class="form-section-title mb-4 fw-medium text-primary">网站统计代码</h3>
-                  <div class="mb-3">
+                <div class="pb-3 mb-4">
+                  <h2 class="h6 mb-3 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-graph-up-arrow text-primary"></i>
+                    网站统计代码
+                  </h2>
+                  <div>
                     <textarea 
-                      class="form-control rounded-3 border-gray-300 shadow-sm"
+                      class="form-control font-monospace" 
                       id="custom-analytics"
                       v-model="customCodeConfig.analytics"
-                      rows="4"
+                      rows="3"
                       placeholder="在这里输入网站统计代码"
                     ></textarea>
-                    <div class="form-text text-muted mt-1">会被插入到HTML的body标签末尾</div>
+                    <div class="form-text small text-muted mt-1">会被插入到HTML的body标签末尾</div>
                   </div>
                 </div>
 
                 <!-- 保存按钮 -->
-                <div class="form-actions mt-8">
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                   <button 
                     type="button" 
-                    class="btn btn-primary rounded-3 px-6 py-2.5 shadow-sm"
+                    class="btn btn-primary"
                     @click="saveCustomCodeConfig"
                     :disabled="saving"
                   >
-                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-save'"></i>
-                    {{ saving ? ' 保存中...' : ' 保存自定义代码' }}
+                    <i class="bi" :class="saving ? 'bi-arrow-clockwise spin' : 'bi-check-lg'"></i>
+                    {{ saving ? ' 保存中...' : ' 保存设置' }}
                   </button>
                   <button 
                     type="button" 
-                    class="btn btn-outline-secondary rounded-3 px-6 py-2.5 shadow-sm ms-3"
+                    class="btn btn-outline-secondary"
                     @click="resetCustomCodeConfig"
                     :disabled="saving"
                   >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>
                     重置
                   </button>
                 </div>
               </form>
-              </div>
             </div>
           </div>
         </div>
@@ -1762,300 +1792,33 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.error-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1.5rem;
-  background-color: rgba(var(--bs-danger-rgb), 0.1);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.error-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--bs-body-color);
-}
-
-.error-description {
-  font-size: 1rem;
-  color: var(--bs-secondary-color);
-  line-height: 1.6;
-}
-
-/* 导航标签容器 */
-.config-tabs-container {
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-/* 导航标签 */
-.config-nav-tabs {
-  border-bottom: none;
-}
-
-.config-nav-tabs .nav-link {
-  padding: 1rem 1.75rem;
-  font-weight: 500;
-  font-size: 1rem;
-  color: var(--bs-secondary-color);
-  border: none;
-  border-radius: 0;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.config-nav-tabs .nav-link:hover {
-  background-color: rgba(var(--bs-primary-rgb), 0.05);
-}
-
-.config-nav-tabs .nav-link.active {
-  background-color: rgba(var(--bs-primary-rgb), 0.1);
-  font-weight: 600;
-}
-
-.config-nav-tabs .nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background-color: var(--bs-primary);
-}
-
-/* 配置区域 */
-.config-section {
-  margin-bottom: 3rem;
-}
-
-.section-title {
-  font-size: 1.35rem;
-  font-weight: 600;
-  color: var(--bs-body-color);
-  margin-bottom: 0.5rem;
-}
-
-.section-description {
-  font-size: 0.95rem;
-  color: var(--bs-secondary-color);
-}
-
-/* Bootstrap 5 卡片样式已内置 */
-
-/* 表单部分 */
-.form-section {
-  margin-bottom: 2.5rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--bs-border-color);
-}
-
-.form-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
-.form-section-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--bs-body-color);
-  margin-bottom: 1.5rem;
-}
-
-/* 输入框样式 */
-.form-control {
-  border-radius: 0.5rem;
-  border: 1px solid var(--bs-border-color);
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-}
-
-.form-control:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-  outline: none;
-}
-
-/* 按钮样式 */
-.btn {
-  border-radius: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-outline-secondary {
-  border-color: var(--bs-border-color);
-  color: var(--bs-secondary-color);
-}
-
-.btn-outline-secondary:hover {
-  background-color: var(--bs-secondary);
-  border-color: var(--bs-secondary);
-  color: var(--bs-white);
-}
-
-/* 表单操作区域 */
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-/* 输入组样式 */
-.input-group {
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.input-group-text {
-  border-radius: 0;
-  border: 1px solid var(--bs-border-color);
-  background-color: var(--bs-gray-100);
-}
-
-/* 颜色选择器 */
-.form-control-color {
-  width: 3rem;
-  height: 3rem;
-  padding: 0.25rem;
-  border: 1px solid var(--bs-border-color);
-  border-radius: 0.5rem;
-}
-
-/* 加载动画 */
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 992px) {
-  .config-header {
-    margin-bottom: 2rem;
-  }
-  
-  .page-title {
-    font-size: 1.5rem;
-  }
-  
-  .card-body {
-    padding: 1.5rem !important;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .form-actions .btn {
-    width: 100%;
-    margin-left: 0 !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .config-tabs-container {
-    margin-bottom: 2rem;
-  }
-  
-  .config-nav-tabs .nav-link {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.9rem;
-  }
-  
-  .section-title {
-    font-size: 1.2rem;
-  }
-  
-  .card-body {
-    padding: 1.25rem !important;
-  }
-  
-  .form-section {
-    margin-bottom: 2rem;
-  }
-  
-  .form-check {
-    margin-bottom: 1rem;
-  }
-  
-  .auth-error-card {
-    padding: 3rem 1.5rem;
-  }
-}
-
 /* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
-  .config-nav-tabs .nav-link {
-    color: var(--bs-tertiary-color);
+  .dark .nav-tabs .nav-link {
+    color: var(--bs-gray-400);
   }
   
-  .config-nav-tabs .nav-link:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.15);
+  .dark .nav-tabs .nav-link:hover {
+    color: var(--bs-primary);
   }
   
-  .config-nav-tabs .nav-link.active {
-    background-color: rgba(var(--bs-primary-rgb), 0.2);
+  .dark .nav-tabs .nav-link.active {
+    color: var(--bs-primary);
+    background-color: var(--bs-body-tertiary);
   }
-  
-  .config-card {
-    background-color: var(--bs-body-bg-subtle);
-    border-color: var(--bs-border-color);
-  }
-  
-  .form-control {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-    color: var(--bs-body-color);
-  }
-  
-  .form-control:focus {
-    border-color: var(--bs-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.3);
-  }
-  
-  .input-group-text {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-    color: var(--bs-body-color);
-  }
+}
 
-  /* 隐藏滚动条 */
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* 深色模式 - Bootstrap 5 数据属性方式 */
+[data-bs-theme="dark"] .nav-tabs .nav-link {
+  color: var(--bs-gray-400);
+}
+
+[data-bs-theme="dark"] .nav-tabs .nav-link:hover {
+  color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .nav-tabs .nav-link.active {
+  color: var(--bs-primary);
+  background-color: var(--bs-body-tertiary);
 }
 </style>

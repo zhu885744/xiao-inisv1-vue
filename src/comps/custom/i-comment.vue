@@ -773,6 +773,12 @@ const handlePublish = async () => {
 
 // 切换回复输入框
 const toggleReplyForm = (index, replyIndex = null) => {
+  if (!props.isLogin) {
+    toast.info('请先登录后再回复')
+    store.switchAuth('login', true)
+    return
+  }
+
   const uniqueKey = replyIndex !== null ? `${index}-${replyIndex}` : index
   
   if (showReplyIndex.value === uniqueKey) {
