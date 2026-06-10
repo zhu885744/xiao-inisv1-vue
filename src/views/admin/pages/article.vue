@@ -1,6 +1,5 @@
 <template>
-    <div class="card mt-2">
-        <div class="card-body">
+    <div class="mb-3">
         <div class="row d-none d-lg-flex">
             <div class="col-lg-6 d-flex align-items-center">
                 <button type="button" class="btn btn-outline-secondary me-2" disabled>{{ state.item.title }}</button>
@@ -26,8 +25,7 @@
                 <button class="btn btn-primary" v-if="!utils.in.array(['remove','setting'], state.item.tabs)" @click="method.add()">添加</button>
             </div>
         </div>
-        </div>
-    </div>    
+    </div>
         <div class="row mt-3">
             <div class="col-12">
                 <div class="border rounded-3 overflow-hidden">

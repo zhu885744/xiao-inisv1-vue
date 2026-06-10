@@ -1,8 +1,6 @@
 <template>
     <div class="users-table-container">
-        <div class="card shadow-sm rounded-3 overflow-hidden">
-            <div class="card-body p-0">
-                <i-table
+        <i-table
                     :opts="optsConfig"
                     ref="tableRef"
                     @selection:change="method.handleSelectionChange"
@@ -92,9 +90,7 @@
                         </span>
                     </template>
 
-                </i-table>
-            </div>
-        </div>
+        </i-table>
     </div>
 </template>
 

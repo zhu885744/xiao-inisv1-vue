@@ -1,102 +1,98 @@
 <template>
   <div class="article-group-page mt-2">
     <!-- 页面标题和操作按钮 -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <h1 class="page-title fw-bold">文章分类</h1>
-          <div class="d-flex gap-2">
-            <button 
-              class="btn btn-primary" 
-              @click="showCreateModal"
-            >
-              <i class="bi bi-plus me-2"></i>
-              新增分类
-            </button>
-            <button 
-              class="btn btn-outline-secondary" 
-              @click="handleRefresh"
-            >
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
-          </div>
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="page-title fw-bold">文章分类</h1>
+        <div class="d-flex gap-2">
+          <button 
+            class="btn btn-primary" 
+            @click="showCreateModal"
+          >
+            <i class="bi bi-plus me-2"></i>
+            新增分类
+          </button>
+          <button 
+            class="btn btn-outline-secondary" 
+            @click="handleRefresh"
+          >
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
         </div>
-        <p class="page-description text-muted mt-1">管理文章分类，支持多级分类结构</p>
       </div>
+      <p class="page-description text-muted mt-1">管理文章分类，支持多级分类结构</p>
     </div>
 
     <!-- 分类表格 -->
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <!-- 搜索和筛选 -->
-        <div class="search-filter mb-4">
-          <div class="d-flex gap-2">
-            <input 
-              type="text" 
-              class="form-control" 
-              v-model="searchKeyword"
-              placeholder="搜索分类名称"  
-              @keyup.enter="handleSearch"
-            >
-            <button 
-              class="btn btn-outline-primary" 
-              @click="handleSearch"
-            >
-              <i class="bi bi-search me-1"></i>
-              搜索
-            </button>
-            <button 
-              class="btn btn-outline-secondary" 
-              @click="resetSearch"
-            >
-              重置
-            </button>
-          </div>
+    <div>
+      <!-- 搜索和筛选 -->
+      <div class="search-filter mb-4">
+        <div class="d-flex gap-2">
+          <input 
+            type="text" 
+            class="form-control" 
+            v-model="searchKeyword"
+            placeholder="搜索分类名称"  
+            @keyup.enter="handleSearch"
+          >
+          <button 
+            class="btn btn-outline-primary" 
+            @click="handleSearch"
+          >
+            <i class="bi bi-search me-1"></i>
+            搜索
+          </button>
+          <button 
+            class="btn btn-outline-secondary" 
+            @click="resetSearch"
+          >
+            重置
+          </button>
         </div>
-
-        <!-- 表格组件 -->
-        <i-table 
-          ref="tableRef"
-          :opts="tableOptions"
-          @selection:change="handleSelectionChange"
-        >
-          <!-- 批量操作 -->
-          <template #batch-operations="{ disabled }">
-            <button 
-              class="btn btn-outline-danger btn-sm" 
-              @click="handleBatchDelete"
-              :disabled="disabled"
-            >
-              <i class="bi bi-trash me-1"></i>
-              批量删除
-            </button>
-          </template>
-
-          <!-- 操作列 -->
-          <template #end-header>
-            <th class="text-center" style="width: 200px;">操作</th>
-          </template>
-
-          <template #end="{ scope }">
-            <td class="text-center">
-              <div class="d-flex justify-content-center gap-2">
-                <button 
-                  class="btn btn-sm btn-outline-primary" 
-                  @click="showEditModal(scope)"
-                >
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button 
-                  class="btn btn-sm btn-outline-danger" 
-                  @click="handleDelete(scope.id)"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </td>
-          </template>
-        </i-table>
       </div>
+
+      <!-- 表格组件 -->
+      <i-table 
+        ref="tableRef"
+        :opts="tableOptions"
+        @selection:change="handleSelectionChange"
+      >
+        <!-- 批量操作 -->
+        <template #batch-operations="{ disabled }">
+          <button 
+            class="btn btn-outline-danger btn-sm" 
+            @click="handleBatchDelete"
+            :disabled="disabled"
+          >
+            <i class="bi bi-trash me-1"></i>
+            批量删除
+          </button>
+        </template>
+
+        <!-- 操作列 -->
+        <template #end-header>
+          <th class="text-center" style="width: 200px;">操作</th>
+        </template>
+
+        <template #end="{ scope }">
+          <td class="text-center">
+            <div class="d-flex justify-content-center gap-2">
+              <button 
+                class="btn btn-sm btn-outline-primary" 
+                @click="showEditModal(scope)"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-danger" 
+                @click="handleDelete(scope.id)"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </template>
+      </i-table>
     </div>
 
     <!-- 新增/编辑分类模态框 -->

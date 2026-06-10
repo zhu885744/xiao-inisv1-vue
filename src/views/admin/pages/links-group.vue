@@ -1,30 +1,28 @@
 <template>
-    <div class="card mt-2">
-        <div class="card-body">
-            <div class="row d-none d-lg-flex">
-                <div class="col-lg-6 d-flex align-items-center">
-                    <button type="button" class="btn btn-outline-secondary me-2" disabled>{{ state.item.title }}</button>
-                    <div class="dropdown me-2">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ state.item.sort }}
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-                            <li><button class="dropdown-item" @click="method.order('create_time desc', '最新')">最新</button></li>
-                            <li><button class="dropdown-item" @click="method.order('create_time asc', '最早')">最早</button></li>
-                        </ul>
-                    </div>
-                    <div class="me-2 flex-grow-1" style="max-width: 200px;">
-                        <input 
-                            v-model="state.item.search" 
-                            class="form-control" 
-                            type="text" 
-                            placeholder="分组名称 | 描述"
-                            autocomplete="off"
-                        >
-                    </div>
-                    <button class="btn btn-outline-secondary me-2" @click="method.refresh()">刷新</button>
-                    <button class="btn btn-primary" @click="method.showGroupModal()">添加分组</button>
+    <div class="mb-3">
+        <div class="row d-none d-lg-flex">
+            <div class="col-lg-6 d-flex align-items-center">
+                <button type="button" class="btn btn-outline-secondary me-2" disabled>{{ state.item.title }}</button>
+                <div class="dropdown me-2">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ state.item.sort }}
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li><button class="dropdown-item" @click="method.order('create_time desc', '最新')">最新</button></li>
+                        <li><button class="dropdown-item" @click="method.order('create_time asc', '最早')">最早</button></li>
+                    </ul>
                 </div>
+                <div class="me-2 flex-grow-1" style="max-width: 200px;">
+                    <input 
+                        v-model="state.item.search" 
+                        class="form-control" 
+                        type="text" 
+                        placeholder="分组名称 | 描述"
+                        autocomplete="off"
+                    >
+                </div>
+                <button class="btn btn-outline-secondary me-2" @click="method.refresh()">刷新</button>
+                <button class="btn btn-primary" @click="method.showGroupModal()">添加分组</button>
             </div>
         </div>
     </div>

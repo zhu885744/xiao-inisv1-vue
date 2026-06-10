@@ -1,8 +1,6 @@
 <template>
-   <div class="card mt-2">
-      <div class="card-body">
-         权限页面管理
-      </div>
+   <div class="mb-3">
+      <h5>权限页面管理</h5>
     </div>
 </template>
 

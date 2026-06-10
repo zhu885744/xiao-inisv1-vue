@@ -62,8 +62,20 @@
             </li>
           </ul>
         </li>
-        
 
+        <!-- 控制台 -->
+        <li class="menu-item">
+          <router-link 
+            class="menu-link" 
+            to="/admin/about" 
+            active-class="active" 
+            exact-active-class="active"
+            @click="$emit('update:sidebarOpen', false)"
+          >
+            <i-svg name="console" size="18" className="me-2"></i-svg>
+            <span>关于系统</span>
+          </router-link>
+        </li>
       </ul>
     </nav>
     

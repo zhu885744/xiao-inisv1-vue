@@ -9,13 +9,11 @@
                     <span class="ms-2">加载编辑器中...</span>
                 </div>
                 <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
-                <div class="card mt-2">
-                    <div class="card-body d-flex justify-content-end gap-2">
-                        <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
-                            <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            发布文章
-                        </button>
-                    </div>
+                <div class="mt-2 d-flex justify-content-end gap-2">
+                    <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
+                        <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        发布文章
+                    </button>
                 </div>
             </div>
             <div class="col-lg-3" id="page-header-title">
@@ -27,12 +25,12 @@
                 </div>
                 <div v-else>
                     <!-- 展示信息 -->
-                    <div class="card mb-2">
-                        <div class="card-header" data-bs-toggle="collapse" href="#collapse1" role="button" aria-expanded="true" aria-controls="collapse1">
+                    <div class="border rounded-3 mb-2 overflow-hidden">
+                        <div class="bg-body-secondary px-3 py-2" data-bs-toggle="collapse" href="#collapse1" role="button" aria-expanded="true" aria-controls="collapse1">
                             <h6 class="mb-0">展示信息</h6>
                         </div>
                         <div id="collapse1" class="collapse show">
-                            <div class="card-body">
+                            <div class="p-3">
                                 <div class="mb-3">
                                     <label class="form-label">
                                         <span class="text-danger me-1">*</span>
@@ -83,12 +81,12 @@
                     </div>
                     
                     <!-- 封面图 -->
-                    <div class="card mb-2">
-                        <div class="card-header" data-bs-toggle="collapse" href="#collapse2" role="button" aria-expanded="false" aria-controls="collapse2">
+                    <div class="border rounded-3 mb-2 overflow-hidden">
+                        <div class="bg-body-secondary px-3 py-2" data-bs-toggle="collapse" href="#collapse2" role="button" aria-expanded="false" aria-controls="collapse2">
                             <h6 class="mb-0">封面图</h6>
                         </div>
                         <div id="collapse2" class="collapse">
-                            <div class="card-body">
+                            <div class="p-3">
                                 <!-- 标签页 -->
                                 <ul class="nav nav-tabs mb-3" id="coverTabs" role="tablist">
                                     <li class="nav-item" role="presentation">
@@ -131,12 +129,12 @@
                     </div>
                     
                     <!-- 置顶、分类、标签 -->
-                    <div class="card mb-2">
-                        <div class="card-header" data-bs-toggle="collapse" href="#collapse3" role="button" aria-expanded="false" aria-controls="collapse3">
+                    <div class="border rounded-3 mb-2 overflow-hidden">
+                        <div class="bg-body-secondary px-3 py-2" data-bs-toggle="collapse" href="#collapse3" role="button" aria-expanded="false" aria-controls="collapse3">
                             <h6 class="mb-0">置顶、分类、标签</h6>
                         </div>
                         <div id="collapse3" class="collapse">
-                            <div class="card-body">
+                            <div class="p-3">
                                 <!-- 置顶 -->
                                 <div class="mb-3">
                                     <label class="form-label">
@@ -192,12 +190,12 @@
                     </div>
                     
                     <!-- 高级选项 -->
-                    <div class="card">
-                        <div class="card-header" data-bs-toggle="collapse" href="#collapse4" role="button" aria-expanded="false" aria-controls="collapse4">
+                    <div class="border rounded-3 overflow-hidden">
+                        <div class="bg-body-secondary px-3 py-2" data-bs-toggle="collapse" href="#collapse4" role="button" aria-expanded="false" aria-controls="collapse4">
                             <h6 class="mb-0">高级选项</h6>
                         </div>
                         <div id="collapse4" class="collapse">
-                            <div class="card-body">
+                            <div class="p-3">
                                 <!-- 允许评论 -->
                                 <div class="mb-3">
                                     <label class="form-label">

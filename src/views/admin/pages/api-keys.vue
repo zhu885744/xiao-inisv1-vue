@@ -1,8 +1,7 @@
 <template>
     <div class="main">
-      <div class="card mt-2">
-        <div class="card-body">
-          <div class="row d-none d-lg-flex">
+      <div class="mb-3">
+        <div class="row d-none d-lg-flex">
             <div class="col-lg-6 d-flex align-items-center">
                 <div class="dropdown me-2" v-if="state.item.tabs !== 'setting'">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -28,7 +27,6 @@
             <div class="col-lg-6 d-flex justify-content-end align-items-center">
                 <span class="text-muted">{{ state.item.title }}</span>
             </div>
-          </div>
         </div>
       </div>
         <div class="row mt-2">

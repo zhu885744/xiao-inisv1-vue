@@ -1,8 +1,6 @@
 <template>
-    <div class="card mt-2">
-       <div class="card-body">
-          标签管理
-       </div>
+    <div class="mb-3">
+        <h5>标签管理</h5>
     </div>
 </template>
 

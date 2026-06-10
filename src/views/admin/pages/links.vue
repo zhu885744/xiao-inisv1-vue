@@ -1,6 +1,5 @@
 <template>
-    <div class="card mt-2">
-        <div class="card-body">
+    <div class="mb-3">
         <div class="row d-none d-lg-flex">
             <div class="col-lg-6 d-flex align-items-center">
                 <button type="button" class="btn btn-outline-secondary me-2" disabled>{{ state.item.title }}</button>
@@ -25,7 +24,6 @@
                 <button class="btn btn-outline-secondary me-2" @click="method.refresh()">刷新</button>
                 <button class="btn btn-primary" v-if="!utils.in.array(['remove','setting'], state.item.tabs)" @click="method.add()">添加</button>
             </div>
-        </div>
         </div>
     </div>    
         <div class="row mt-3">
@@ -159,50 +157,48 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <h5 class="mb-3">友链分组管理</h5>
-                                    <div class="card mb-4">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <h6 class="card-title mb-0">分组列表</h6>
-                                                <button class="btn btn-sm btn-primary" @click="method.showGroupModal()">
-                                                    <i class="bi bi-plus me-1"></i> 添加分组
-                                                </button>
-                                            </div>
-                                            <div class="table-responsive">
-                                                <table class="table table-hover table-striped">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>ID</th>
-                                                            <th>分组名称</th>
-                                                            <th>描述</th>
-                                                            <th>图标</th>
-                                                            <th>操作</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr v-for="group in state.groups" :key="group.id">
-                                                            <td>{{ group.id }}</td>
-                                                            <td>{{ group.name }}</td>
-                                                            <td>{{ group.description || '无' }}</td>
-                                                            <td>
-                                                                <img v-if="group.avatar" :src="group.avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;" :alt="group.name">
-                                                                <span v-else class="d-inline-block rounded-circle bg-gray-200 text-gray-500 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                                    <i class="bi bi-folder"></i>
-                                                                </span>
-                                                            </td>
-                                                            <td>
-                                                                <div class="btn-group" role="group">
-                                                                    <button class="btn btn-sm btn-outline-primary" @click="method.showGroupModal(group)">
-                                                                        <i class="bi bi-pencil"></i>
-                                                                    </button>
-                                                                    <button class="btn btn-sm btn-outline-danger ms-1" @click="method.deleteGroup(group.id)">
-                                                                        <i class="bi bi-trash"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">分组列表</h6>
+                                            <button class="btn btn-sm btn-primary" @click="method.showGroupModal()">
+                                                <i class="bi bi-plus me-1"></i> 添加分组
+                                            </button>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-hover table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>分组名称</th>
+                                                        <th>描述</th>
+                                                        <th>图标</th>
+                                                        <th>操作</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="group in state.groups" :key="group.id">
+                                                        <td>{{ group.id }}</td>
+                                                        <td>{{ group.name }}</td>
+                                                        <td>{{ group.description || '无' }}</td>
+                                                        <td>
+                                                            <img v-if="group.avatar" :src="group.avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;" :alt="group.name">
+                                                            <span v-else class="d-inline-block rounded-circle bg-gray-200 text-gray-500 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                                <i class="bi bi-folder"></i>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <button class="btn btn-sm btn-outline-primary" @click="method.showGroupModal(group)">
+                                                                    <i class="bi bi-pencil"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline-danger ms-1" @click="method.deleteGroup(group.id)">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>

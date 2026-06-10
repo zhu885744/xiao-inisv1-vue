@@ -2,7 +2,7 @@
 <template>
     <div class="table-container">
         <!-- 加载状态 -->
-        <div v-if="state.item.loading.data" class="loading-state d-flex flex-column justify-content-center align-items-center py-8">
+        <div v-if="state.item.loading.data" class="loading-state d-flex flex-column justify-content-center align-items-center py-12">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">数据加载中...</span>
             </div>
@@ -10,165 +10,203 @@
         </div>
         
         <!-- 错误状态 -->
-        <div v-else-if="error" class="error-state d-flex flex-column justify-content-center align-items-center py-8">
+        <div v-else-if="error" class="error-state d-flex flex-column justify-content-center align-items-center py-12">
             <div class="text-danger mb-3">
-                <i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i>
+                <i class="bi bi-exclamation-circle" style="font-size: 2.5rem;"></i>
             </div>
             <p class="text-danger">{{ errorMessage }}</p>
-            <button class="btn btn-primary mt-3" @click="method.init">重新加载</button>
+            <button class="btn btn-primary mt-4" @click="method.init">重新加载</button>
         </div>
         
         <!-- 表格 -->
-        <div v-else>
-            <!-- 批量操作工具栏 -->
-            <div v-if="state.config.opts.selection" class="batch-operation mb-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-muted">已选择 {{ state.item.selection.length }} 项</span>
-                    <button 
-                        v-if="state.item.selection.length > 0" 
-                        class="btn btn-outline-secondary btn-sm" 
-                        @click="handle.clearSelection"
-                        :disabled="state.item.loading.data"
-                    >
-                        清除选择
-                    </button>
-                    <slot name="batch-operations" :disabled="state.item.selection.length === 0 || state.item.loading.data"></slot>
-                </div>
-            </div>
-            
-            <div class="table-responsive">
-                <table class="table table-striped table-hover table-bordered">
-                <thead class="table-primary">
-                    <tr>
-                        <!-- 多选列 -->
-                        <th v-if="state.config.opts.selection" class="text-center" style="width: 50px;">
-                            <input 
-                                type="checkbox" 
-                                class="form-check-input" 
-                                :checked="isAllSelected" 
-                                @change="handle.selectAll($event)"
-                                :disabled="state.item.loading.data"
-                            >
-                        </th>
-
-                        <!-- 自定义列 - 开始位置 -->
-                        <slot name="start-header"></slot>
-
-                        <!-- 表格列 -->
-                        <th 
-                            v-for="(column, index) in state.config.opts.columns" 
-                            :key="index"
-                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : (column.align || 'text-start')]"
-                            :style="{ width: column.width }"
+        <div v-else class="table-wrapper">
+            <!-- 顶部操作栏 -->
+            <div class="table-toolbar">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <!-- 左侧：批量操作 -->
+                    <div class="d-flex align-items-center gap-2">
+                        <select class="form-select form-select-sm" v-model="state.item.batchAction">
+                            <option value="">批量操作</option>
+                            <option value="delete">删除选中</option>
+                            <option value="export">导出数据</option>
+                        </select>
+                        <button 
+                            class="btn btn-sm btn-primary" 
+                            @click="handle.batchAction"
+                            :disabled="state.item.selection.length === 0"
                         >
-                            {{ column.label }}
-                        </th>
-
-                        <!-- 自定义列 - 结束位置 -->
-                        <slot name="end-header"></slot>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(row, rowIndex) in state.item.data" :key="rowIndex">
-                        <!-- 多选列 -->
-                        <td v-if="state.config.opts.selection" class="text-center">
-                            <input 
-                                type="checkbox" 
-                                class="form-check-input" 
-                                :checked="isSelected(row)" 
-                                @change="() => handle.select(row)"
-                                :disabled="state.item.loading.data"
-                            >
-                        </td>
-
-                        <!-- 自定义列 - 开始位置 -->
-                        <slot name="start" :scope="row"></slot>
-
-                        <!-- 表格数据 -->
-                        <td 
-                            v-for="(column, index) in state.config.opts.columns" 
-                            :key="index"
-                            :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : (column.align || 'text-start')]"
-                        >
-                            <template v-if="column.slot">
-                                <slot :name="'i-' + column.prop" :scope="row"></slot>
-                            </template>
-                            <template v-else>
-                                <span v-if="utils.inArray(column.prop, ['create_time', 'update_time'])">
-                                    <span v-if="!utils.isEmpty(row[column.prop])">
-                                        {{ utils.time.nature(row[column.prop]) }}
-                                    </span>
-                                    <span v-else>-</span>
-                                </span>
-                                <span v-else>
-                                    {{ row[column.prop] || '-' }}
-                                </span>
-                            </template>
-                        </td>
-
-                        <!-- 自定义列 - 结束位置 -->
-                        <slot name="end" :scope="row"></slot>
-                    </tr>
+                            应用
+                        </button>
+                    </div>
                     
-                    <!-- 空数据状态 -->
-                    <tr v-if="state.item.data.length === 0">
-                        <td :colspan="totalColumns" class="text-center py-5">
-                            <div class="empty-state">
-                                <i class="bi bi-database" style="font-size: 2rem; color: #ced4da;"></i>
-                                <p class="mt-2 text-muted">暂无数据</p>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
-        
-        <!-- 分页和统计信息 -->
-        <div v-if="!state.item.loading.data && !error" class="table-footer mt-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <!-- 统计信息 -->
-            <div v-if="state.item.count > 0" class="text-muted">
-                共 <strong>{{ state.item.count }}</strong> 条数据
+                    <!-- 右侧：搜索 -->
+                    <slot name="toolbar-right"></slot>
+                </div>
             </div>
             
-            <!-- 分页控制 -->
-            <div class="d-flex align-items-center gap-3">
-                <!-- 每页显示条数选择 -->
-                <div class="d-flex align-items-center">
-                    <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange">
-                        <option v-for="size in state.config.pagination.sizes" :key="size" :value="size">
-                            {{ size }}
-                        </option>
-                    </select>
-                </div>
-                
-                <!-- 分页导航 -->
-                <nav v-if="state.item.page.total > 1" aria-label="Page navigation">
-                    <ul class="pagination mb-0">
-                        <li class="page-item" :class="{ disabled: (state.item.page.code || 1) === 1 }">
-                            <button class="page-link" @click="() => handle.currentChange((state.item.page.code || 1) - 1)" :disabled="(state.item.page.code || 1) === 1">
-                                上一页
-                            </button>
-                        </li>
+            <!-- 统计信息 -->
+            <div class="table-summary">
+                <span class="text-muted">全部 ({{ state.item.count }})</span>
+                <span v-if="state.item.count > 0" class="text-muted">| 已发布 ({{ state.item.count }})</span>
+            </div>
+            
+            <!-- 表格主体 -->
+            <div class="table-content">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <!-- 多选列 -->
+                            <th v-if="state.config.opts.selection" class="text-center" style="width: 30px;">
+                                <input 
+                                    type="checkbox" 
+                                    class="form-check-input" 
+                                    :checked="isAllSelected" 
+                                    @change="handle.selectAll($event)"
+                                    :disabled="state.item.loading.data"
+                                >
+                            </th>
+
+                            <!-- 自定义列 - 开始位置 -->
+                            <slot name="start-header"></slot>
+
+                            <!-- 表格列 -->
+                            <th 
+                                v-for="(column, index) in state.config.opts.columns" 
+                                :key="index"
+                                :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : (column.align || 'text-start')]"
+                                :style="{ width: column.width }"
+                            >
+                                {{ column.label }}
+                                <span v-if="column.sortable" class="sort-icon">
+                                    <i class="bi bi-chevron-up"></i>
+                                    <i class="bi bi-chevron-down"></i>
+                                </span>
+                            </th>
+
+                            <!-- 自定义列 - 结束位置 -->
+                            <slot name="end-header"></slot>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(row, rowIndex) in state.item.data" :key="rowIndex" :class="{ 'table-row-hover': true }">
+                            <!-- 多选列 -->
+                            <td v-if="state.config.opts.selection" class="text-center">
+                                <input 
+                                    type="checkbox" 
+                                    class="form-check-input" 
+                                    :checked="isSelected(row)" 
+                                    @change="() => handle.select(row)"
+                                    :disabled="state.item.loading.data"
+                                >
+                            </td>
+
+                            <!-- 自定义列 - 开始位置 -->
+                            <slot name="start" :scope="row"></slot>
+
+                            <!-- 表格数据 -->
+                            <td 
+                                v-for="(column, index) in state.config.opts.columns" 
+                                :key="index"
+                                :class="[column.class, utils.inArray(column.prop, ['create_time', 'update_time']) ? 'text-center' : (column.align || 'text-start')]"
+                            >
+                                <template v-if="column.slot">
+                                    <slot :name="'i-' + column.prop" :scope="row"></slot>
+                                </template>
+                                <template v-else>
+                                    <span v-if="utils.inArray(column.prop, ['create_time', 'update_time'])">
+                                        <span v-if="!utils.isEmpty(row[column.prop])">
+                                            {{ utils.time.nature(row[column.prop]) }}
+                                        </span>
+                                        <span v-else>-</span>
+                                    </span>
+                                    <span v-else>
+                                        {{ row[column.prop] || '-' }}
+                                    </span>
+                                </template>
+                            </td>
+
+                            <!-- 自定义列 - 结束位置 -->
+                            <slot name="end" :scope="row"></slot>
+                        </tr>
                         
-                        <li 
-                            v-for="page in pageRange" 
-                            :key="page"
-                            class="page-item" 
-                            :class="{ active: page === (state.item.page.code || 1) }"
+                        <!-- 空数据状态 -->
+                        <tr v-if="state.item.data.length === 0">
+                            <td :colspan="totalColumns" class="text-center py-8">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox" style="font-size: 2.5rem; color: #adb5bd;"></i>
+                                    <p class="mt-3 text-muted">暂无数据</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 底部操作栏 -->
+            <div class="table-footer">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <!-- 左侧：批量操作 -->
+                    <div class="d-flex align-items-center gap-2">
+                        <select class="form-select form-select-sm" v-model="state.item.batchAction">
+                            <option value="">批量操作</option>
+                            <option value="delete">删除选中</option>
+                            <option value="export">导出数据</option>
+                        </select>
+                        <button 
+                            class="btn btn-sm btn-primary" 
+                            @click="handle.batchAction"
+                            :disabled="state.item.selection.length === 0"
                         >
-                            <button class="page-link" @click="() => handle.currentChange(page)">
-                                {{ page }}
-                            </button>
-                        </li>
+                            应用
+                        </button>
+                        <span class="text-muted text-sm">已选择 {{ state.item.selection.length }} 项</span>
+                    </div>
+                    
+                    <!-- 右侧：分页控制 -->
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- 统计信息 -->
+                        <div v-if="state.item.count > 0" class="text-muted text-sm">
+                            {{ state.item.count }} 项
+                        </div>
                         
-                        <li class="page-item" :class="{ disabled: (state.item.page.code || 1) === (state.item.page.total || 1) }">
-                            <button class="page-link" @click="() => handle.currentChange((state.item.page.code || 1) + 1)" :disabled="(state.item.page.code || 1) === (state.item.page.total || 1)">
-                                下一页
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
+                        <!-- 每页显示条数选择 -->
+                        <div class="d-flex align-items-center gap-2">
+                            <select id="pageSize" class="form-select form-select-sm" v-model="state.item.limit" @change="handle.sizeChange">
+                                <option v-for="size in state.config.pagination.sizes" :key="size" :value="size">
+                                    {{ size }}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <!-- 分页导航 -->
+                        <nav v-if="state.item.page.total > 1" aria-label="Page navigation">
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item" :class="{ disabled: (state.item.page.code || 1) === 1 }">
+                                    <button class="page-link" @click="() => handle.currentChange((state.item.page.code || 1) - 1)" :disabled="(state.item.page.code || 1) === 1">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                </li>
+                                
+                                <li 
+                                    v-for="page in pageRange" 
+                                    :key="page"
+                                    class="page-item" 
+                                    :class="{ active: page === (state.item.page.code || 1) }"
+                                >
+                                    <button class="page-link" @click="() => handle.currentChange(page)">
+                                        {{ page }}
+                                    </button>
+                                </li>
+                                
+                                <li class="page-item" :class="{ disabled: (state.item.page.code || 1) === (state.item.page.total || 1) }">
+                                    <button class="page-link" @click="() => handle.currentChange((state.item.page.code || 1) + 1)" :disabled="(state.item.page.code || 1) === (state.item.page.total || 1)">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -498,87 +536,199 @@ method.init()
     padding: 0.5rem 0.75rem;
 }
 
-.table tbody tr {
-    transition: all 0.2s ease;
-    line-height: 1.2;
-}
-
-.table tbody td {
-    padding: 0.4rem 0.75rem;
-}
-
 /* 表格容器 */
 .table-container {
     width: 100%;
+}
+
+/* 表格包装器 */
+.table-wrapper {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    background: white;
+}
+
+/* 顶部工具栏 */
+.table-toolbar {
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+}
+
+/* 统计信息 */
+.table-summary {
+    padding: 6px 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+    color: #666;
+    background: #fff;
+}
+
+/* 表格主体 */
+.table-content {
     overflow-x: auto;
 }
 
-/* 表格响应式容器 */
-.table-responsive {
-    border-radius: 0.375rem;
-    overflow: hidden;
-    border: 1px solid var(--bs-border-color);
+.table {
+    margin-bottom: 0;
+    width: 100%;
+    border-collapse: collapse;
 }
 
-/* 表格边框 */
-.table-bordered {
-    border: none;
+.table thead th {
+    padding: 8px 12px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 13px;
+    color: #333;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #eee;
+    white-space: nowrap;
 }
 
-.table-bordered th,
-.table-bordered td {
-    border: 1px solid var(--bs-border-color);
+.table thead th:last-child {
+    border-right: none;
 }
 
-.table-bordered thead th {
-    border-bottom: 2px solid rgba(var(--bs-primary-rgb), 0.3);
+.table tbody td {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.table tbody td:last-child {
+    border-right: none;
+}
+
+.table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* 排序图标 */
+.sort-icon {
+    display: inline-flex;
+    flex-direction: column;
+    font-size: 10px;
+    color: #999;
+    margin-left: 4px;
+    opacity: 0.5;
+}
+
+.sort-icon i {
+    line-height: 7px;
+}
+
+/* 底部工具栏 */
+.table-footer {
+    padding: 8px 12px;
+    border-top: 1px solid #ddd;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+}
+
+/* 空状态 */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #999;
 }
 
 /* 分页样式 */
+.pagination {
+    margin: 0;
+}
+
 .pagination .page-link {
-    border-radius: 0.25rem;
-    margin: 0 2px;
-    border: 1px solid rgba(var(--bs-primary-rgb), 0.2);
-    color: var(--bs-primary);
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    border-radius: 3px;
+    color: #333;
+    border: 1px solid #ddd;
+    margin: 0 1px;
 }
 
 .pagination .page-item.active .page-link {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
+    background-color: #0d6efd;
+    border-color: #0d6efd;
     color: white;
 }
 
 .pagination .page-link:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    background-color: #e9ecef;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #999;
+    cursor: not-allowed;
+}
+
+/* 状态提示 */
+.loading-state,
+.error-state {
+    min-height: 150px;
 }
 
 /* 适配暗黑模式 */
 @media (prefers-color-scheme: dark) {
-    .batch-operation {
-        background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+    .table-wrapper {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: #1a1a1a;
     }
-    
-    .table {
-        color: var(--bs-light) !important;
+
+    .table-toolbar {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+        background: #222;
     }
-    
-    .table-hover tbody tr:hover {
-        color: var(--bs-light) !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
+
+    .table-summary {
+        border-bottom-color: rgba(255, 255, 255, 0.05);
+        background: #1a1a1a;
+        color: #999;
     }
-    
-    .table-striped tbody tr:nth-of-type(odd) {
-        background-color: rgba(255, 255, 255, 0.03) !important;
+
+    .table thead th {
+        background: #1a1a1a;
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+        border-right-color: rgba(255, 255, 255, 0.05);
+        color: #ccc;
     }
-    
+
+    .table tbody td {
+        border-bottom-color: rgba(255, 255, 255, 0.05);
+        border-right-color: rgba(255, 255, 255, 0.05);
+        color: #ccc;
+    }
+
+    .table tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .table-footer {
+        border-top-color: rgba(255, 255, 255, 0.1);
+        background: #222;
+    }
+
     .pagination .page-link {
-        border-color: rgba(var(--bs-light-rgb), 0.2);
-        color: var(--bs-light);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #ccc;
     }
-    
-    .pagination .page-item.active .page-link {
-        background-color: var(--bs-primary);
-        border-color: var(--bs-primary);
+
+    .pagination .page-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
     }
 }
 </style>

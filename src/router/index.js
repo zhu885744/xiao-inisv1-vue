@@ -191,7 +191,8 @@ const routes = [
       { path: 'api/keys', name: 'admin-api-keys', meta: { title: '接口密钥' }, component: () => import('@/views/admin/pages/api-keys.vue') },
       { path: 'system', name: 'admin-system', meta: { title: '系统配置' }, component: () => import('@/views/admin/pages/system.vue') },
       { path: 'ip/black', name: 'admin-ip-black', meta: { title: 'IP黑名单' }, component: () => import('@/views/admin/pages/ip-black.vue') },
-      { path: 'qps/warn', name: 'admin-qps-warn', meta: { title: 'QPS预警' }, component: () => import('@/views/admin/pages/qps-warn.vue') }
+      { path: 'qps/warn', name: 'admin-qps-warn', meta: { title: 'QPS预警' }, component: () => import('@/views/admin/pages/qps-warn.vue') },
+      { path: 'about', name: 'admin-about', meta: { title: '关于系统' }, component: () => import('@/views/admin/pages/about.vue') }
     ]
   },
 

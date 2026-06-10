@@ -9,13 +9,11 @@
                     <span class="ms-2">加载编辑器中...</span>
                 </div>
                 <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
-                <div class="card mt-2">
-                    <div class="card-body d-flex justify-content-end gap-2">
-                        <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
-                            <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            保存页面
-                        </button>
-                    </div>
+                <div class="mt-2 d-flex justify-content-end gap-2">
+                    <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
+                        <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        保存页面
+                    </button>
                 </div>
             </div>
             <div class="col-lg-3" id="page-header-title">
@@ -26,12 +24,12 @@
                     <span class="ms-2">加载数据中...</span>
                 </div>
                 <div v-else>
-                    <div class="card mb-2">
-                        <div class="card-header" data-bs-toggle="collapse" href="#collapse1" role="button" aria-expanded="true" aria-controls="collapse1">
+                    <div class="border rounded-3 mb-2 overflow-hidden">
+                        <div class="bg-body-secondary px-3 py-2" data-bs-toggle="collapse" href="#collapse1" role="button" aria-expanded="true" aria-controls="collapse1">
                             <h6 class="mb-0">基本信息</h6>
                         </div>
                         <div id="collapse1" class="collapse show">
-                            <div class="card-body">
+                            <div class="p-3">
                                 <div class="mb-3">
                                     <label class="form-label">
                                         <span class="text-danger me-1">*</span>

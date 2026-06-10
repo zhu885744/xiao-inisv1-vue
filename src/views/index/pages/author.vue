@@ -118,11 +118,11 @@
                 <i class="bi bi-award"></i>
                 <span>{{ userInfo.title }}</span>
               </div>
-              <!-- 注册时间 -->
-              <div v-if="userInfo.create_time" class="d-flex align-items-center gap-1">
-                <i class="bi bi-calendar"></i>
-                <span>{{ formatRegisterTime(userInfo.create_time) }}</span>
-              </div>
+            </div>
+            <!-- 注册时间 -->
+            <div v-if="userInfo.create_time" class="d-flex align-items-center gap-1 mt-2">
+              <i class="bi bi-calendar"></i>
+              <span>加入时间：{{ formatRegisterTime(userInfo.create_time) }}</span>
             </div>
           </div>
 
