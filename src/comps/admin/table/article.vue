@@ -77,6 +77,9 @@
                         <span v-if="scope.top === 1" class="me-1" data-bs-toggle="tooltip" title="置顶">
                             <i class="bi bi-star text-warning"></i>
                         </span>
+                        <span v-if="scope.status === 0" class="me-1" data-bs-toggle="tooltip" title="草稿">
+                            <i class="bi bi-file-text text-secondary"></i>
+                        </span>
                         <span class="limit-1-line" data-bs-toggle="tooltip" :title="scope.title">
                             {{ scope?.title }}
                         </span>

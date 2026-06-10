@@ -1,6 +1,6 @@
 <!-- src/comps/CommentList.vue 通用评论组件 -->
 <template>
-  <div v-if="articleId" class="card shadow-sm bg-body-tertiary">
+  <div v-if="articleId && isCommentVisible" class="card shadow-sm bg-body-tertiary">
     <!-- 评论区标题：接收props的评论数，动态展示 -->
     <div class="card-header bg-transparent">
       <h3 class="h5 fw-bold mt-2">
@@ -487,6 +487,10 @@ const props = defineProps({
     type: Number,
     default: 1
   },
+  articleCommentConfig: {
+    type: Object,
+    default: () => ({ allow: null, show: null })
+  },
   pageSize: {
     type: Number,
     default: 10
@@ -527,10 +531,28 @@ const commentLikeCounts = ref(new Map())
 
 // 评论配置
 const commentConfig = ref({})
-const isCommentEnabled = ref(true)
+const globalCommentEnabled = ref(true)
 const lastCommentTime = ref(0)
 const isCommenting = ref(false)
 const maxCommentLength = ref(500)
+
+// 是否允许评论（综合全局配置和文章配置）
+const isCommentEnabled = computed(() => {
+  // 文章级别的配置优先级更高
+  if (props.articleCommentConfig.allow !== null && props.articleCommentConfig.allow !== undefined) {
+    return props.articleCommentConfig.allow === 1
+  }
+  // 使用全局配置
+  return globalCommentEnabled.value
+})
+
+// 是否显示评论（综合全局配置和文章配置）
+const isCommentVisible = computed(() => {
+  if (props.articleCommentConfig.show !== null && props.articleCommentConfig.show !== undefined) {
+    return props.articleCommentConfig.show === 1
+  }
+  return true
+})
 
 // 常量
 const fallbackAvatar = 'https://picsum.photos/60/60'
@@ -1066,7 +1088,7 @@ onMounted(async () => {
   
   const config = await getCommentConfig()
   commentConfig.value = config
-  isCommentEnabled.value = config.enabled !== 0
+  globalCommentEnabled.value = config.enabled !== 0
   applyCommentConfig(config)
   
   try {

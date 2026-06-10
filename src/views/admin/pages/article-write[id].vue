@@ -10,6 +10,10 @@
                 </div>
                 <i-md-editor ref="vditorRef" v-model="state.struct.content" :opts="{ height: 600 }"></i-md-editor>
                 <div class="mt-2 d-flex justify-content-end gap-2">
+                    <button class="btn btn-outline-secondary" type="button" @click="method.saveAsDraft()" :disabled="state.item.wait">
+                        <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        保存草稿
+                    </button>
                     <button class="btn btn-primary" type="button" @click="method.save()" :disabled="state.item.wait">
                         <span v-if="state.item.wait" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         发布文章
@@ -239,7 +243,7 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import utils from '@/utils/utils'
-import { request } from '@/utils/network'
+import { request, cache } from '@/utils/network'
 import IMdEditor from '@/comps/custom/i-md-editor.vue'
 import { useCommStore } from '@/store/comm'
 import { usePageTitle } from '@/utils/app'
@@ -281,6 +285,56 @@ const getCurrentDateTime = () => {
     const minutes = String(now.getMinutes()).padStart(2, '0')
     const seconds = String(now.getSeconds()).padStart(2, '0')
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+}
+
+// 保存原始评论配置用于检测变化
+const originalCommentConfig = ref({ allow: 1, show: 1 })
+
+// 初始化原始配置
+const initOriginalCommentConfig = (config) => {
+    if (config && config.comment) {
+        originalCommentConfig.value = {
+            allow: config.comment.allow ?? 1,
+            show: config.comment.show ?? 1
+        }
+    }
+}
+
+// 检测评论配置是否发生变化
+const hasCommentConfigChanged = () => {
+    const current = state.struct.json?.comment || {}
+    return (
+        current.allow !== originalCommentConfig.value.allow ||
+        current.show !== originalCommentConfig.value.show
+    )
+}
+
+// 清空文章相关缓存
+const clearArticleCache = () => {
+    try {
+        // 清空文章相关的缓存键
+        const cacheKeysToClear = [
+            `article_${state.item.id}`,
+            'article_list',
+            'article_count',
+            'article_archives'
+        ]
+        
+        cacheKeysToClear.forEach(key => {
+            cache.del(key)
+        })
+        
+        // 也清空 localStorage 中可能的相关缓存
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes('article') || key.includes('Article')) {
+                localStorage.removeItem(key)
+            }
+        })
+        
+        console.log('文章相关缓存已清空')
+    } catch (error) {
+        console.error('清空缓存失败:', error)
+    }
 }
 
 // 响应式状态
@@ -378,6 +432,8 @@ const method = {
             state.struct = articleData
             // 强制使用 Vditor
             state.struct.editor = 'vditor'
+            // 保存原始评论配置
+            initOriginalCommentConfig(data.json)
 
             // 封面图 - 字符串转数组 - name 正则出文件名部分
             if (!utils.is.empty(data.covers)) {
@@ -461,21 +517,18 @@ const method = {
 
             // 处理发布时间：将 YYYY-MM-DD HH:mm:ss 格式转换为 Unix 时间戳
             const saveData = { ...state.struct, json: JSON.stringify(state.struct.json) }
+            saveData.status = 1
             if (state.struct.publishTime) {
-                // 直接使用 Date 对象解析时间字符串，确保时区正确
                 saveData.publish_time = Math.floor(new Date(state.struct.publishTime).getTime() / 1000)
             }
-            // 删除不需要的字段
             delete saveData.publishTime
 
             state.item.wait = true
 
             let response
             if (state.item.id) {
-                // 更新文章
                 response = await request.put('/api/article/update', saveData)
             } else {
-                // 创建文章
                 response = await request.post('/api/article/create', saveData)
             }
 
@@ -487,6 +540,11 @@ const method = {
 
             toast.success('保存成功：' + msg)
 
+            // 检测评论配置是否变化，如果变化则清空缓存
+            if (hasCommentConfigChanged()) {
+                clearArticleCache()
+            }
+
             state.item.id = data.id
             state.struct.id = data.id
 
@@ -494,6 +552,58 @@ const method = {
         } catch (error) {
             console.error('保存文章失败:', error)
             toast.error('保存文章失败，请重试')
+            state.item.wait = false
+        }
+    },
+    // 保存为草稿
+    saveAsDraft: async () => {
+        try {
+            if (utils.is.empty(state.struct?.content)) return toast.warning('你可能忘记写内容了')
+            if (utils.is.empty(state.struct?.title)) return toast.warning('你可能忘记写标题了')
+
+            let covers = state.item.cover.links.split('\n').filter(item => !utils.is.empty(item))
+            let group = Array.from(new Set(state.item.group.filter(item => item))).sort((a, b) => a - b)
+
+            state.struct.covers = !utils.is.empty(covers) ? covers.join(',') : ''
+            state.struct.tags = !utils.is.empty(state.item.tags) ? `|${state.item.tags.join('|')}|` : ''
+            state.struct.group = !utils.is.empty(group) ? `|${group.join('|')}|` : ''
+
+            const saveData = { ...state.struct, json: JSON.stringify(state.struct.json) }
+            saveData.status = 0
+            if (state.struct.publishTime) {
+                saveData.publish_time = Math.floor(new Date(state.struct.publishTime).getTime() / 1000)
+            }
+            delete saveData.publishTime
+
+            state.item.wait = true
+
+            let response
+            if (state.item.id) {
+                response = await request.put('/api/article/update', saveData)
+            } else {
+                response = await request.post('/api/article/create', saveData)
+            }
+
+            const { code, msg, data } = response
+
+            state.item.wait = false
+
+            if (code !== 200) return toast.error('保存失败：' + msg)
+
+            toast.success('草稿保存成功：' + msg)
+
+            // 检测评论配置是否变化，如果变化则清空缓存
+            if (hasCommentConfigChanged()) {
+                clearArticleCache()
+            }
+
+            state.item.id = data.id
+            state.struct.id = data.id
+
+            await router.push({ path: '/admin/article/write/' + parseInt(data.id) })
+        } catch (error) {
+            console.error('保存草稿失败:', error)
+            toast.error('保存草稿失败，请重试')
             state.item.wait = false
         }
     },

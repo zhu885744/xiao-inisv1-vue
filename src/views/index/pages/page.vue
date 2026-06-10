@@ -300,6 +300,7 @@
               :currentPage="currentPage"
               :pageSize="pageSize"
               :totalComments="totalComments"
+              :articleCommentConfig="articleCommentConfig"
               @publishComment="handlePublishComment"
               @replyComment="handleReplyComment"
               @pageChange="handleCommentPageChange"
@@ -675,6 +676,7 @@
             :currentPage="currentPage"
             :pageSize="pageSize"
             :totalComments="totalComments"
+            :articleCommentConfig="articleCommentConfig"
             @publishComment="handlePublishComment"
             @replyComment="handleReplyComment"
             @pageChange="handleCommentPageChange"
@@ -829,6 +831,24 @@ const viewCount = ref(0) // 浏览量
 const currentPage = ref(1)
 const pageSize = ref(10)
 const totalComments = ref(0)
+
+// 文章评论配置（从文章的json字段中提取）
+const articleCommentConfig = computed(() => {
+  const jsonData = pageInfo.value.json
+  if (!jsonData) {
+    return { allow: null, show: null }
+  }
+  try {
+    const parsed = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData
+    return {
+      allow: parsed?.comment?.allow ?? null,
+      show: parsed?.comment?.show ?? null
+    }
+  } catch (e) {
+    console.error('解析文章评论配置失败:', e)
+    return { allow: null, show: null }
+  }
+})
 
 // 归档页面相关数据
 const archiveStats = ref({

@@ -80,6 +80,21 @@
                         <li class="nav-item" role="presentation">
                             <button 
                                 class="nav-link" 
+                                :class="{ active: state.item.tabs === 'draft' }"
+                                id="draft-tab" 
+                                data-bs-toggle="tab" 
+                                data-bs-target="#draft" 
+                                type="button" 
+                                role="tab" 
+                                aria-controls="draft"
+                                @click="state.item.tabs = 'draft'; method.change('draft')"
+                            >
+                                草稿
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button 
+                                class="nav-link" 
                                 :class="{ active: state.item.tabs === 'remove' }"
                                 id="remove-tab" 
                                 data-bs-toggle="tab" 
@@ -140,6 +155,15 @@
                         </div>
                         <div 
                             class="tab-pane" 
+                            :class="{ active: state.item.tabs === 'draft', show: state.item.tabs === 'draft' }"
+                            id="draft" 
+                            role="tabpanel" 
+                            aria-labelledby="draft-tab"
+                        >
+                            <table-article :params="state.params.draft" :init="state.tabs.draft" @refresh="method.refresh" :ref="el => refs.draft = el"></table-article>
+                        </div>
+                        <div 
+                            class="tab-pane" 
                             :class="{ active: state.item.tabs === 'remove', show: state.item.tabs === 'remove' }"
                             id="remove" 
                             role="tabpanel" 
@@ -180,6 +204,7 @@ const refs = {
   all: ref(null),
   check: ref(null),
   audit: ref(null),
+  draft: ref(null),
   remove: ref(null),
   article: ref(null)
 }
@@ -211,6 +236,10 @@ const state  = reactive({
             order: 'top desc, id desc',
             where: [['audit','=',0]]
         },
+        draft: {
+            order: 'top desc, id desc',
+            where: [['status','=',0]]
+        },
         remove: {
             order: 'top desc, id desc',
             withTrashed: true
@@ -220,6 +249,7 @@ const state  = reactive({
         all: false,
         check: false,
         audit: false,
+        draft: false,
         remove: false,
     }
 })
@@ -231,14 +261,14 @@ const method = {
         state.item.sort = sort
         for (let item in state.params) state.params[item].order = order
         // 指定刷新
-        method.refresh('all', 'check', 'audit', 'remove')
+        method.refresh('all', 'check', 'audit', 'draft', 'remove')
     },
     // 添加
     add: () => route.push({ name: 'admin-article-write' }),
     // 刷新
     refresh(...args) {
         // 允许刷新的参数
-        let allow = ['all', 'check', 'audit' , 'remove', 'article']
+        let allow = ['all', 'check', 'audit', 'draft', 'remove', 'article']
         // 如果没有传参则刷新所有
         if (args.length === 0) args = allow
         // 如果传参则过滤不允许的参数
@@ -258,7 +288,7 @@ const method = {
     // 加载数据
     loadData(...args) {
         // 允许加载的参数
-        let allow = ['all', 'check', 'audit' , 'remove', 'article']
+        let allow = ['all', 'check', 'audit', 'draft', 'remove', 'article']
         // 如果没有传参则加载所有
         if (args.length === 0) args = allow
         // 如果传参则过滤不允许的参数
@@ -291,7 +321,7 @@ onMounted(async () => {
         const tabList = [...tabElementList].map(tabToggleEl => new window.bootstrap.Tab(tabToggleEl))
     }
 
-    const allow = ['all', 'check', 'audit', 'remove']
+    const allow = ['all', 'check', 'audit', 'draft', 'remove']
 
     let root = state.user?.result?.auth?.all ?? false
     if (!root) {
@@ -302,7 +332,7 @@ onMounted(async () => {
 })
 
 watch(() => state.item.search, (val) => {
-    const allow = ['all', 'check', 'audit', 'remove']
+    const allow = ['all', 'check', 'audit', 'draft', 'remove']
 
     for (let item of allow) {
         if (!utils.is.empty(val)) state.params[item].like = [
