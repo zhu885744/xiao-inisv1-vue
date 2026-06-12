@@ -1,6 +1,5 @@
 import axios from 'axios'
 import utils from '@/utils/utils'
-import { getSync } from '@/utils/app'
 
 const DEV = import.meta.env.DEV
 const DEFAULT_TIMEOUT = 60 * 1000

@@ -39,6 +39,22 @@
               >
                 <i class="bi bi-tag"></i> 标签
               </button>
+              <button
+                type="button"
+                class="btn" 
+                :class="searchScope === 'links' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="changeSearchScope('links')"
+              >
+                <i class="bi bi-link"></i> 友链
+              </button>
+              <button
+                type="button"
+                class="btn" 
+                :class="searchScope === 'users' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="changeSearchScope('users')"
+              >
+                <i class="bi bi-person"></i> 用户
+              </button>
             </div>
           </div>
           <!-- 搜索输入框 -->
@@ -140,13 +156,29 @@
                     </div>
                     <div class="flex-grow-1">
                       <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h5 class="card-title mb-0 font-medium" v-html="highlightKeyword(result.title || result.name)"></h5>
+                        <h5 class="card-title mb-0 font-medium" v-html="highlightKeyword(getResultTitle(result))"></h5>
                         <span class="result-type-badge" :class="`badge-${result.type}`">
                           {{ getResultTypeName(result.type) }}
                         </span>
                       </div>
-                      <p v-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2" v-html="highlightKeyword(result.abstract)"></p>
-                      <div v-if="result.create_time" class="text-xs text-gray-400">
+                      <!-- 用户类型显示 nickname 和 description -->
+                      <template v-if="result.type === 'users'">
+                        <p v-if="result.description" class="card-text text-muted text-sm">
+                          {{ result.description }}
+                        </p>
+                      </template>
+                      <!-- 友链类型显示 nickname、description、url -->
+                      <template v-else-if="result.type === 'links'">
+                        <p v-if="result.description" class="card-text text-muted text-sm mb-1">
+                          {{ result.description }}
+                        </p>
+                        <div v-if="result.url" class="text-xs text-primary">
+                          <i class="bi bi-link-45deg"></i> {{ result.url }}
+                        </div>
+                      </template>
+                      <!-- 其他类型显示 abstract -->
+                      <p v-else-if="result.abstract" class="card-text text-muted line-clamp-2 mb-2" v-html="highlightKeyword(result.abstract)"></p>
+                      <div v-if="result.create_time && result.type !== 'users'" class="text-xs text-gray-400">
                         {{ formatDate(result.create_time) }}
                       </div>
                     </div>
@@ -236,7 +268,7 @@ onMounted(() => {
   if (route.query.q) {
     searchQuery.value = route.query.q
   }
-  if (route.query.scope && ['all', 'article', 'page', 'tag'].includes(route.query.scope)) {
+  if (route.query.scope && ['all', 'article', 'page', 'tag', 'links', 'users'].includes(route.query.scope)) {
     searchScope.value = route.query.scope
   }
   // 如果有搜索关键词，执行搜索
@@ -411,12 +443,22 @@ const performSearch = async () => {
         // 只搜索标签
         results = await searchTags(query)
         break
+      case 'links':
+        // 只搜索友链
+        results = await searchLinks(query)
+        break
+      case 'users':
+        // 只搜索用户
+        results = await searchUsers(query)
+        break
       default:
-        // 全局搜索：搜索文章、页面和标签
-        const [articleResults, pageResults, tagResults] = await Promise.all([
+        // 全局搜索：搜索文章、页面、标签、友链和用户
+        const [articleResults, pageResults, tagResults, linksResults, usersResults] = await Promise.all([
           searchArticles(query),
           searchPages(query),
-          searchTags(query)
+          searchTags(query),
+          searchLinks(query),
+          searchUsers(query)
         ])
 
         // 合并并优化搜索结果
@@ -425,12 +467,9 @@ const performSearch = async () => {
 
         // 1. 首先添加文章结果，按相关性排序
         if (articleResults.length > 0) {
-          // 按创建时间降序排序
           const sortedArticles = articleResults.sort((a, b) => {
             return new Date(b.create_time || 0) - new Date(a.create_time || 0)
           })
-
-          // 去重并添加文章结果
           sortedArticles.forEach(article => {
             if (!seenIds.has(article.id)) {
               seenIds.add(article.id)
@@ -441,12 +480,9 @@ const performSearch = async () => {
 
         // 2. 然后添加页面结果
         if (pageResults.length > 0) {
-          // 按创建时间降序排序
           const sortedPages = pageResults.sort((a, b) => {
             return new Date(b.create_time || 0) - new Date(a.create_time || 0)
           })
-
-          // 去重并添加页面结果
           sortedPages.forEach(page => {
             if (!seenIds.has(page.id)) {
               seenIds.add(page.id)
@@ -455,12 +491,29 @@ const performSearch = async () => {
           })
         }
 
-        // 3. 最后添加标签结果，限制数量
-        if (tagResults.length > 0) {
-          // 限制标签数量
-          const relevantTags = tagResults.slice(0, 3)
+        // 3. 添加用户结果
+        if (usersResults.length > 0) {
+          usersResults.forEach(user => {
+            if (!seenIds.has(user.id)) {
+              seenIds.add(user.id)
+              optimizedResults.push(user)
+            }
+          })
+        }
 
-          // 去重并添加标签结果
+        // 4. 添加友链结果
+        if (linksResults.length > 0) {
+          linksResults.forEach(link => {
+            if (!seenIds.has(link.id)) {
+              seenIds.add(link.id)
+              optimizedResults.push(link)
+            }
+          })
+        }
+
+        // 5. 最后添加标签结果，限制数量
+        if (tagResults.length > 0) {
+          const relevantTags = tagResults.slice(0, 3)
           relevantTags.forEach(tag => {
             if (!seenIds.has(tag.id)) {
               seenIds.add(tag.id)
@@ -565,6 +618,56 @@ const searchTags = async (keyword) => {
   }
 }
 
+// 搜索友链
+const searchLinks = async (keyword) => {
+  try {
+    const url = `/api/search/links?keyword=${encodeURIComponent(keyword)}&page=1&limit=50`
+    const response = await axios.get(url)
+    
+    if (response.code === 200 && response.data) {
+      if (response.data.data && Array.isArray(response.data.data)) {
+        return response.data.data.map(item => ({
+          ...item,
+          type: 'links'
+        }))
+      } else if (response.data.data && response.data.data.data && Array.isArray(response.data.data.data)) {
+        return response.data.data.data.map(item => ({
+          ...item,
+          type: 'links'
+        }))
+      }
+    }
+    return []
+  } catch (error) {
+    return []
+  }
+}
+
+// 搜索用户
+const searchUsers = async (keyword) => {
+  try {
+    const url = `/api/search/users?keyword=${encodeURIComponent(keyword)}&page=1&limit=50`
+    const response = await axios.get(url)
+    
+    if (response.code === 200 && response.data) {
+      if (response.data.data && Array.isArray(response.data.data)) {
+        return response.data.data.map(item => ({
+          ...item,
+          type: 'users'
+        }))
+      } else if (response.data.data && response.data.data.data && Array.isArray(response.data.data.data)) {
+        return response.data.data.data.map(item => ({
+          ...item,
+          type: 'users'
+        }))
+      }
+    }
+    return []
+  } catch (error) {
+    return []
+  }
+}
+
 // 获取结果图标
 const getResultIcon = (type) => {
   switch (type) {
@@ -574,6 +677,10 @@ const getResultIcon = (type) => {
       return 'bi bi-file-earmark'
     case 'tag':
       return 'bi bi-tag'
+    case 'links':
+      return 'bi bi-link'
+    case 'users':
+      return 'bi bi-person'
     default:
       return 'bi bi-search'
   }
@@ -588,9 +695,24 @@ const getResultTypeName = (type) => {
       return '页面'
     case 'tag':
       return '标签'
+    case 'links':
+      return '友链'
+    case 'users':
+      return '用户'
     default:
       return '未知'
   }
+}
+
+// 获取结果标题（根据类型选择不同字段）
+const getResultTitle = (result) => {
+  if (result.type === 'users') {
+    return result.nickname || result.name || result.title || '未知用户'
+  }
+  if (result.type === 'links') {
+    return result.nickname || result.name || result.title || '未知友链'
+  }
+  return result.title || result.name || '未知'
 }
 
 // 获取搜索占位符
@@ -602,8 +724,12 @@ const getSearchPlaceholder = () => {
       return '搜索页面...'
     case 'tag':
       return '搜索标签...'
+    case 'links':
+      return '搜索友链...'
+    case 'users':
+      return '搜索用户...'
     default:
-      return '搜索文章、页面或标签...'
+      return '搜索文章、页面、标签、友链或用户...'
   }
 }
 
@@ -641,9 +767,22 @@ const navigateToResult = (result) => {
       }
       break
     case 'tag':
-      // 假设标签页面的路由是 /tag/:id
       if (result.id) {
         router.push(`/tag/${result.id}`)
+      }
+      break
+    case 'links':
+      // 友链跳转至外部网站
+      if (result.url) {
+        window.open(result.url, '_blank')
+      } else {
+        toast.error('友链链接无效')
+      }
+      break
+    case 'users':
+      // 用户跳转至用户主页
+      if (result.id) {
+        router.push(`/author/${result.id}`)
       }
       break
     default:
@@ -709,6 +848,69 @@ onUnmounted(() => {
 
 .result-item:hover .card {
   border-color: #0d6efd;
+}
+
+/* 友链结果样式 */
+.result-links .card {
+  border-left: 3px solid #10b981;
+}
+
+.result-links:hover .card {
+  border-color: #059669;
+  border-left-color: #10b981;
+}
+
+/* 用户结果样式 */
+.result-users .card {
+  border-left: 3px solid #8b5cf6;
+}
+
+.result-users:hover .card {
+  border-color: #7c3aed;
+  border-left-color: #8b5cf6;
+}
+
+/* 手机端响应式样式 */
+@media (max-width: 767.98px) {
+  .btn-group .btn {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+    flex-wrap: nowrap;
+  }
+  
+  .btn-group .btn i {
+    font-size: 0.75rem;
+    margin-right: 0.25rem;
+  }
+  
+  .btn-group .btn span {
+    display: none;
+  }
+  
+  .input-group .form-control {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .input-group .btn {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .search-header-content {
+    gap: 0.5rem;
+  }
+}
+
+/* 平板端响应式样式 */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .btn-group .btn {
+    font-size: 0.8125rem;
+    padding: 0.4375rem 0.625rem;
+  }
+  
+  .btn-group .btn i {
+    font-size: 0.8125rem;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
